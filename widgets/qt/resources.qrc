@@ -1,0 +1,6 @@
+<RCC>
+  <qresource prefix="/segmentation/" >
+    <file>icons/seg.gif</file>
+    <file>icons/seg.png</file>
+  </qresource>
+</RCC>
