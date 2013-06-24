@@ -33,12 +33,11 @@ class SegmentationStep(WorkflowStepMountPoint):
     A step that acts like the step plugin duck
     '''
 
-    def __init__(self):
+    def __init__(self, location):
         '''
         Constructor
         '''
-        super(SegmentationStep, self).__init__()
-        self._name = 'Segmentation'
+        super(SegmentationStep, self).__init__('Segmentation', location)
         self._identifier = ''
         self._icon = QtGui.QImage(':/segmentation/icons/seg.gif')
         self.addPort(('pho#workflow#port', 'uses', 'images'))

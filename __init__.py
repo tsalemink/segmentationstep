@@ -28,8 +28,8 @@ if current_dir not in sys.path:
     # Possible problem of OSX10.6 also.
     sys.path.insert(0, current_dir)
 
-from . import resources_rc
-from . import step
+from segmentationstep.widgets import resources_rc
+from segmentationstep import step
 
 (_, tail) = os.path.split(current_dir)
 print("Plugin '{0}' version {1} by {2} loaded".format(tail, __version__, __author__))
