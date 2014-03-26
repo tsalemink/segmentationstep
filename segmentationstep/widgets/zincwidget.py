@@ -32,6 +32,14 @@ def modifier_map(qt_modifiers):
     return modifiers
 # mapping from qt to zinc end
 
+# projectionMode start
+class ProjectionMode(object):
+
+    PARALLEL = 0
+    PERSPECTIVE = 1
+# projectionMode end
+
+
 # selectionMode start
 class SelectionMode(object):
 
@@ -40,7 +48,11 @@ class SelectionMode(object):
     ADDITIVE = 1
 # selectionMode end
 
+
 class ZincWidget(QtOpenGL.QGLWidget):
+
+    # Create a signal to notify when the sceneviewer is ready.
+    graphicsInitialized = QtCore.Signal()
 
     # init start
     def __init__(self, parent=None):
@@ -115,6 +127,7 @@ class ZincWidget(QtOpenGL.QGLWidget):
         scene.setSelectionField(self._selectionGroup)
         self._scene_picker = scene.createScenepicker()
         self._sceneviewer.setScene(scene)
+        self._scene_picker.setScenefilter(graphics_filter)
 
         self.defineStandardGlyphs()
         self._selectionBox = scene.createGraphicsPoints()
@@ -147,14 +160,31 @@ class ZincWidget(QtOpenGL.QGLWidget):
 
         self._scene_viewer_notifier = self._sceneviewer.createSceneviewernotifier()
         self._scene_viewer_notifier.setCallback(self._zincSceneviewerEvent)
+
+        self.graphicsInitialized.emit()
         # initializeGL end
 
-    def getLookAtParameters(self):
+    def setProjectionMode(self, mode):
+        if mode == ProjectionMode.PARALLEL:
+            self._sceneviewer.setProjectionMode(Sceneviewer.PROJECTION_MODE_PARALLEL)
+        elif mode == ProjectionMode.PERSPECTIVE:
+            self._sceneviewer.setProjectionMode(Sceneviewer.PROJECTION_MODE_PERSPECTIVE)
+
+    def getProjectionMode(self):
+        if self._sceneviewer.getProjectionMode() == Sceneviewer.PROJECTION_MODE_PARALLEL:
+            return ProjectionMode.PARALLEL
+        elif self._sceneviewer.getProjectionMode() == Sceneviewer.PROJECTION_MODE_PERSPECTIVE:
+            return ProjectionMode.PERSPECTIVE
+
+    def getViewParameters(self):
         result, eye, lookat, up = self._sceneviewer.getLookatParameters()
         if result == OK:
             return (eye, lookat, up)
 
         return None
+
+    def setViewParameters(self, eye, lookat, up):
+        self._sceneviewer.setLookatParametersNonSkew(eye, lookat, up)
 
     def project(self, x, y, z):
         in_coords = [x, y, z]
@@ -244,13 +274,9 @@ class ZincWidget(QtOpenGL.QGLWidget):
         mesh.defineElement(-1, element_template)
 
     def mapToWidget(self, parent_x, parent_y):
-        '''
-        Have to offset by (4, 4) to make up for the margins? in the
-        layout?
-        '''
         local_pt = self.mapFromParent(QtCore.QPoint(parent_x, parent_y))
-        x = local_pt.x() - 4
-        y = local_pt.y() - 4
+        x = local_pt.x()  # - 4
+        y = local_pt.y()  # - 4
         return x, y
 
     def getNearestGraphicsPoint(self, parent_x, parent_y):
@@ -320,13 +346,7 @@ class ZincWidget(QtOpenGL.QGLWidget):
             if mouseevent.modifiers() & QtCore.Qt.SHIFT:
                 self._selectionMode = SelectionMode.ADDITIVE
         elif not self._ignore_mouse_events and not mouseevent.modifiers() or mouseevent.modifiers() & QtCore.Qt.SHIFT:
-            scene_input = self._sceneviewer.createSceneviewerinput()
-            scene_input.setPosition(mouseevent.x(), mouseevent.y())
-            scene_input.setEventType(Sceneviewerinput.EVENT_TYPE_BUTTON_PRESS)
-            scene_input.setButtonType(button_map[mouseevent.button()])
-            scene_input.setModifierFlags(modifier_map(mouseevent.modifiers()))
-
-            self._sceneviewer.processSceneviewerinput(scene_input)
+            self.processZincMousePressEvent(mouseevent)
             self._handle_mouse_events = True
         else:
             mouseevent.ignore()
@@ -405,12 +425,7 @@ class ZincWidget(QtOpenGL.QGLWidget):
             root_region.endHierarchicalChange()
             self._selectionMode = SelectionMode.NONE
         elif not self._ignore_mouse_events and self._handle_mouse_events:
-            scene_input = self._sceneviewer.createSceneviewerinput()
-            scene_input.setPosition(mouseevent.x(), mouseevent.y())
-            scene_input.setEventType(Sceneviewerinput.EVENT_TYPE_BUTTON_RELEASE)
-            scene_input.setButtonType(button_map[mouseevent.button()])
-
-            self._sceneviewer.processSceneviewerinput(scene_input)
+            self.processZincMouseReleaseEvent(mouseevent)
         else:
             mouseevent.ignore()
 
@@ -438,14 +453,32 @@ class ZincWidget(QtOpenGL.QGLWidget):
             self._selectionBox.setVisibilityFlag(True)
             scene.endChange()
         elif not self._ignore_mouse_events and self._handle_mouse_events:
-            scene_input = self._sceneviewer.createSceneviewerinput()
-            scene_input.setPosition(mouseevent.x(), mouseevent.y())
-            scene_input.setEventType(Sceneviewerinput.EVENT_TYPE_MOTION_NOTIFY)
-            if mouseevent.type() == QtCore.QEvent.Leave:
-                scene_input.setPosition(-1, -1)
-
-            self._sceneviewer.processSceneviewerinput(scene_input)
+            self.processZincMouseMoveEvent(mouseevent)
         else:
             mouseevent.ignore()
 
+    def processZincMousePressEvent(self, mouseevent):
+        scene_input = self._sceneviewer.createSceneviewerinput()
+        scene_input.setPosition(mouseevent.x(), mouseevent.y())
+        scene_input.setEventType(Sceneviewerinput.EVENT_TYPE_BUTTON_PRESS)
+        scene_input.setButtonType(button_map[mouseevent.button()])
+        scene_input.setModifierFlags(modifier_map(mouseevent.modifiers()))
 
+        self._sceneviewer.processSceneviewerinput(scene_input)
+
+    def processZincMouseMoveEvent(self, mouseevent):
+        scene_input = self._sceneviewer.createSceneviewerinput()
+        scene_input.setPosition(mouseevent.x(), mouseevent.y())
+        scene_input.setEventType(Sceneviewerinput.EVENT_TYPE_MOTION_NOTIFY)
+        if mouseevent.type() == QtCore.QEvent.Leave:
+            scene_input.setPosition(-1, -1)
+
+        self._sceneviewer.processSceneviewerinput(scene_input)
+
+    def processZincMouseReleaseEvent(self, mouseevent):
+        scene_input = self._sceneviewer.createSceneviewerinput()
+        scene_input.setPosition(mouseevent.x(), mouseevent.y())
+        scene_input.setEventType(Sceneviewerinput.EVENT_TYPE_BUTTON_RELEASE)
+        scene_input.setButtonType(button_map[mouseevent.button()])
+
+        self._sceneviewer.processSceneviewerinput(scene_input)

@@ -33,6 +33,7 @@ class GroupBox(QtGui.QGroupBox):
 #             QtGui.QGroupBox.mousePressEvent(mouseevent)
 
     def mouseMoveEvent(self, mouseevent):
+        print('groupbox')
         mouseevent.ignore()
 
     def mouseReleaseEvent(self, mouseevent):

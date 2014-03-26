@@ -21,7 +21,7 @@ import os
 
 from PySide import QtGui, QtCore
 
-from mountpoints.workflowstep import WorkflowStepMountPoint
+from mapclient.mountpoints.workflowstep import WorkflowStepMountPoint
 
 from segmentationstep.widgets.segmentationwidget import SegmentationWidget
 from segmentationstep.widgets.configuredialog import ConfigureDialog, ConfigureDialogState
@@ -40,9 +40,10 @@ class SegmentationStep(WorkflowStepMountPoint):
         super(SegmentationStep, self).__init__('Segmentation', location)
         self._identifier = ''
         self._icon = QtGui.QImage(':/segmentation/icons/seg.gif')
-        self.addPort(('pho#workflow#port', 'uses', 'images'))
-        self.addPort(('pho#workflow#port', 'provides', 'pointcloud'))
+        self.addPort(('http://physiomeproject.org/workflow/1.0/rdf-schema#port', 'http://physiomeproject.org/workflow/1.0/rdf-schema#uses', 'http://physiomeproject.org/workflow/1.0/rdf-schema#images'))
+        self.addPort(('http://physiomeproject.org/workflow/1.0/rdf-schema#port', 'http://physiomeproject.org/workflow/1.0/rdf-schema#provides', 'http://physiomeproject.org/workflow/1.0/rdf-schema#pointcloud'))
         self._widget = None
+        self._dataIn = None
 #        self._configured = True
         self._state = ConfigureDialogState()
 
@@ -77,14 +78,16 @@ class SegmentationStep(WorkflowStepMountPoint):
         d = ConfigureDialog(self._state)
         self._configured = d.validate()
 
-    def execute(self, dataIn):
+    def setPortOutput(self, portId, dataIn):
+        self._dataIn = dataIn
+
+    def getPortOutput(self, portId):
+        return self._widget.getPointCloud()
+
+    def execute(self):
         if not self._widget:
-            self._widget = SegmentationWidget(dataIn)
+            self._widget = SegmentationWidget(self._dataIn)
             self._widget._ui.doneButton.clicked.connect(self._doneExecution)
 
         self._setCurrentUndoRedoStack(self._widget.undoRedoStack())
         self._setCurrentWidget(self._widget)
-
-    def portOutput(self):
-        point_cloud = self._widget.getPointCloud()
-        return point_cloud
