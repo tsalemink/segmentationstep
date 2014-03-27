@@ -23,6 +23,7 @@ from math import sqrt, acos, pi, sin, cos
 from PySide import QtGui, QtCore
 
 from segmentationstep.widgets.ui_segmentationwidget import Ui_SegmentationWidget
+from segmentationstep.undoredo import CommandMovePlane
 
 from opencmiss.zinc.context import Context
 from opencmiss.zinc.field import Field
@@ -115,6 +116,83 @@ class FakeMouseEvent(object):
         return self._y
 
 
+class PlaneMovementMode(object):
+
+    NONE = 1
+    NORMAL = 2
+    ROTATION = 4
+
+
+
+class PlaneMovement(object):
+
+    def __init__(self, mode=PlaneMovementMode.NONE):
+        self._mode = mode
+        self._active = False
+
+    def isActive(self):
+        return self._active
+
+    def mode(self):
+        return self._mode
+
+    def leave(self):
+        pass
+
+    def enter(self):
+        pass
+
+
+class PlaneMovementGlyph(PlaneMovement):
+
+    def __init__(self, mode):
+        super(PlaneMovementGlyph, self).__init__(mode)
+        self._default_material = None
+        self._active_material = None
+        self._glyph = None
+
+    def setDefaultMaterial(self, material):
+        self._default_material = material
+
+    def setActiveMaterial(self, material):
+        self._active_material = material
+
+    def setActive(self, active=True):
+        self._active = active
+        if self._glyph and active:
+            self._glyph.setMaterial(self._active_material)
+        elif self._glyph and not active:
+            self._glyph.setMaterial(self._default_material)
+
+    def setGlyph(self, glyph):
+        self._glyph = glyph
+
+    def enter(self):
+        self.setActive(False)
+        self._glyph.setVisibilityFlag(True)
+
+    def leave(self):
+        self.setActive(False)
+        self._glyph.setVisibilityFlag(False)
+
+
+class PlaneDescription(object):
+
+    def __init__(self, point, normal, centre):
+        self._point = point
+        self._normal = normal
+        self._centre = centre
+
+    def getPoint(self):
+        return self._point
+
+    def getNormal(self):
+        return self._normal
+
+    def getCentre(self):
+        return self._centre
+
+
 class ViewState(object):
 
     def __init__(self):
@@ -195,8 +273,6 @@ class SegmentationWidget(QtGui.QWidget):
         self._image_data_location = ''
         self._dimensions = []
         self._maxdim = 100
-        self._plane_rotation_mode = None
-        self._plane_rotation_mode_move = False
 
         self._debug_print = False
 
@@ -206,6 +282,12 @@ class SegmentationWidget(QtGui.QWidget):
         self._counter = 0
 
         self._viewstate = None
+
+        # Set up the states of the plane movement modes
+        self._modes = {PlaneMovementMode.NONE: PlaneMovement(PlaneMovementMode.NONE),
+                       PlaneMovementMode.NORMAL: PlaneMovementGlyph(PlaneMovementMode.NORMAL),
+                       PlaneMovementMode.ROTATION: PlaneMovementGlyph(PlaneMovementMode.ROTATION)}
+        self._active_mode = self._modes[PlaneMovementMode.NONE]
 
         self._undoStack = QtGui.QUndoStack()
 
@@ -249,7 +331,8 @@ class SegmentationWidget(QtGui.QWidget):
         scene = self._iso_graphic.getScene()
         scene.beginChange()
         self._plane_normal_field.assignReal(fieldcache, normal)
-        self._point_on_plane.assignReal(fieldcache, point)
+        self._point_on_plane_field.assignReal(fieldcache, point)
+        self._setPlaneRotationCentreGlyphPosition(point)
         scene.endChange()
 
     def _getPlaneNormal(self):
@@ -260,7 +343,7 @@ class SegmentationWidget(QtGui.QWidget):
         return normal
 
     def _setPlaneNormal(self, normal):
-        fieldmodule = self._point_on_plane.getFieldmodule()
+        fieldmodule = self._point_on_plane_field.getFieldmodule()
         fieldcache = fieldmodule.createFieldcache()
         scene = self._iso_graphic.getScene()
         scene.beginChange()
@@ -268,17 +351,18 @@ class SegmentationWidget(QtGui.QWidget):
         scene.endChange()
 
     def _setPointOnPlane(self, point):
-        fieldmodule = self._point_on_plane.getFieldmodule()
+        fieldmodule = self._point_on_plane_field.getFieldmodule()
         fieldcache = fieldmodule.createFieldcache()
         scene = self._iso_graphic.getScene()
         scene.beginChange()
-        self._point_on_plane.assignReal(fieldcache, point)
+        self._point_on_plane_field.assignReal(fieldcache, point)
+        self._setPlaneRotationCentreGlyphPosition(point)
         scene.endChange()
 
     def _getPointOnPlane(self):
-        fieldmodule = self._point_on_plane.getFieldmodule()
+        fieldmodule = self._point_on_plane_field.getFieldmodule()
         fieldcache = fieldmodule.createFieldcache()
-        _, point = self._point_on_plane.evaluateReal(fieldcache, 3)
+        _, point = self._point_on_plane_field.evaluateReal(fieldcache, 3)
 
         return point
 
@@ -293,7 +377,7 @@ class SegmentationWidget(QtGui.QWidget):
         self._viewstate.setViewParameters(eye, lookat, up)
         self._viewstate.setPointOnPlane(self._getPointOnPlane())
         self._viewstate.setPlaneNormal(self._getPlaneNormal())
-        self._viewstate.setPlaneRotationMode(self._plane_rotation_mode)
+        self._viewstate.setPlaneRotationMode(self._getMode())
         self._viewstate.setProjectionMode(self._ui.zinc_widget.getProjectionMode())
         self._viewstate.setPlaneNormalGlyphBaseSize(self._ui._doubleSpinBoxNormalArrow.value())
         self._viewstate.setPlaneRotationCentreGlyphBaseSize(self._ui._doubleSpinBoxRotationCentre.value())
@@ -327,11 +411,11 @@ class SegmentationWidget(QtGui.QWidget):
 
     def _zincWidgetModeChanged(self):
         if self.sender() == self._ui._radioButtonSegment:
-            self._setMode(None)
+            self._setMode(PlaneMovementMode.NONE)
         elif self.sender() == self._ui._radioButtonMove:
-            self._setMode('normal')
+            self._setMode(PlaneMovementMode.NORMAL)
         elif self.sender() == self._ui._radioButtonRotate:
-            self._setMode('rotation')
+            self._setMode(PlaneMovementMode.ROTATION)
 
     def _iconSizeChanged(self):
         if self.sender() == self._ui._doubleSpinBoxNormalArrow:
@@ -364,16 +448,6 @@ class SegmentationWidget(QtGui.QWidget):
         scaled_dimensions = elmult(self._dimensions, scale)
         return scaled_dimensions
 
-    def _updatePlaneCentre(self):
-        plane_centre = self._calculatePlaneCentre()
-        fieldmodule = self._point_on_plane.getFieldmodule()
-        fieldcache = fieldmodule.createFieldcache()
-        fieldmodule.beginChange()
-        self._point_on_plane.assignReal(fieldcache, plane_centre)
-        self._setPlaneRotationCentreGlyphPosition(plane_centre)
-        self._setPlaneNormalGlyphPosition(plane_centre)
-        fieldmodule.endChange()
-
     def _setImageScale(self, scale):
         fieldmodule = self._scale_field.getFieldmodule()
         fieldcache = fieldmodule.createFieldcache()
@@ -382,7 +456,9 @@ class SegmentationWidget(QtGui.QWidget):
         image_field = self._material.getTextureField(1).castImage()
         scaled_dimensions = elmult(self._dimensions, scale)
         image_field.setTextureCoordinateSizes(scaled_dimensions)
-        self._updatePlaneCentre()
+        plane_centre = self._calculatePlaneCentre()
+        self._setPlaneNormalGlyphPosition(plane_centre)
+        self._setPointOnPlane(plane_centre)
         fieldmodule.endChange()
 
     def _createMaterialUsingImageField(self):
@@ -466,14 +542,18 @@ class SegmentationWidget(QtGui.QWidget):
 
         # Create the three scalar fields in the x, y, z directions
         # ## x component
-    def _createIsoScalarField(self, region, finite_element_field):
-        field_module = region.getFieldmodule()
-        self._plane_normal_field = field_module.createFieldConstant([1, 0, 0])
 
-        self._point_on_plane = field_module.createFieldConstant([0, 0, 0])
+    def _createPlaneNormalField(self, fieldmodule):
+        plane_normal_field = fieldmodule.createFieldConstant([1, 0, 0])
+        return plane_normal_field
 
-        d = field_module.createFieldDotProduct(self._plane_normal_field, self._point_on_plane)
-        iso_scalar_field = field_module.createFieldDotProduct(finite_element_field, self._plane_normal_field) - d
+    def _createPointOnPlaneField(self, fieldmodule):
+        point_on_plane_field = fieldmodule.createFieldConstant([0, 0, 0])
+        return point_on_plane_field
+
+    def _createIsoScalarField(self, fieldmodule, finite_element_field, plane_normal_field, point_on_plane_field):
+        d = fieldmodule.createFieldDotProduct(plane_normal_field, point_on_plane_field)
+        iso_scalar_field = fieldmodule.createFieldDotProduct(finite_element_field, plane_normal_field) - d
 
         return iso_scalar_field
 
@@ -482,15 +562,7 @@ class SegmentationWidget(QtGui.QWidget):
         To visualize the 3D finite element that we have created for each _surface_region, we use a 
         surface graphic then set a _material for that surface to use.
         '''
-#         graphics_module = self._context.getGraphicsmodule()
-        # we iterate over the regions that we kept a handle to and use an index to get a
-        # matching list of graphic _material names
-        # for i, _surface_region in enumerate(self.regions_):
-#         region = finite_element_field.getFieldmodule().getRegion()
         scene = region.getScene()
-#         field_module = region.getFieldmodule()
-        # search the graphic module for the current graphic _material
-#         self._material = graphics_module.findMaterialByName('texture_block')
 
         scene.beginChange()
         # Create a surface graphic and set it's coordinate field to the finite element coordinate field
@@ -562,57 +634,74 @@ class SegmentationWidget(QtGui.QWidget):
         scene.beginChange()
 
         # Create transparent purple sphere
-        self._plane_rotation_sphere = scene.createGraphicsPoints()
-        self._plane_rotation_sphere.setFieldDomainType(Field.DOMAIN_TYPE_POINT)
-        self._plane_rotation_sphere.setMaterial(self._purple_material)
-        self._plane_rotation_sphere.setVisibilityFlag(False)
-        tessellation = self._plane_rotation_sphere.getTessellation()
+        plane_rotation_sphere = scene.createGraphicsPoints()
+        plane_rotation_sphere.setFieldDomainType(Field.DOMAIN_TYPE_POINT)
+        plane_rotation_sphere.setVisibilityFlag(False)
+        tessellation = plane_rotation_sphere.getTessellation()
         tessellation.setCircleDivisions(24)
-        self._plane_rotation_sphere.setTessellation(tessellation)
-        attributes = self._plane_rotation_sphere.getGraphicspointattributes()
+        plane_rotation_sphere.setTessellation(tessellation)
+        attributes = plane_rotation_sphere.getGraphicspointattributes()
         attributes.setGlyphShapeType(Glyph.SHAPE_TYPE_SPHERE)
         attributes.setBaseSize(DEFAULT_ROTATION_CENTRE_SIZE)
 
         scene.endChange()
 
-    def _createPlaneNormalIndicator(self, region, finite_element_field):
+        return plane_rotation_sphere
+
+    def _createPlaneNormalIndicator(self, region, finite_element_field, plane_normal_field):
         scene = region.getScene()
 
         scene.beginChange()
         # Create transparent purple sphere
-        self._plane_normal_indicator = scene.createGraphicsPoints()
-        self._plane_normal_indicator.setFieldDomainType(Field.DOMAIN_TYPE_POINT)
-        self._plane_normal_indicator.setMaterial(self._yellow_material)
-        self._plane_normal_indicator.setVisibilityFlag(False)
+        plane_normal_indicator = scene.createGraphicsPoints()
+        plane_normal_indicator.setFieldDomainType(Field.DOMAIN_TYPE_POINT)
+        plane_normal_indicator.setVisibilityFlag(False)
 
         fm = region.getFieldmodule()
         zero_field = fm.createFieldConstant([0, 0, 0])
-        self._plane_normal_indicator.setCoordinateField(zero_field)
+        plane_normal_indicator.setCoordinateField(zero_field)
 
-        attributes = self._plane_normal_indicator.getGraphicspointattributes()
+        attributes = plane_normal_indicator.getGraphicspointattributes()
         attributes.setGlyphShapeType(Glyph.SHAPE_TYPE_ARROW_SOLID)
         attributes.setBaseSize([DEFAULT_NORMAL_ARROW_SIZE, DEFAULT_NORMAL_ARROW_SIZE / 4, DEFAULT_NORMAL_ARROW_SIZE / 4])
         attributes.setScaleFactors([0, 0, 0])
-        attributes.setOrientationScaleField(self._plane_normal_field)
+        attributes.setOrientationScaleField(plane_normal_field)
 #         attributes.setLabelField(zero_field)
 
         scene.endChange()
 
-    def _createHandlesForUsedMaterials(self):
+        return plane_normal_indicator
+
+    def _setGlyphsForGlyphModes(self, rotation_glyph, normal_glyph):
+        normal_mode = self._modes[PlaneMovementMode.NORMAL]
+        normal_mode.setGlyph(normal_glyph)
+        rotation_mode = self._modes[PlaneMovementMode.ROTATION]
+        rotation_mode.setGlyph(rotation_glyph)
+
+    def _setMaterialsForGlyphModes(self):
+        '''
+        Set the materials for the modes that have glyphs.
+        '''
         materialmodule = self._context.getMaterialmodule()
-        self._yellow_material = materialmodule.findMaterialByName('yellow')
-        self._orange_material = materialmodule.findMaterialByName('orange')
+        yellow_material = materialmodule.findMaterialByName('yellow')
+        orange_material = materialmodule.findMaterialByName('orange')
 
         purple_material = materialmodule.createMaterial()
         purple_material.setName('purple')
         purple_material.setAttributeReal3(Material.ATTRIBUTE_AMBIENT, [0.4, 0.0, 0.6])
         purple_material.setAttributeReal3(Material.ATTRIBUTE_DIFFUSE, [0.4, 0.0, 0.6])
         purple_material.setAttributeReal(Material.ATTRIBUTE_ALPHA, 0.4)
-        self._purple_material = purple_material
 
         red_material = materialmodule.findMaterialByName('red')
         red_material.setAttributeReal(Material.ATTRIBUTE_ALPHA, 0.4)
-        self._red_material = red_material
+
+        normal_mode = self._modes[PlaneMovementMode.NORMAL]
+        normal_mode.setDefaultMaterial(yellow_material)
+        normal_mode.setActiveMaterial(orange_material)
+
+        rotation_mode = self._modes[PlaneMovementMode.ROTATION]
+        rotation_mode.setDefaultMaterial(purple_material)
+        rotation_mode.setActiveMaterial(red_material)
 
     def setImageDirectory(self, imagedir):
         self._image_data_location = imagedir
@@ -620,7 +709,7 @@ class SegmentationWidget(QtGui.QWidget):
     def showImages(self):
         self._ui.zinc_widget.defineStandardMaterials()
         self._ui.zinc_widget.defineStandardGlyphs()
-        self._createHandlesForUsedMaterials()
+        self._setMaterialsForGlyphModes()
         self._createMaterialUsingImageField()
         self._updateImageUI()
         region = self._context.getDefaultRegion().createChild('image')
@@ -631,13 +720,17 @@ class SegmentationWidget(QtGui.QWidget):
 
         self._createFiniteElement(region, finite_element_field, self._dimensions)
 
-        iso_scalar_field = self._createIsoScalarField(region, scaled_finite_element_field)
+        self._plane_normal_field = self._createPlaneNormalField(fieldmodule)
+        self._point_on_plane_field = self._createPointOnPlaneField(fieldmodule)
+        iso_scalar_field = self._createIsoScalarField(fieldmodule, scaled_finite_element_field, self._plane_normal_field, self._point_on_plane_field)
         self._createTextureSurface(region, scaled_finite_element_field, iso_scalar_field)
         self._createNodeLabels(region, scaled_finite_element_field)
-        self._createPlaneManipulationSphere(region, scaled_finite_element_field)
-        self._createPlaneNormalIndicator(region, scaled_finite_element_field)
-        self._setPointOnPlane(self._calculatePlaneCentre())
-
+        self._plane_rotation_glyph = self._createPlaneManipulationSphere(region, scaled_finite_element_field)
+        self._plane_normal_glyph = self._createPlaneNormalIndicator(region, scaled_finite_element_field, self._plane_normal_field)
+        self._setGlyphsForGlyphModes(self._plane_rotation_glyph, self._plane_normal_glyph)
+        plane_centre = self._calculatePlaneCentre()
+        self._setPlaneNormalGlyphPosition(plane_centre)
+        self._setPointOnPlane(plane_centre)
 
 #         self._createTestPoints()
 
@@ -698,9 +791,9 @@ class SegmentationWidget(QtGui.QWidget):
         return bounded_coords
 
     def _setPlaneRotationCentreGlyphBaseSize(self, base_size):
-        scene = self._plane_rotation_sphere.getScene()
+        scene = self._plane_rotation_glyph.getScene()
         scene.beginChange()
-        attributes = self._plane_rotation_sphere.getGraphicspointattributes()
+        attributes = self._plane_rotation_glyph.getGraphicspointattributes()
         _, cur_base_size = attributes.getBaseSize(1)
         _, position = attributes.getGlyphOffset(3)
         true_position = mult(position, cur_base_size)
@@ -709,54 +802,65 @@ class SegmentationWidget(QtGui.QWidget):
         scene.endChange()
 
     def _setPlaneRotationCentreGlyphPosition(self, position):
-        scene = self._plane_rotation_sphere.getScene()
+        scene = self._plane_rotation_glyph.getScene()
         scene.beginChange()
-        attributes = self._plane_rotation_sphere.getGraphicspointattributes()
+        attributes = self._plane_rotation_glyph.getGraphicspointattributes()
         _, base_size = attributes.getBaseSize(1)
         attributes.setGlyphOffset(div(position, base_size))
         scene.endChange()
 
     def _getPlaneRotationCentreGlyphPosition(self):
-        attributes = self._plane_rotation_sphere.getGraphicspointattributes()
+        attributes = self._plane_rotation_glyph.getGraphicspointattributes()
         _, base_size = attributes.getBaseSize(1)
         _, position = attributes.getGlyphOffset(3)
 
         return mult(position, base_size)
 
     def _setPlaneNormalGlyphBaseSize(self, base_size):
-#         scene = self._plane_normal_indicator.getScene()
+#         scene = self._plane_normal_glyph.getScene()
 #         scene.beginChange()
-        attributes = self._plane_normal_indicator.getGraphicspointattributes()
+        attributes = self._plane_normal_glyph.getGraphicspointattributes()
         attributes.setBaseSize([base_size, base_size / 4, base_size / 4])
 
     def _setPlaneNormalGlyphPosition(self, position):
-        scene = self._plane_normal_indicator.getScene()
+        '''
+        This is synonymous with setting the plane centre.
+        '''
+        scene = self._plane_normal_glyph.getScene()
         scene.beginChange()
-#         attributes = self._plane_normal_indicator.getGraphicspointattributes()
-        position_field = self._plane_normal_indicator.getCoordinateField()
+#         attributes = self._plane_normal_glyph.getGraphicspointattributes()
+        position_field = self._plane_normal_glyph.getCoordinateField()
         fieldmodule = position_field.getFieldmodule()
         fieldcache = fieldmodule.createFieldcache()
         position_field.assignReal(fieldcache, position)
 
-#         _, base_size = attributes.getBaseSize(3)
-#         print(eldiv(position, base_size))
-#         attributes.setGlyphOffset(eldiv(position, base_size))
-#         attributes.setGlyphOffset(position)
         scene.endChange()
 
-    def _showPlaneRotationCentreGlyph(self, plane_centre):
-        self._setPlaneRotationCentreGlyphPosition(plane_centre)
-        self._plane_rotation_sphere.setVisibilityFlag(True)
+    def _getPlaneNormalGlyphPosition(self):
+        '''
+        This is synonymous with getting the plane centre.
+        '''
+        position_field = self._plane_normal_glyph.getCoordinateField()
+        fieldmodule = position_field.getFieldmodule()
+        fieldcache = fieldmodule.createFieldcache()
+        _, position = position_field.evaluateReal(fieldcache, 3)
 
-    def _showPlaneNormalGlyph(self, plane_centre):
-        self._setPlaneNormalGlyphPosition(plane_centre)
-        self._plane_normal_indicator.setVisibilityFlag(True)
+        return position
 
-    def _hidePlaneRotationCentreGlyph(self):
-        self._plane_rotation_sphere.setVisibilityFlag(False)
 
-    def _hidePlaneNormalGlyph(self):
-        self._plane_normal_indicator.setVisibilityFlag(False)
+#     def _showPlaneRotationCentreGlyph(self, plane_centre):
+#         self._setPlaneRotationCentreGlyphPosition(plane_centre)
+#         self._plane_rotation_glyph.setVisibilityFlag(True)
+#
+#     def _showPlaneNormalGlyph(self, plane_centre):
+#         self._setPlaneNormalGlyphPosition(plane_centre)
+#         self._plane_normal_glyph.setVisibilityFlag(True)
+#
+#     def _hidePlaneRotationCentreGlyph(self):
+#         self._plane_rotation_glyph.setVisibilityFlag(False)
+#
+#     def _hidePlaneNormalGlyph(self):
+#         self._plane_normal_glyph.setVisibilityFlag(False)
 
     def keyPressEvent(self, keyevent):
         if keyevent.key() == 68 and not self._debug_print:
@@ -767,7 +871,7 @@ class SegmentationWidget(QtGui.QWidget):
             # falsify plane rotation mode
             self._plane_centre_position = self._calculatePlaneCentre()
             self._showPlaneRotationCentreGlyph(self._plane_centre_position)
-            self._plane_rotation_mode = True
+            self._plane_movement_type = True
             me = FakeMouseEvent(666, 180)
             self.mousePressEvent(me)
 
@@ -777,38 +881,21 @@ class SegmentationWidget(QtGui.QWidget):
 
         if self._counter > 10:
             self._hidePlaneRotationCentreGlyph()
-            self._plane_rotation_mode = False
+            self._plane_movement_type = False
             self._timer.stop()
 
         self._counter += 1
 
-    def _setMode(self, mode):
-        if mode is None and self._plane_rotation_mode is None:
-            return
-        elif mode and mode == self._plane_rotation_mode:
-            return
-        else:
-            self._plane_rotation_mode = None
-            plane_centre = self._calculatePlaneCentre()
-            if not plane_centre:
-                raise Exception('Reset plane to somewhere?')
-#             self._plane_centre_position = plane_centre
-            self._plane_rotation_mode_move = False
-            self._plane_normal_indicator.setMaterial(self._yellow_material)
-            self._plane_rotation_sphere.setMaterial(self._purple_material)
-            if mode is None:
-                self._hidePlaneRotationCentreGlyph()
-                self._hidePlaneNormalGlyph()
-            elif mode and mode == 'rotation':
-                self._hidePlaneNormalGlyph()
-                self._showPlaneRotationCentreGlyph(plane_centre)
-                self._plane_rotation_mode = 'rotation'
-            elif mode and mode == 'normal':
-                self._hidePlaneRotationCentreGlyph()
-                self._showPlaneNormalGlyph(plane_centre)
-                self._plane_rotation_mode = 'normal'
+    def _getMode(self):
+        return self._active_mode.mode()
 
-            self._ui.zinc_widget.setIgnoreMouseEvents(self._plane_rotation_mode)
+    def _setMode(self, mode):
+        if mode != self._getMode():
+            self._active_mode.leave()
+            self._active_mode = self._modes[mode]
+            self._active_mode.enter()
+
+            self._ui.zinc_widget.setIgnoreMouseEvents(mode != PlaneMovementMode.NONE)
 
 
     def keyReleaseEvent(self, keyevent):
@@ -816,48 +903,58 @@ class SegmentationWidget(QtGui.QWidget):
             # Put tool into plane rotation mode
             # show sphere centre glyph
             reverse = keyevent.modifiers() & QtCore.Qt.SHIFT
-            if self._plane_rotation_mode is None:
+            cur_mode = self._getMode()
+            if cur_mode == PlaneMovementMode.NONE:
                 if reverse:
-                    self._setMode('rotation')
+                    self._setMode(PlaneMovementMode.ROTATION)
                 else:
-                    self._setMode('normal')
-            elif self._plane_rotation_mode == 'normal':
+                    self._setMode(PlaneMovementMode.NORMAL)
+            elif cur_mode == PlaneMovementMode.NORMAL:
                 if reverse:
-                    self._setMode(None)
+                    self._setMode(PlaneMovementMode.NONE)
                 else:
-                    self._setMode('rotation')
-            elif self._plane_rotation_mode == 'rotation':
+                    self._setMode(PlaneMovementMode.ROTATION)
+            elif cur_mode == PlaneMovementMode.ROTATION:
                 if reverse:
-                    self._setMode('normal')
+                    self._setMode(PlaneMovementMode.NORMAL)
                 else:
-                    self._setMode(None)
+                    self._setMode(PlaneMovementMode.NONE)
 
         if keyevent.key() == 68 and not keyevent.isAutoRepeat():
             self._debug_print = False
 
+    def _startPlaneMovement(self, movement_type):
+        pass
+
+    def _performPlaneMovement(self, movement_type):
+        pass
+
+    def _endPlaneMovement(self, movement_type):
+        pass
+
     def mousePressEvent(self, mouseevent):
         self._previous_mouse_position = None
-        if self._plane_rotation_mode:
-            self._plane_rotation_mode_move = False
+        cur_mode = self._getMode()
+        if cur_mode != PlaneMovementMode.NONE:
             self._plane_rotation_mode_graphic = self._ui.zinc_widget.getNearestGraphicsPoint(mouseevent.x(), mouseevent.y())
             if self._plane_rotation_mode_graphic:
-                self._plane_rotation_mode_move = True
-                if self._plane_rotation_mode == 'rotation':
-                    self._plane_rotation_mode_graphic.setMaterial(self._red_material)
-                elif self._plane_rotation_mode == 'normal':
-                    self._plane_rotation_mode_graphic.setMaterial(self._orange_material)
+                self._active_mode.setActive()
 
             self._previous_mouse_position = [mouseevent.x(), mouseevent.y()]
 
-            if not self._plane_rotation_mode_move and self._plane_rotation_mode == 'normal':
+            if not self._active_mode.isActive() and cur_mode == PlaneMovementMode.NORMAL:
                 self._ui.zinc_widget.processZincMousePressEvent(mouseevent)
+            else:
+                self._start_plane = PlaneDescription(self._getPointOnPlane(), self._getPlaneNormal(), self._getPlaneNormalGlyphPosition())
 
         elif mouseevent.modifiers() & QtCore.Qt.CTRL and button_map[mouseevent.button()] == Sceneviewerinput.BUTTON_TYPE_RIGHT:
             self._previous_mouse_position = [mouseevent.x(), mouseevent.y()]
 #             print([mouseevent.x() - 118, -(mouseevent.y() - 33), 0.9], [mouseevent.x() - 118, -(mouseevent.y() - 33), -0.9])
 
     def mouseMoveEvent(self, mouseevent):
-        if self._plane_rotation_mode == 'rotation' and self._plane_rotation_mode_move:
+        cur_mode = self._getMode()
+        is_active = self._active_mode.isActive()
+        if is_active and cur_mode == PlaneMovementMode.ROTATION:
             point_on_plane = self._getPointOnPlane()  # self._plane_centre_position  # self._getPointOnPlane()
             plane_normal = self._getPlaneNormal()
 
@@ -873,9 +970,7 @@ class SegmentationWidget(QtGui.QWidget):
                 self._setPointOnPlane(new_plane_centre)
 #                 self._plane_centre_position = new_plane_centre
 
-        if self._plane_rotation_mode == 'rotation' and not self._plane_rotation_mode_move:  # self._plane_rotation_mode:
-
-
+        elif not is_active and cur_mode == PlaneMovementMode.ROTATION:
             width = self._ui.zinc_widget.width()
             height = self._ui.zinc_widget.height()
             radius = min([width, height]) / 2.0
@@ -911,25 +1006,23 @@ class SegmentationWidget(QtGui.QWidget):
                 axis[2] = sin(phi) * a[2] + cos(phi) * e[2]
 
                 plane_normal = self._getPlaneNormal()
-                plane_centre = self._getPlaneRotationCentreGlyphPosition()
+                point_on_plane = self._getPlaneRotationCentreGlyphPosition()
 
                 plane_normal_prime_1 = mult(plane_normal, cos(angle))
                 plane_normal_prime_2 = mult(plane_normal, dot(plane_normal, axis) * (1 - cos(angle)))
                 plane_normal_prime_3 = mult(cross(axis, plane_normal), sin(angle))
                 plane_normal_prime = add(add(plane_normal_prime_1, plane_normal_prime_2), plane_normal_prime_3)
 
-                self._setPlaneEquation(plane_normal_prime, plane_centre)
+                self._setPlaneEquation(plane_normal_prime, point_on_plane)
 
                 self._previous_mouse_position = [mouseevent.x(), mouseevent.y()]
-        if self._plane_rotation_mode == 'normal' and self._plane_rotation_mode_move:
-            pos = self._getPointOnPlane()  # self._plane_centre_position  # self._getPointOnPlane()
+        elif is_active and cur_mode == PlaneMovementMode.NORMAL:
+            pos = self._getPlaneNormalGlyphPosition()  # self._plane_centre_position  # self._getPointOnPlane()
             screen_pos = self._ui.zinc_widget.project(pos[0], pos[1], pos[2])
             global_cur_pos = self._ui.zinc_widget.unproject(mouseevent.x(), -mouseevent.y(), screen_pos[2])
             global_old_pos = self._ui.zinc_widget.unproject(self._previous_mouse_position[0], -self._previous_mouse_position[1], screen_pos[2])
-#             pos_diff = [mouseevent.x() - self._previous_mouse_position[0], mouseevent.y() - self._previous_mouse_position[1], 0]
-#             global_pos_diff = self._ui.zinc_widget.unproject(pos_diff[0], pos_diff[1], pos_diff[2])
             global_pos_diff = sub(global_cur_pos, global_old_pos)
-#             print(global_pos_diff)
+
             n = self._getPlaneNormal()
             proj_n = mult(n, dot(global_pos_diff, n))
             new_pos = add(pos, proj_n)
@@ -940,22 +1033,29 @@ class SegmentationWidget(QtGui.QWidget):
             if plane_centre is None:
                 self._setPointOnPlane(pos)
             else:
-#                 plane_centre = self._calculatePlaneCentre()
-#             self._plane_centre_position = new_pos
                 self._setPlaneNormalGlyphPosition(plane_centre)
-#             print(pos, proj_n, new_pos)
+                self._setPointOnPlane(plane_centre)
+
             scene.endChange()
             self._previous_mouse_position = [mouseevent.x(), mouseevent.y()]
-        elif self._plane_rotation_mode == 'normal' and not self._plane_rotation_mode_move:
+        elif not is_active and cur_mode == PlaneMovementMode.NORMAL:
             self._ui.zinc_widget.processZincMouseMoveEvent(mouseevent)
 
     def mouseReleaseEvent(self, mouseevent):
-        if self._plane_rotation_mode == 'normal' and self._plane_rotation_mode_move:
-            self._plane_rotation_mode_graphic.setMaterial(self._yellow_material)
-        elif self._plane_rotation_mode == 'normal' and not self._plane_rotation_mode_move:
+        c = None
+        end_plane = PlaneDescription(self._getPointOnPlane(), self._getPlaneNormal(), self._getPlaneNormalGlyphPosition())
+        if self._active_mode.isActive():
+            self._active_mode.setActive(False)
+
+            c = CommandMovePlane(self._start_plane, end_plane)
+        elif self._getMode() == PlaneMovementMode.NORMAL:
             self._ui.zinc_widget.processZincMouseReleaseEvent(mouseevent)
-        elif self._plane_rotation_mode == 'rotation' and self._plane_rotation_mode_move:
-            self._plane_rotation_mode_graphic.setMaterial(self._purple_material)
+        else:
+            c = CommandMovePlane(self._start_plane, end_plane)
+
+        if not c is None:
+            c.setMethodCallbacks(self._setPlaneNormalGlyphPosition, self._setPlaneEquation)
+            self._undoStack.push(c)
 
     def undoRedoStack(self):
         return self._undoStack

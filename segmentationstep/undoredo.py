@@ -52,3 +52,27 @@ class CommandAdd(QtGui.QUndoCommand):
         nodeset.destroyNode(self._node)
 
         self._updateGL()
+
+
+class CommandMovePlane(QtGui.QUndoCommand):
+
+    def __init__(self, plane_start, plane_end):
+        super(CommandMovePlane, self).__init__()
+        self._plane_start = plane_start
+        self._plane_end = plane_end
+        self._set_plane_centre_method = None
+        self._set_plane_equation_method = None
+
+    def redo(self):
+        self._set_plane_centre_method(self._plane_end.getCentre())
+        self._set_plane_equation_method(self._plane_end.getNormal(), self._plane_end.getPoint())
+
+    def undo(self):
+        self._set_plane_centre_method(self._plane_start.getCentre())
+        self._set_plane_equation_method(self._plane_start.getNormal(), self._plane_start.getPoint())
+
+    def setMethodCallbacks(self, plane_centre, plane_equation):
+        self._set_plane_centre_method = plane_centre
+        self._set_plane_equation_method = plane_equation
+
+

@@ -339,7 +339,7 @@ class ZincWidget(QtOpenGL.QGLWidget):
         '''
         Inform the scene viewer of a mouse press event.
         '''
-        self._handle_mouse_events = False
+        self._handle_mouse_events = False  # Track when the zinc should be handling mouse events
         if not self._ignore_mouse_events and (mouseevent.modifiers() & QtCore.Qt.CTRL) and (self._nodeSelectMode or self._elemSelectMode) and button_map[mouseevent.button()] == Sceneviewerinput.BUTTON_TYPE_LEFT:
             self._selectionPositionStart = (mouseevent.x(), mouseevent.y())
             self._selectionMode = SelectionMode.EXCULSIVE
