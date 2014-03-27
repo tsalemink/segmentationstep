@@ -16,6 +16,8 @@ from opencmiss.zinc.field import Field
 from opencmiss.zinc.glyph import Glyph
 from opencmiss.zinc.status import OK
 
+from segmentationstep.undoredo import CommandChangeView
+
 # mapping from qt to zinc start
 # Create a button map of Qt mouse buttons to Zinc input buttons
 button_map = {QtCore.Qt.LeftButton: Sceneviewerinput.BUTTON_TYPE_LEFT, QtCore.Qt.MidButton: Sceneviewerinput.BUTTON_TYPE_MIDDLE, QtCore.Qt.RightButton: Sceneviewerinput.BUTTON_TYPE_RIGHT}
@@ -49,6 +51,23 @@ class SelectionMode(object):
 # selectionMode end
 
 
+class ViewportParameters(object):
+
+    def __init__(self, eye, lookat, up):
+        self._eye = eye
+        self._lookat = lookat
+        self._up = up
+
+    def getEye(self):
+        return self._eye
+
+    def getLookat(self):
+        return self._lookat
+
+    def getUp(self):
+        return self._up
+
+
 class ZincWidget(QtOpenGL.QGLWidget):
 
     # Create a signal to notify when the sceneviewer is ready.
@@ -72,7 +91,7 @@ class ZincWidget(QtOpenGL.QGLWidget):
         self._selectionGroup = None
         self._selectionBox = None
         self._ignore_mouse_events = False
-
+        self._undoStack = None
         # init end
 
     def setContext(self, context):
@@ -81,6 +100,9 @@ class ZincWidget(QtOpenGL.QGLWidget):
         method is called otherwise the scene viewer cannot be created.
         '''
         self._context = context
+
+    def setUndoStack(self, stack):
+        self._undoStack = stack
 
     def getSceneviewer(self):
         '''
@@ -465,6 +487,9 @@ class ZincWidget(QtOpenGL.QGLWidget):
         scene_input.setModifierFlags(modifier_map(mouseevent.modifiers()))
 
         self._sceneviewer.processSceneviewerinput(scene_input)
+        p = self.getViewParameters()
+        self._start_view_parameters = ViewportParameters(p[0], p[1], p[2])
+
 
     def processZincMouseMoveEvent(self, mouseevent):
         scene_input = self._sceneviewer.createSceneviewerinput()
@@ -482,3 +507,10 @@ class ZincWidget(QtOpenGL.QGLWidget):
         scene_input.setButtonType(button_map[mouseevent.button()])
 
         self._sceneviewer.processSceneviewerinput(scene_input)
+        p = self.getViewParameters()
+        end_view_parameters = ViewportParameters(p[0], p[1], p[2])
+        c = CommandChangeView(self._start_view_parameters, end_view_parameters)
+        c.setCallbackMethod(self.setViewParameters)
+        self._undoStack.push(c)
+
+

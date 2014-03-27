@@ -290,6 +290,7 @@ class SegmentationWidget(QtGui.QWidget):
         self._active_mode = self._modes[PlaneMovementMode.NONE]
 
         self._undoStack = QtGui.QUndoStack()
+        self._ui.zinc_widget.setUndoStack(self._undoStack)
 
         self._makeConnections()
 

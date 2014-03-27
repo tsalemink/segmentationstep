@@ -76,3 +76,21 @@ class CommandMovePlane(QtGui.QUndoCommand):
         self._set_plane_equation_method = plane_equation
 
 
+class CommandChangeView(QtGui.QUndoCommand):
+
+    def __init__(self, view_start, view_end):
+        super(CommandChangeView, self).__init__()
+        self._view_start = view_start
+        self._view_end = view_end
+        self._set_viewport_parameters_method = None
+
+    def redo(self):
+        self._set_viewport_parameters_method(self._view_end.getEye(), self._view_end.getLookat(), self._view_end.getUp())
+
+    def undo(self):
+        self._set_viewport_parameters_method(self._view_start.getEye(), self._view_start.getLookat(), self._view_start.getUp())
+
+    def setCallbackMethod(self, viewport_parameters):
+        self._set_viewport_parameters_method = viewport_parameters
+
+
