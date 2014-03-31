@@ -17,7 +17,7 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
     You should have received a copy of the GNU General Public License
     along with MAP Client.  If not, see <http://www.gnu.org/licenses/>..
 '''
-import os, re
+import os
 from math import sqrt, acos, pi, sin, cos
 
 from PySide import QtGui, QtCore
@@ -29,79 +29,15 @@ from opencmiss.zinc.context import Context
 from opencmiss.zinc.field import Field
 from opencmiss.zinc.glyph import Glyph
 from opencmiss.zinc.material import Material
-from zincwidget import ProjectionMode
-# from opencmiss.zinc.scenecoordinatesystem import SCENECOORDINATESYSTEM_WINDOW_PIXEL_TOP_LEFT
 
-DEFAULT_NORMAL_ARROW_SIZE = 25.0
-DEFAULT_GRAPHICS_SPHERE_SIZE = 10.0
-GRAPHIC_LABEL_NAME = 'label_only'
-
-def tryint(s):
-    try:
-        return int(s)
-    except:
-        return s
-
-def alphanum_key(s):
-    """ Turn a string into a list of string and number chunks.
-        "z23a" -> ["z", 23, "a"]
-    """
-    return [ tryint(c) for c in re.split('([0-9]+)', s) ]
-
-def magnitude(v):
-    return sqrt(sum(v[i] * v[i] for i in range(len(v))))
-
-def add(u, v):
-    return [ u[i] + v[i] for i in range(len(u)) ]
-
-def sub(u, v):
-    return [ u[i] - v[i] for i in range(len(u)) ]
-
-def dot(u, v):
-    return sum(u[i] * v[i] for i in range(len(u)))
-
-def eldiv(u, v):
-    return [u[i] / v[i] for i in range(len(u))]
-
-def elmult(u, v):
-    return [u[i] * v[i] for i in range(len(u))]
-
-def normalize(v):
-    vmag = magnitude(v)
-    return [ v[i] / vmag  for i in range(len(v)) ]
-
-def cross(u, v):
-    c = [u[1] * v[2] - u[2] * v[1],
-         u[2] * v[0] - u[0] * v[2],
-         u[0] * v[1] - u[1] * v[0]]
-
-    return c
-
-def mult(u, c):
-    return [u[i] * c for i in range(len(u))]
-
-def div(u, c):
-    return [u[i] / c for i in range(len(u))]
-
-def rotmx(quaternion):
-    '''
-    This method takes a quaternion representing a rotation
-    and turns it into a rotation matrix. 
-    '''
-    mag_q = magnitude(quaternion)
-    norm_q = div(quaternion, mag_q)
-    qw, qx, qy, qz = norm_q
-    mx = [[qw * qw + qx * qx - qy * qy - qz * qz, 2 * qx * qy - 2 * qw * qz, 2 * qx * qz + 2 * qw * qy],
-          [2 * qx * qy + 2 * qw * qz, qw * qw - qx * qx + qy * qy - qz * qz, 2 * qy * qz - 2 * qw * qx],
-          [2 * qx * qz - 2 * qw * qy, 2 * qy * qz + 2 * qw * qx, qw * qw - qx * qx - qy * qy + qz * qz]]
-
-    return mx
-
-def mxmult(mx, u):
-    return []
-
-def matmult(a, b):
-    return [dot(row_a, b) for row_a in a]
+from segmentationstep.widgets.zincwidget import ProjectionMode
+from segmentationstep.math.vectorops import add, cross, div, dot, eldiv, elmult, mult, normalize, sub
+from segmentationstep.widgets.definitions import DEFAULT_GRAPHICS_SPHERE_SIZE, DEFAULT_NORMAL_ARROW_SIZE, DEFAULT_SEGMENTATION_POINT_SIZE, GRAPHIC_LABEL_NAME
+from segmentationstep.widgets.definitions import PlaneMovementMode
+from segmentationstep.widgets.segmentationstate import SegmentationState
+from segmentationstep.misc import alphanum_key
+from segmentationstep.widgets.plane import PlaneDescription, PlaneMovement, PlaneMovementGlyph
+from segmentationstep.math.algorithms import CentroidAlgorithm
 
 class FakeMouseEvent(object):
 
@@ -115,151 +51,6 @@ class FakeMouseEvent(object):
     def y(self):
         return self._y
 
-
-class PlaneMovementMode(object):
-
-    NONE = 1
-    NORMAL = 2
-    ROTATION = 4
-
-
-
-class PlaneMovement(object):
-
-    def __init__(self, mode=PlaneMovementMode.NONE):
-        self._mode = mode
-        self._active = False
-        self._selectionfilter = None
-        self._set_selection_filter_method = None
-
-    def isActive(self):
-        return self._active
-
-    def mode(self):
-        return self._mode
-
-    def setSelectionFilter(self, selectionfilter):
-        self._selectionfilter = selectionfilter
-
-    def setSelectionFilterMethod(self, selectionfilter_method):
-        self._set_selection_filter_method = selectionfilter_method
-
-    def leave(self):
-        pass
-
-    def enter(self):
-        if self._set_selection_filter_method and self._selectionfilter:
-            self._set_selection_filter_method(self._selectionfilter)
-
-
-class PlaneMovementGlyph(PlaneMovement):
-
-    def __init__(self, mode):
-        super(PlaneMovementGlyph, self).__init__(mode)
-        self._default_material = None
-        self._active_material = None
-        self._glyph = None
-
-    def setDefaultMaterial(self, material):
-        self._default_material = material
-
-    def setActiveMaterial(self, material):
-        self._active_material = material
-
-    def setActive(self, active=True):
-        self._active = active
-        if self._glyph and active:
-            self._glyph.setMaterial(self._active_material)
-        elif self._glyph and not active:
-            self._glyph.setMaterial(self._default_material)
-
-    def setGlyph(self, glyph):
-        self._glyph = glyph
-
-    def enter(self):
-        super(PlaneMovementGlyph, self).enter()
-        self.setActive(False)
-        self._glyph.setVisibilityFlag(True)
-
-    def leave(self):
-        super(PlaneMovementGlyph, self).leave()
-        self.setActive(False)
-        self._glyph.setVisibilityFlag(False)
-
-
-class PlaneDescription(object):
-
-    def __init__(self, point, normal, centre):
-        self._point = point
-        self._normal = normal
-        self._centre = centre
-
-    def getPoint(self):
-        return self._point
-
-    def getNormal(self):
-        return self._normal
-
-    def getCentre(self):
-        return self._centre
-
-
-class ViewState(object):
-
-    def __init__(self):
-        self._eye = None
-        self._lookat = None
-        self._up = None
-        self._pop = None
-        self._normal = None
-        self._rotation_mode = None
-        self._projection_mode = ProjectionMode.PERSPECTIVE
-        self._normal_base_size = DEFAULT_NORMAL_ARROW_SIZE
-        self._rotation_centre_base_size = DEFAULT_GRAPHICS_SPHERE_SIZE
-
-    def setViewParameters(self, eye, lookat, up):
-        self._eye = eye
-        self._lookat = lookat
-        self._up = up
-
-    def getViewParameters(self):
-        return self._eye, self._lookat, self._up
-
-    def setPointOnPlane(self, pt):
-        self._pop = pt
-
-    def getPointOnPlane(self):
-        return self._pop
-
-    def setPlaneNormal(self, normal):
-        self._normal = normal
-
-    def getPlaneNormal(self):
-        return self._normal
-
-    def setPlaneRotationMode(self, mode):
-        self._rotation_mode = mode
-
-    def getPlaneRotationMode(self):
-        return self._rotation_mode
-
-    def setProjectionMode(self, mode):
-        self._projection_mode = mode
-
-    def getProjectionMode(self):
-        return self._projection_mode
-
-    def setPlaneNormalGlyphBaseSize(self, base_size):
-        self._normal_base_size = base_size
-
-    def getPlaneNormalGlyphBaseSize(self):
-        return self._normal_base_size
-
-    def setPlaneRotationCentreGlyphBaseSize(self, base_size):
-        self._rotation_centre_base_size = base_size
-
-    def getPlaneRotationCentreGlyphBaseSize(self):
-        return self._rotation_centre_base_size
 
 class SegmentationWidget(QtGui.QWidget):
     '''
@@ -342,7 +133,7 @@ class SegmentationWidget(QtGui.QWidget):
 
         self._ui._doubleSpinBoxNormalArrow.setValue(DEFAULT_NORMAL_ARROW_SIZE)
         self._ui._doubleSpinBoxRotationCentre.setValue(DEFAULT_GRAPHICS_SPHERE_SIZE)
-        self._ui._doubleSpinBoxSegmentationPoint.setValue(DEFAULT_GRAPHICS_SPHERE_SIZE)
+        self._ui._doubleSpinBoxSegmentationPoint.setValue(DEFAULT_SEGMENTATION_POINT_SIZE)
 
     def _updateImageUI(self):
         self._ui._labelmageWidth.setText(str(self._dimensions[0]) + ' px')
@@ -397,7 +188,7 @@ class SegmentationWidget(QtGui.QWidget):
     def _saveViewState(self):
         eye, lookat, up = self._ui.zinc_widget.getViewParameters()
 
-        self._viewstate = ViewState()
+        self._viewstate = SegmentationState()
         self._viewstate.setViewParameters(eye, lookat, up)
         self._viewstate.setPointOnPlane(self._getPointOnPlane())
         self._viewstate.setPlaneNormal(self._getPlaneNormal())
@@ -846,7 +637,7 @@ class SegmentationWidget(QtGui.QWidget):
         graphic.setCoordinateField(finite_element_field)
         attributes = graphic.getGraphicspointattributes()
         attributes.setGlyphShapeType(Glyph.SHAPE_TYPE_SPHERE)
-        attributes.setBaseSize(DEFAULT_GRAPHICS_SPHERE_SIZE)
+        attributes.setBaseSize(DEFAULT_SEGMENTATION_POINT_SIZE)
 #         attributes.setLabelField(finite_element_field)
 
         scene.endChange()
@@ -1093,6 +884,8 @@ class SegmentationWidget(QtGui.QWidget):
                 self._start_plane = PlaneDescription(self._getPointOnPlane(), self._getPlaneNormal(), self._getPlaneNormalGlyphPosition())
 
         elif mouseevent.modifiers() & QtCore.Qt.CTRL and mouseevent.button() == QtCore.Qt.LeftButton:
+            # If node already at this location then select it and get ready to move it.
+            # otherwise add it and set streaming create mode if appropriate.
             self._addNode(mouseevent)
             if self._streaming_create:
                 self._streaming_create_active = True
@@ -1205,150 +998,3 @@ class SegmentationWidget(QtGui.QWidget):
     def getPointCloud(self):
         return self._ui.zinc_widget.getPointCloud()
 
-import math
-
-class CentroidAlgorithm(object):
-
-    def __init__(self, xi):
-        self._xi = xi
-
-    def compute(self):
-        if len(self._xi) == 0:
-            return None
-
-        ave = self._average()
-        e1, e2, e3 = self._calculateBasis()
-        trans_xi = self._convertXi(ave, e1, e2, e3)
-        ordered_xi = self._orderByHeading(trans_xi)
-        area = self._calculatePolygonArea(ordered_xi)
-        cx, cy = self._calculateCxCy(ordered_xi, area)
-        centroid_x = ave[0] + e1[0] * cx + e2[0] * cy
-        centroid_y = ave[1] + e1[1] * cx + e2[1] * cy
-        centroid_z = ave[2] + e1[2] * cx + e2[2] * cy
-        centroid = [centroid_x, centroid_y, centroid_z]
-
-        return centroid
-
-    def _orderByHeading(self, trans_xi):
-        headings = self._calculateHeading(trans_xi)
-        heading_indexes = [i[0] for i in sorted(enumerate(headings), key=lambda x:x[1])]
-        ordered_xi = [trans_xi[i] for i in heading_indexes]
-        ordered_xi.append(ordered_xi[0])  # repeat the first vertex
-
-        return ordered_xi
-
-    def _calculateCxCy(self, vertices, area):
-        cx = 0.0
-        cy = 0.0
-        for i in range(len(vertices) - 1):
-            val = (vertices[i][0] * vertices[i + 1][1] - vertices[i + 1][0] * vertices[i][1])
-            cx += ((vertices[i][0] + vertices[i + 1][0]) * val)
-            cy += ((vertices[i][1] + vertices[i + 1][1]) * val)
-
-        cx = cx / (6 * area)
-        cy = cy / (6 * area)
-        return cx, cy
-
-    def _calculatePolygonArea(self, vertices):
-        area = 0.0
-        for i in range(len(vertices) - 1):
-            area += (vertices[i][0] * vertices[i + 1][1] - vertices[i + 1][0] * vertices[i][1])
-        return 0.5 * area
-
-    def _calculateHeading(self, direction):
-        '''
-        Convert a vector based direction into a heading
-        between 0 and 2*pi.
-        '''
-        headings = [math.atan2(pt[1], pt[0]) + pi for pt in direction]
-        return headings
-
-    def _calculateBasis(self):
-        e1 = e2 = e3 = None
-        if len(self._xi) > 2:
-            pta = self._xi[0]
-            ptb = self._xi[1]
-            ptc = self._xi[2]
-            e1 = sub(ptb, pta)
-            e2 = sub(ptc, pta)
-#             e2 = cross(e1, self._nor)
-            e3 = cross(e1, e2)
-            e2 = cross(e1, e3)
-            e1 = normalize(e1)
-            e2 = normalize(e2)
-            e3 = normalize(e3)
-
-        return e1, e2, e3
-
-    def _convertXi(self, ori, e1, e2, e3):
-        '''
-        Use average point as the origin 
-        for new basis.
-        '''
-        converted = []
-
-        for v in self._xi:
-            diff = sub(v, ori)
-            bv = [dot(diff, e1), dot(diff, e2)]
-            converted.append(bv)
-
-        return converted
-
-    def _average(self):
-        sum_xi = None
-        for v in self._xi:
-            if not sum_xi:
-                sum_xi = [0.0] * len(v)
-            sum_xi = add(sum_xi, v)
-
-        average = div(sum_xi, len(self._xi))
-        return average
-
-class WeiszfeldsAlgorithm(object):
-
-    def __init__(self, xi):
-
-        self._xi = xi
-        self._eps = 1e-04
-
-    def compute(self):
-        init_yi = self._average()
-        yi = init_yi
-        converged = False
-        it = 0
-        while not converged:
-
-            diffi = [sub(xj, yi) for xj in self._xi]
-            normi = [sqrt(dot(di, di)) for di in diffi]
-            weight = sum([1 / ni for ni in normi])
-            val = [div(self._xi[i], normi[i]) for i in range(len(self._xi))]
-
-            yip1 = self._weightedaverage(val, weight)
-            diff = sub(yip1, yi)
-            yi = yip1
-            it += 1
-#             print(it)
-            if sqrt(dot(diff, diff)) < self._eps:
-                converged = True
-
-        return yi
-
-    def _weightedaverage(self, values, weight):
-        sum_values = None
-        for v in values:
-            if not sum_values:
-                sum_values = [0.0] * len(v)
-            sum_values = add(sum_values, v)
-
-        weightedaverage = div(sum_values, weight)
-        return weightedaverage
-
-    def _average(self):
-        sum_xi = None
-        for v in self._xi:
-            if not sum_xi:
-                sum_xi = [0.0] * len(v)
-            sum_xi = add(sum_xi, v)
-
-        average = div(sum_xi, len(self._xi))
-        return average
