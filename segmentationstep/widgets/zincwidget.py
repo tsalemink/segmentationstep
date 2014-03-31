@@ -145,11 +145,14 @@ class ZincWidget(QtOpenGL.QGLWidget):
         region = self._context.getDefaultRegion()
         scene = region.getScene()
         fieldmodule = region.getFieldmodule()
+
+        self._sceneviewer.setScene(scene)
+
         self._selectionGroup = fieldmodule.createFieldGroup()
         scene.setSelectionField(self._selectionGroup)
-        self._scene_picker = scene.createScenepicker()
-        self._sceneviewer.setScene(scene)
-        self._scene_picker.setScenefilter(graphics_filter)
+
+        self._scenepicker = scene.createScenepicker()
+        self._scenepicker.setScenefilter(graphics_filter)
 
         self.defineStandardGlyphs()
         self._selectionBox = scene.createGraphicsPoints()
@@ -207,6 +210,26 @@ class ZincWidget(QtOpenGL.QGLWidget):
 
     def setViewParameters(self, eye, lookat, up):
         self._sceneviewer.setLookatParametersNonSkew(eye, lookat, up)
+
+    def setScenefilter(self, scenefilter):
+        self._sceneviewer.setScenefilter(scenefilter)
+
+    def getScenefilter(self):
+        result, scenefilter = self._sceneviewer.getScenefilter()
+        if result == OK:
+            return scenefilter
+
+        return None
+
+    def setSelectionfilter(self, scenefilter):
+        self._scenepicker.setScenefilter(scenefilter)
+
+    def getSelectionfilter(self):
+        result, scenefilter = self._scenepicker.getScenefilter()
+        if result == OK:
+            return scenefilter
+
+        return None
 
     def project(self, x, y, z):
         in_coords = [x, y, z]
@@ -297,8 +320,8 @@ class ZincWidget(QtOpenGL.QGLWidget):
 
     def mapToWidget(self, parent_x, parent_y):
         local_pt = self.mapFromParent(QtCore.QPoint(parent_x, parent_y))
-        x = local_pt.x()  # - 4
-        y = local_pt.y()  # - 4
+        x = local_pt.x() - 5
+        y = local_pt.y() - 5
         return x, y
 
     def getNearestGraphicsPoint(self, parent_x, parent_y):
@@ -308,8 +331,8 @@ class ZincWidget(QtOpenGL.QGLWidget):
         directly from the mouseevent in the parent widget.
         '''
         x, y = self.mapToWidget(parent_x, parent_y)
-        self._scene_picker.setSceneviewerRectangle(self._sceneviewer, SCENECOORDINATESYSTEM_LOCAL, x - 0.5, y - 0.5, x + 0.5, y + 0.5)
-        nearest_graphics = self._scene_picker.getNearestGraphics()
+        self._scenepicker.setSceneviewerRectangle(self._sceneviewer, SCENECOORDINATESYSTEM_LOCAL, x - 0.5, y - 0.5, x + 0.5, y + 0.5)
+        nearest_graphics = self._scenepicker.getNearestGraphics()
         if nearest_graphics.isValid() and nearest_graphics.getFieldDomainType() == Field.DOMAIN_TYPE_POINT:
             return nearest_graphics
 
@@ -362,12 +385,12 @@ class ZincWidget(QtOpenGL.QGLWidget):
         Inform the scene viewer of a mouse press event.
         '''
         self._handle_mouse_events = False  # Track when the zinc should be handling mouse events
-        if not self._ignore_mouse_events and (mouseevent.modifiers() & QtCore.Qt.CTRL) and (self._nodeSelectMode or self._elemSelectMode) and button_map[mouseevent.button()] == Sceneviewerinput.BUTTON_TYPE_LEFT:
+        if not self._ignore_mouse_events and (mouseevent.modifiers() & QtCore.Qt.SHIFT) and (self._nodeSelectMode or self._elemSelectMode) and button_map[mouseevent.button()] == Sceneviewerinput.BUTTON_TYPE_LEFT:
             self._selectionPositionStart = (mouseevent.x(), mouseevent.y())
             self._selectionMode = SelectionMode.EXCULSIVE
-            if mouseevent.modifiers() & QtCore.Qt.SHIFT:
+            if mouseevent.modifiers() & QtCore.Qt.ALT:
                 self._selectionMode = SelectionMode.ADDITIVE
-        elif not self._ignore_mouse_events and not mouseevent.modifiers() or mouseevent.modifiers() & QtCore.Qt.SHIFT:
+        elif not self._ignore_mouse_events and not mouseevent.modifiers() or (mouseevent.modifiers() & QtCore.Qt.SHIFT and button_map[mouseevent.button()] == Sceneviewerinput.BUTTON_TYPE_RIGHT):
             self.processZincMousePressEvent(mouseevent)
             self._handle_mouse_events = True
         else:
@@ -390,21 +413,21 @@ class ZincWidget(QtOpenGL.QGLWidget):
                 right = max(x, self._selectionPositionStart[0])
                 bottom = min(y, self._selectionPositionStart[1])
                 top = max(y, self._selectionPositionStart[1])
-                self._scene_picker.setSceneviewerRectangle(self._sceneviewer, SCENECOORDINATESYSTEM_LOCAL, left, bottom, right, top);
+                self._scenepicker.setSceneviewerRectangle(self._sceneviewer, SCENECOORDINATESYSTEM_LOCAL, left, bottom, right, top);
                 if self._selectionMode == SelectionMode.EXCULSIVE:
                     self._selectionGroup.clear()
                 if self._nodeSelectMode:
-                    self._scene_picker.addPickedNodesToFieldGroup(self._selectionGroup)
+                    self._scenepicker.addPickedNodesToFieldGroup(self._selectionGroup)
                 if self._elemSelectMode:
-                    self._scene_picker.addPickedElementsToFieldGroup(self._selectionGroup)
+                    self._scenepicker.addPickedElementsToFieldGroup(self._selectionGroup)
             else:
 
-                self._scene_picker.setSceneviewerRectangle(self._sceneviewer, SCENECOORDINATESYSTEM_LOCAL, x - 0.5, y - 0.5, x + 0.5, y + 0.5)
-                if self._nodeSelectMode and self._elemSelectMode and self._selectionMode == SelectionMode.EXCULSIVE and not self._scene_picker.getNearestGraphics().isValid():
+                self._scenepicker.setSceneviewerRectangle(self._sceneviewer, SCENECOORDINATESYSTEM_LOCAL, x - 0.5, y - 0.5, x + 0.5, y + 0.5)
+                if self._nodeSelectMode and self._elemSelectMode and self._selectionMode == SelectionMode.EXCULSIVE and not self._scenepicker.getNearestGraphics().isValid():
                     self._selectionGroup.clear()
 
-                if self._nodeSelectMode and (self._scene_picker.getNearestGraphics().getFieldDomainType() == Field.DOMAIN_TYPE_NODES):
-                    node = self._scene_picker.getNearestNode()
+                if self._nodeSelectMode and (self._scenepicker.getNearestGraphics().getFieldDomainType() == Field.DOMAIN_TYPE_NODES):
+                    node = self._scenepicker.getNearestNode()
                     nodeset = node.getNodeset()
 
                     nodegroup = self._selectionGroup.getFieldNodeGroup(nodeset)
@@ -423,8 +446,8 @@ class ZincWidget(QtOpenGL.QGLWidget):
                         else:
                             group.addNode(node)
 
-                if self._elemSelectMode and (self._scene_picker.getNearestGraphics().getFieldDomainType() in [Field.DOMAIN_TYPE_MESH1D, Field.DOMAIN_TYPE_MESH2D, Field.DOMAIN_TYPE_MESH3D, Field.DOMAIN_TYPE_MESH_HIGHEST_DIMENSION]):
-                    elem = self._scene_picker.getNearestElement()
+                if self._elemSelectMode and (self._scenepicker.getNearestGraphics().getFieldDomainType() in [Field.DOMAIN_TYPE_MESH1D, Field.DOMAIN_TYPE_MESH2D, Field.DOMAIN_TYPE_MESH3D, Field.DOMAIN_TYPE_MESH_HIGHEST_DIMENSION]):
+                    elem = self._scenepicker.getNearestElement()
                     mesh = elem.getMesh()
 
                     elementgroup = self._selectionGroup.getFieldElementGroup(mesh)

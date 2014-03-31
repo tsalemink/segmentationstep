@@ -23,18 +23,18 @@ from math import sqrt, acos, pi, sin, cos
 from PySide import QtGui, QtCore
 
 from segmentationstep.widgets.ui_segmentationwidget import Ui_SegmentationWidget
-from segmentationstep.undoredo import CommandMovePlane
+from segmentationstep.undoredo import CommandMovePlane, CommandAddNode
 
 from opencmiss.zinc.context import Context
 from opencmiss.zinc.field import Field
 from opencmiss.zinc.glyph import Glyph
 from opencmiss.zinc.material import Material
-from opencmiss.zinc.sceneviewerinput import Sceneviewerinput
-from zincwidget import button_map, ProjectionMode
+from zincwidget import ProjectionMode
 # from opencmiss.zinc.scenecoordinatesystem import SCENECOORDINATESYSTEM_WINDOW_PIXEL_TOP_LEFT
 
 DEFAULT_NORMAL_ARROW_SIZE = 25.0
-DEFAULT_ROTATION_CENTRE_SIZE = 10.0
+DEFAULT_GRAPHICS_SPHERE_SIZE = 10.0
+GRAPHIC_LABEL_NAME = 'label_only'
 
 def tryint(s):
     try:
@@ -129,6 +129,8 @@ class PlaneMovement(object):
     def __init__(self, mode=PlaneMovementMode.NONE):
         self._mode = mode
         self._active = False
+        self._selectionfilter = None
+        self._set_selection_filter_method = None
 
     def isActive(self):
         return self._active
@@ -136,11 +138,18 @@ class PlaneMovement(object):
     def mode(self):
         return self._mode
 
+    def setSelectionFilter(self, selectionfilter):
+        self._selectionfilter = selectionfilter
+
+    def setSelectionFilterMethod(self, selectionfilter_method):
+        self._set_selection_filter_method = selectionfilter_method
+
     def leave(self):
         pass
 
     def enter(self):
-        pass
+        if self._set_selection_filter_method and self._selectionfilter:
+            self._set_selection_filter_method(self._selectionfilter)
 
 
 class PlaneMovementGlyph(PlaneMovement):
@@ -168,10 +177,12 @@ class PlaneMovementGlyph(PlaneMovement):
         self._glyph = glyph
 
     def enter(self):
+        super(PlaneMovementGlyph, self).enter()
         self.setActive(False)
         self._glyph.setVisibilityFlag(True)
 
     def leave(self):
+        super(PlaneMovementGlyph, self).leave()
         self.setActive(False)
         self._glyph.setVisibilityFlag(False)
 
@@ -204,7 +215,7 @@ class ViewState(object):
         self._rotation_mode = None
         self._projection_mode = ProjectionMode.PERSPECTIVE
         self._normal_base_size = DEFAULT_NORMAL_ARROW_SIZE
-        self._rotation_centre_base_size = DEFAULT_ROTATION_CENTRE_SIZE
+        self._rotation_centre_base_size = DEFAULT_GRAPHICS_SPHERE_SIZE
 
     def setViewParameters(self, eye, lookat, up):
         self._eye = eye
@@ -277,7 +288,7 @@ class SegmentationWidget(QtGui.QWidget):
         self._debug_print = False
 
         self._timer = QtCore.QTimer()
-        self._timer.timeout.connect(self.falsifyMouseEvents)
+#         self._timer.timeout.connect(self.falsifyMouseEvents)
 #         self._timer.start(1000)
         self._counter = 0
 
@@ -287,7 +298,10 @@ class SegmentationWidget(QtGui.QWidget):
         self._modes = {PlaneMovementMode.NONE: PlaneMovement(PlaneMovementMode.NONE),
                        PlaneMovementMode.NORMAL: PlaneMovementGlyph(PlaneMovementMode.NORMAL),
                        PlaneMovementMode.ROTATION: PlaneMovementGlyph(PlaneMovementMode.ROTATION)}
-        self._active_mode = self._modes[PlaneMovementMode.NONE]
+        self._active_mode = None  # self._modes[PlaneMovementMode.NONE]
+
+        self._streaming_create = False
+        self._streaming_create_active = False
 
         self._undoStack = QtGui.QUndoStack()
         self._ui.zinc_widget.setUndoStack(self._undoStack)
@@ -311,15 +325,24 @@ class SegmentationWidget(QtGui.QWidget):
 
         self._ui._doubleSpinBoxNormalArrow.valueChanged.connect(self._iconSizeChanged)
         self._ui._doubleSpinBoxRotationCentre.valueChanged.connect(self._iconSizeChanged)
+        self._ui._doubleSpinBoxSegmentationPoint.valueChanged.connect(self._iconSizeChanged)
+
+        self._ui._checkBoxCoordinateLabels.clicked.connect(self._graphicVisibilityChanged)
+        self._ui._checkBoxImageOutline.clicked.connect(self._graphicVisibilityChanged)
+        self._ui._checkBoxImagePlane.clicked.connect(self._graphicVisibilityChanged)
+
+        self._ui._checkBoxStreamingCreate.clicked.connect(self._streamingCreateClicked)
 
     def _setupUi(self):
         dbl_validator = QtGui.QDoubleValidator()
+        dbl_validator.setBottom(0.0)
         self._ui._lineEditWidthScale.setValidator(dbl_validator)
         self._ui._lineEditHeightScale.setValidator(dbl_validator)
         self._ui._lineEditDepthScale.setValidator(dbl_validator)
 
         self._ui._doubleSpinBoxNormalArrow.setValue(DEFAULT_NORMAL_ARROW_SIZE)
-        self._ui._doubleSpinBoxRotationCentre.setValue(DEFAULT_ROTATION_CENTRE_SIZE)
+        self._ui._doubleSpinBoxRotationCentre.setValue(DEFAULT_GRAPHICS_SPHERE_SIZE)
+        self._ui._doubleSpinBoxSegmentationPoint.setValue(DEFAULT_GRAPHICS_SPHERE_SIZE)
 
     def _updateImageUI(self):
         self._ui._labelmageWidth.setText(str(self._dimensions[0]) + ' px')
@@ -423,9 +446,23 @@ class SegmentationWidget(QtGui.QWidget):
             self._setPlaneNormalGlyphBaseSize(self._ui._doubleSpinBoxNormalArrow.value())
         elif self.sender() == self._ui._doubleSpinBoxRotationCentre:
             self._setPlaneRotationCentreGlyphBaseSize(self._ui._doubleSpinBoxRotationCentre.value())
+        elif self.sender() == self._ui._doubleSpinBoxSegmentationPoint:
+            self._setSegmentationPointBaseSize(self._ui._doubleSpinBoxSegmentationPoint.value())
+
+    def _graphicVisibilityChanged(self):
+        if self.sender() == self._ui._checkBoxCoordinateLabels:
+            self._coordinate_labels.setVisibilityFlag(self._ui._checkBoxCoordinateLabels.isChecked())
+        elif self.sender() == self._ui._checkBoxImagePlane:
+            self._iso_graphic.setVisibilityFlag(self._ui._checkBoxImagePlane.isChecked())
+        elif self.sender() == self._ui._checkBoxImageOutline:
+            self._image_outline.setVisibilityFlag(self._ui._checkBoxImageOutline.isChecked())
+
+    def _streamingCreateClicked(self):
+        if self.sender() == self._ui._checkBoxStreamingCreate:
+            self._setStreamingCreate(self._ui._checkBoxStreamingCreate.isChecked())
 
     def _scaleChanged(self):
-        current_scale = self._getImageScale()
+        current_scale = self._getScale()
         new_scale = current_scale[:]
         if self.sender() == self._ui._lineEditWidthScale:
             new_scale[0] = float(self._ui._lineEditWidthScale.text())
@@ -435,31 +472,45 @@ class SegmentationWidget(QtGui.QWidget):
             new_scale[2] = float(self._ui._lineEditDepthScale.text())
 
         if new_scale != current_scale:
-            self._setImageScale(new_scale)
+            self._setScale(new_scale)
 
-    def _getImageScale(self):
-        fieldmodule = self._scale_field.getFieldmodule()
-        fieldcache = fieldmodule.createFieldcache()
-        _, scale = self._scale_field.evaluateReal(fieldcache, 3)
-
-        return scale
+    def _setStreamingCreate(self, on=True):
+        self._streaming_create = on
 
     def _getDimensions(self):
-        scale = self._getImageScale()
+        scale = self._getScale()
         scaled_dimensions = elmult(self._dimensions, scale)
         return scaled_dimensions
 
-    def _setImageScale(self, scale):
-        fieldmodule = self._scale_field.getFieldmodule()
+    def _getScale(self):
+        fieldmodule = self._image_scale_field.getFieldmodule()
         fieldcache = fieldmodule.createFieldcache()
-        fieldmodule.beginChange()
-        self._scale_field.assignReal(fieldcache, scale)
+        _, scale = self._image_scale_field.evaluateReal(fieldcache, 3)
+
+        return scale
+
+    def _setScale(self, scale):
+        self._setImageScale(scale)
+        self._setNodeScale(scale)
         image_field = self._material.getTextureField(1).castImage()
         scaled_dimensions = elmult(self._dimensions, scale)
         image_field.setTextureCoordinateSizes(scaled_dimensions)
         plane_centre = self._calculatePlaneCentre()
         self._setPlaneNormalGlyphPosition(plane_centre)
         self._setPointOnPlane(plane_centre)
+
+    def _setImageScale(self, scale):
+        fieldmodule = self._image_scale_field.getFieldmodule()
+        fieldcache = fieldmodule.createFieldcache()
+        fieldmodule.beginChange()
+        self._image_scale_field.assignReal(fieldcache, scale)
+        fieldmodule.endChange()
+
+    def _setNodeScale(self, scale):
+        fieldmodule = self._node_scale_field.getFieldmodule()
+        fieldcache = fieldmodule.createFieldcache()
+        fieldmodule.beginChange()
+        self._node_scale_field.assignReal(fieldcache, scale)
         fieldmodule.endChange()
 
     def _createMaterialUsingImageField(self):
@@ -527,8 +578,7 @@ class SegmentationWidget(QtGui.QWidget):
 
     def _createFiniteElement(self, region, finite_element_field, dim):
         '''
-        Create finite element meshes for each of the images.  Returns the finite element field
-        used as the coordinate field.
+        Create finite element meshes for each of the images.
         '''
         field_module = region.getFieldmodule()
         field_module.beginChange()
@@ -540,9 +590,6 @@ class SegmentationWidget(QtGui.QWidget):
 
         field_module.defineAllFaces()
         field_module.endChange()
-
-        # Create the three scalar fields in the x, y, z directions
-        # ## x component
 
     def _createPlaneNormalField(self, fieldmodule):
         plane_normal_field = fieldmodule.createFieldConstant([1, 0, 0])
@@ -558,6 +605,19 @@ class SegmentationWidget(QtGui.QWidget):
 
         return iso_scalar_field
 
+    def _createImageOutline(self, region, finite_element_field):
+        scene = region.getScene()
+
+        scene.beginChange()
+        # Create a surface graphic and set it's coordinate field to the finite element coordinate field
+        # named coordinates
+        outline = scene.createGraphicsLines()
+#         finite_element_field = field_module.findFieldByName('coordinates')
+        outline.setCoordinateField(finite_element_field)
+        scene.endChange()
+
+        return outline
+
     def _createTextureSurface(self, region, finite_element_field, iso_scalar_field):
         '''
         To visualize the 3D finite element that we have created for each _surface_region, we use a 
@@ -568,21 +628,18 @@ class SegmentationWidget(QtGui.QWidget):
         scene.beginChange()
         # Create a surface graphic and set it's coordinate field to the finite element coordinate field
         # named coordinates
-        outline = scene.createGraphicsLines()
-#         finite_element_field = field_module.findFieldByName('coordinates')
-        outline.setCoordinateField(finite_element_field)
-
-        self._iso_graphic = scene.createGraphicsContours()
-        self._iso_graphic.setCoordinateField(finite_element_field)
-        self._iso_graphic.setMaterial(self._material)
-#         xi_field = region.getFieldmodule().findFieldByName('xi')
-        self._iso_graphic.setTextureCoordinateField(finite_element_field)
+        iso_graphic = scene.createGraphicsContours()
+        iso_graphic.setCoordinateField(finite_element_field)
+        iso_graphic.setMaterial(self._material)
+        iso_graphic.setTextureCoordinateField(finite_element_field)
         # set the yz scalar field to our isosurface
-        self._iso_graphic.setIsoscalarField(iso_scalar_field)
+        iso_graphic.setIsoscalarField(iso_scalar_field)
         # define the initial position of the isosurface on the texture block
-        self._iso_graphic.setListIsovalues(0.0)  # Range(1, self.initial_positions[0], self.initial_positions[0])
+        iso_graphic.setListIsovalues(0.0)  # Range(1, self.initial_positions[0], self.initial_positions[0])
 
         scene.endChange()
+
+        return iso_graphic
 
     def _createNodeLabels(self, region, finite_element_field):
         scene = region.getScene()
@@ -592,8 +649,9 @@ class SegmentationWidget(QtGui.QWidget):
         graphic = scene.createGraphicsPoints()
         graphic.setFieldDomainType(Field.DOMAIN_TYPE_NODES)
         graphic.setCoordinateField(finite_element_field)
+        graphic.setName(GRAPHIC_LABEL_NAME)
         attributes = graphic.getGraphicspointattributes()
-#         attributes.setGlyphShapeType(Glyph.SHAPE_TYPE_SPHERE)
+        attributes.setGlyphShapeType(Glyph.SHAPE_TYPE_NONE)
 #         attributes.setBaseSize(1)
 
 #         fieldmodule = region.getFieldmodule()
@@ -601,6 +659,39 @@ class SegmentationWidget(QtGui.QWidget):
         attributes.setLabelField(finite_element_field)
 
         scene.endChange()
+
+        return graphic
+
+    def _setupSelectionScenefilters(self):
+        filtermodule = self._context.getScenefiltermodule()
+        visibility_filter = filtermodule.createScenefilterVisibilityFlags()
+        node_filter = filtermodule.createScenefilterFieldDomainType(Field.DOMAIN_TYPE_NODES)
+        glyph_filter = filtermodule.createScenefilterFieldDomainType(Field.DOMAIN_TYPE_POINT)
+        label_filter = filtermodule.createScenefilterGraphicsName(GRAPHIC_LABEL_NAME)
+        label_filter.setInverse(True)
+
+        segmentation_point_filter = filtermodule.createScenefilterOperatorAnd()
+        segmentation_point_filter.appendOperand(visibility_filter)
+        segmentation_point_filter.appendOperand(node_filter)
+        segmentation_point_filter.appendOperand(label_filter)
+
+        plane_glyph_filter = filtermodule.createScenefilterOperatorAnd()
+        plane_glyph_filter.appendOperand(visibility_filter)
+        plane_glyph_filter.appendOperand(glyph_filter)
+#         self._ui.zinc_widget.setSelectionfilter(picking_filter)
+
+        segment_mode = self._modes[PlaneMovementMode.NONE]
+        segment_mode.setSelectionFilter(segmentation_point_filter)
+        segment_mode.setSelectionFilterMethod(self._ui.zinc_widget.setSelectionfilter)
+
+        normal_mode = self._modes[PlaneMovementMode.NORMAL]
+        normal_mode.setSelectionFilter(plane_glyph_filter)
+        normal_mode.setSelectionFilterMethod(self._ui.zinc_widget.setSelectionfilter)
+
+        rotation_mode = self._modes[PlaneMovementMode.ROTATION]
+        rotation_mode.setSelectionFilter(plane_glyph_filter)
+        rotation_mode.setSelectionFilterMethod(self._ui.zinc_widget.setSelectionfilter)
+
 
     def _createTestPoints(self):
         region = self._context.getDefaultRegion()
@@ -643,7 +734,7 @@ class SegmentationWidget(QtGui.QWidget):
         plane_rotation_sphere.setTessellation(tessellation)
         attributes = plane_rotation_sphere.getGraphicspointattributes()
         attributes.setGlyphShapeType(Glyph.SHAPE_TYPE_SPHERE)
-        attributes.setBaseSize(DEFAULT_ROTATION_CENTRE_SIZE)
+        attributes.setBaseSize(DEFAULT_GRAPHICS_SPHERE_SIZE)
 
         scene.endChange()
 
@@ -714,18 +805,20 @@ class SegmentationWidget(QtGui.QWidget):
         self._createMaterialUsingImageField()
         self._updateImageUI()
         region = self._context.getDefaultRegion().createChild('image')
-        finite_element_field = self._createFiniteElementField(region)
-        fieldmodule = region.getFieldmodule()
-        self._scale_field = fieldmodule.createFieldConstant([1.0, 1.0, 1.0])
-        scaled_finite_element_field = finite_element_field * self._scale_field
 
+        finite_element_field = self._createFiniteElementField(region)
         self._createFiniteElement(region, finite_element_field, self._dimensions)
+
+        fieldmodule = region.getFieldmodule()
+        self._image_scale_field = fieldmodule.createFieldConstant([1.0, 1.0, 1.0])
+        scaled_finite_element_field = finite_element_field * self._image_scale_field
 
         self._plane_normal_field = self._createPlaneNormalField(fieldmodule)
         self._point_on_plane_field = self._createPointOnPlaneField(fieldmodule)
         iso_scalar_field = self._createIsoScalarField(fieldmodule, scaled_finite_element_field, self._plane_normal_field, self._point_on_plane_field)
-        self._createTextureSurface(region, scaled_finite_element_field, iso_scalar_field)
-        self._createNodeLabels(region, scaled_finite_element_field)
+        self._iso_graphic = self._createTextureSurface(region, scaled_finite_element_field, iso_scalar_field)
+        self._image_outline = self._createImageOutline(region, scaled_finite_element_field)
+        self._coordinate_labels = self._createNodeLabels(region, scaled_finite_element_field)
         self._plane_rotation_glyph = self._createPlaneManipulationSphere(region, scaled_finite_element_field)
         self._plane_normal_glyph = self._createPlaneNormalIndicator(region, scaled_finite_element_field, self._plane_normal_field)
         self._setGlyphsForGlyphModes(self._plane_rotation_glyph, self._plane_normal_glyph)
@@ -733,12 +826,54 @@ class SegmentationWidget(QtGui.QWidget):
         self._setPlaneNormalGlyphPosition(plane_centre)
         self._setPointOnPlane(plane_centre)
 
+        region = self._context.getDefaultRegion().createChild('nodes')
+        finite_element_field = self._createFiniteElementField(region)
+        self._node_fieldmodule = finite_element_field.getFieldmodule()
+        self._node_scale_field = self._node_fieldmodule.createFieldConstant([1.0, 1.0, 1.0])
+        scaled_finite_element_field = finite_element_field * self._node_scale_field
+        self._segmentation_point_glyph = self._createNodeGraphics(region, scaled_finite_element_field)
+
+        self._setupSelectionScenefilters()
+
 #         self._createTestPoints()
 
+    def _createNodeGraphics(self, region, finite_element_field):
+        scene = region.getScene()
+        scene.beginChange()
+
+        graphic = scene.createGraphicsPoints()
+        graphic.setFieldDomainType(Field.DOMAIN_TYPE_NODES)
+        graphic.setCoordinateField(finite_element_field)
+        attributes = graphic.getGraphicspointattributes()
+        attributes.setGlyphShapeType(Glyph.SHAPE_TYPE_SPHERE)
+        attributes.setBaseSize(DEFAULT_GRAPHICS_SPHERE_SIZE)
+#         attributes.setLabelField(finite_element_field)
+
+        scene.endChange()
+
+        return graphic
+
     def sceneviewerReady(self):
+        self._setMode(PlaneMovementMode.NONE)
         self._saveViewState()
 
+    def _checkRange(self, value, bound1, bound2):
+        '''
+        Check whether the value 'value' lies within the range 'bound1' and 'bound2'.
+        Irrespective of the order of the bounds!
+        '''
+        check = False
+        if bound1 < bound2:
+            if bound1 <= value <= bound2:
+                check = True
+        else:
+            if bound2 <= value <= bound1:
+                check = True
+
+        return check
+
     def _calculatePlaneCentre(self):
+        tol = 1e-08
         dim = self._getDimensions()  # self._dimensions
         plane_normal = self._getPlaneNormal()
         point_on_plane = self._getPointOnPlane()
@@ -748,7 +883,7 @@ class SegmentationWidget(QtGui.QWidget):
         ipts = []
         for axis in axes:
             den = dot(axis, plane_normal)
-            if abs(den) < 0.000000001:
+            if abs(den) < tol:
                 continue
 
             for corner in coordinate_set:
@@ -756,7 +891,12 @@ class SegmentationWidget(QtGui.QWidget):
                 d = num / den
 
                 ipt = add(mult(axis, d), corner)
-                if 0 <= ipt[0] <= dim[0] and 0 <= ipt[1] <= dim[1] and 0 <= ipt[2] <= dim[2]:
+                # check if all intersections are valid, taking care to be aware of minus signs.
+                ipt_0 = self._checkRange(ipt[0], 0.0, dim[0])
+                ipt_1 = self._checkRange(ipt[1], 0.0, dim[1])
+                ipt_2 = self._checkRange(ipt[2], 0.0, dim[2])
+
+                if ipt_0 and ipt_1 and ipt_2:
                     ipts.append(ipt)
 
         unique_ipts = []
@@ -764,7 +904,7 @@ class SegmentationWidget(QtGui.QWidget):
             insert = True
             for u in unique_ipts:
                 vdiff = sub(p, u)
-                if sqrt(dot(vdiff, vdiff)) < 0.00000001:
+                if sqrt(dot(vdiff, vdiff)) < tol:
                     insert = False
             if insert:
                 unique_ipts.append(p)
@@ -777,19 +917,31 @@ class SegmentationWidget(QtGui.QWidget):
         ca = CentroidAlgorithm(unique_ipts)
 #         wa = WeiszfeldsAlgorithm(unique_ipts)
         plane_centre = ca.compute()
-#         sum_ipts = [0, 0, 0]
-#         for v in unique_ipts:
-#             sum_ipts = add(sum_ipts, v)
-#
-#
-#
-#         plane_centre = div(sum_ipts, len(unique_ipts))
         return plane_centre
 
     def _boundCoordinatesToElement(self, coords):
         dim = self._getDimensions()
         bounded_coords = [ max(min(coords[i], dim[i]), 0.0)  for i in range(len(coords)) ]
         return bounded_coords
+
+    def _coordinatesInElement(self, coords):
+        dim = self._getDimensions()
+        for i in range(len(coords)):
+            if not self._checkRange(coords[i], 0.0, dim[i]):
+                return False
+
+        return True
+
+    def _setSegmentationPointBaseSize(self, base_size):
+        scene = self._segmentation_point_glyph.getScene()
+        scene.beginChange()
+        attributes = self._segmentation_point_glyph.getGraphicspointattributes()
+        _, cur_base_size = attributes.getBaseSize(1)
+        _, position = attributes.getGlyphOffset(3)
+        true_position = mult(position, cur_base_size)
+        attributes.setBaseSize(base_size)
+        attributes.setGlyphOffset(div(true_position, base_size))
+        scene.endChange()
 
     def _setPlaneRotationCentreGlyphBaseSize(self, base_size):
         scene = self._plane_rotation_glyph.getScene()
@@ -848,56 +1000,47 @@ class SegmentationWidget(QtGui.QWidget):
 
         return position
 
-
-#     def _showPlaneRotationCentreGlyph(self, plane_centre):
-#         self._setPlaneRotationCentreGlyphPosition(plane_centre)
-#         self._plane_rotation_glyph.setVisibilityFlag(True)
-#
-#     def _showPlaneNormalGlyph(self, plane_centre):
-#         self._setPlaneNormalGlyphPosition(plane_centre)
-#         self._plane_normal_glyph.setVisibilityFlag(True)
-#
-#     def _hidePlaneRotationCentreGlyph(self):
-#         self._plane_rotation_glyph.setVisibilityFlag(False)
-#
-#     def _hidePlaneNormalGlyph(self):
-#         self._plane_normal_glyph.setVisibilityFlag(False)
-
-    def keyPressEvent(self, keyevent):
-        if keyevent.key() == 68 and not self._debug_print:
-            self._debug_print = True
-
-    def falsifyMouseEvents(self):
-        if self._counter == 0:
-            # falsify plane rotation mode
-            self._plane_centre_position = self._calculatePlaneCentre()
-            self._showPlaneRotationCentreGlyph(self._plane_centre_position)
-            self._plane_movement_type = True
-            me = FakeMouseEvent(666, 180)
-            self.mousePressEvent(me)
-
-        if 0 < self._counter <= 10:
-            me = FakeMouseEvent(666, 180 - self._counter * 10)
-            self.mouseMoveEvent(me)
-
-        if self._counter > 10:
-            self._hidePlaneRotationCentreGlyph()
-            self._plane_movement_type = False
-            self._timer.stop()
-
-        self._counter += 1
-
     def _getMode(self):
-        return self._active_mode.mode()
+        if not self._active_mode is None:
+            return self._active_mode.mode()
+
+        return None
 
     def _setMode(self, mode):
         if mode != self._getMode():
-            self._active_mode.leave()
+            if not self._active_mode is None:
+                self._active_mode.leave()
             self._active_mode = self._modes[mode]
             self._active_mode.enter()
 
             self._ui.zinc_widget.setIgnoreMouseEvents(mode != PlaneMovementMode.NONE)
 
+    def _addNode(self, mouseevent):
+        position = self._calcluatePlaneIntersection(mouseevent.x(), mouseevent.y())
+        if self._coordinatesInElement(position):
+            scale = self._getScale()
+            unscaled_position = eldiv(position, scale)
+            c = CommandAddNode(self._node_fieldmodule, unscaled_position)
+            self._undoStack.push(c)
+
+    def _calcluatePlaneIntersection(self, x, y):
+        point_on_plane = self._getPointOnPlane()  # self._plane_centre_position  # self._getPointOnPlane()
+        plane_normal = self._getPlaneNormal()
+
+        x, y = self._ui.zinc_widget.mapToWidget(x, y)
+        far_plane_point = self._ui.zinc_widget.unproject(x, -y, -1.0)
+        near_plane_point = self._ui.zinc_widget.unproject(x, -y, 1.0)
+        line_direction = sub(near_plane_point, far_plane_point)
+        d = dot(sub(point_on_plane, far_plane_point), plane_normal) / dot(line_direction, plane_normal)
+        intersection_point = add(mult(line_direction, d), far_plane_point)
+        if abs(dot(sub(point_on_plane, intersection_point), plane_normal)) < 1e-08:
+            return intersection_point
+
+        return None
+
+    def keyPressEvent(self, keyevent):
+        if keyevent.key() == 68 and not self._debug_print:
+            self._debug_print = True
 
     def keyReleaseEvent(self, keyevent):
         if keyevent.key() == 82 and keyevent.modifiers() & QtCore.Qt.CTRL and not keyevent.isAutoRepeat():
@@ -935,6 +1078,7 @@ class SegmentationWidget(QtGui.QWidget):
 
     def mousePressEvent(self, mouseevent):
         self._previous_mouse_position = None
+        self._start_plane = None
         cur_mode = self._getMode()
         if cur_mode != PlaneMovementMode.NONE:
             self._plane_rotation_mode_graphic = self._ui.zinc_widget.getNearestGraphicsPoint(mouseevent.x(), mouseevent.y())
@@ -948,28 +1092,20 @@ class SegmentationWidget(QtGui.QWidget):
             else:
                 self._start_plane = PlaneDescription(self._getPointOnPlane(), self._getPlaneNormal(), self._getPlaneNormalGlyphPosition())
 
-        elif mouseevent.modifiers() & QtCore.Qt.CTRL and button_map[mouseevent.button()] == Sceneviewerinput.BUTTON_TYPE_RIGHT:
-            self._previous_mouse_position = [mouseevent.x(), mouseevent.y()]
-#             print([mouseevent.x() - 118, -(mouseevent.y() - 33), 0.9], [mouseevent.x() - 118, -(mouseevent.y() - 33), -0.9])
+        elif mouseevent.modifiers() & QtCore.Qt.CTRL and mouseevent.button() == QtCore.Qt.LeftButton:
+            self._addNode(mouseevent)
+            if self._streaming_create:
+                self._streaming_create_active = True
 
     def mouseMoveEvent(self, mouseevent):
         cur_mode = self._getMode()
         is_active = self._active_mode.isActive()
         if is_active and cur_mode == PlaneMovementMode.ROTATION:
-            point_on_plane = self._getPointOnPlane()  # self._plane_centre_position  # self._getPointOnPlane()
-            plane_normal = self._getPlaneNormal()
-
-            x, y = self._ui.zinc_widget.mapToWidget(mouseevent.x(), mouseevent.y())
-            far_plane_centre = self._ui.zinc_widget.unproject(x, -y, -1.0)
-            near_plane_centre = self._ui.zinc_widget.unproject(x, -y, 1.0)
-            line_direction = sub(near_plane_centre, far_plane_centre)
-            d = dot(sub(point_on_plane, far_plane_centre), plane_normal) / dot(line_direction, plane_normal)
-            new_plane_centre = add(mult(line_direction, d), far_plane_centre)
-            new_plane_centre = self._boundCoordinatesToElement(new_plane_centre)
-            if abs(dot(sub(point_on_plane, new_plane_centre), plane_normal)) < 1e-08:
+            new_plane_centre = self._calcluatePlaneIntersection(mouseevent.x(), mouseevent.y())
+            if not new_plane_centre is None:
+                new_plane_centre = self._boundCoordinatesToElement(new_plane_centre)
                 self._setPlaneRotationCentreGlyphPosition(new_plane_centre)
                 self._setPointOnPlane(new_plane_centre)
-#                 self._plane_centre_position = new_plane_centre
 
         elif not is_active and cur_mode == PlaneMovementMode.ROTATION:
             width = self._ui.zinc_widget.width()
@@ -1041,6 +1177,8 @@ class SegmentationWidget(QtGui.QWidget):
             self._previous_mouse_position = [mouseevent.x(), mouseevent.y()]
         elif not is_active and cur_mode == PlaneMovementMode.NORMAL:
             self._ui.zinc_widget.processZincMouseMoveEvent(mouseevent)
+        elif self._streaming_create_active:
+            self._addNode(mouseevent)
 
     def mouseReleaseEvent(self, mouseevent):
         c = None
@@ -1051,8 +1189,11 @@ class SegmentationWidget(QtGui.QWidget):
             c = CommandMovePlane(self._start_plane, end_plane)
         elif self._getMode() == PlaneMovementMode.NORMAL:
             self._ui.zinc_widget.processZincMouseReleaseEvent(mouseevent)
-        else:
+        elif not self._start_plane is None:
             c = CommandMovePlane(self._start_plane, end_plane)
+
+        if self._streaming_create:
+            self._streaming_create_active = False
 
         if not c is None:
             c.setMethodCallbacks(self._setPlaneNormalGlyphPosition, self._setPlaneEquation)

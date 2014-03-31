@@ -24,17 +24,17 @@ class CommandAdd(QtGui.QUndoCommand):
     '''
     def __init__(self, field_module, position, updateGL):
         super(CommandAdd, self).__init__()
-        self._field_module = field_module
+        self._fieldmodule = field_module
         self._position = position
         self._updateGL = updateGL
         self._id = -1
         self._node = None
 
     def redo(self):
-        self._field_module.beginChange()
-        field_cache = self._field_module.createCache()
-        coordinate_field = self._field_module.findFieldByName('coordinates')
-        nodeset = self._field_module.findNodesetByName('cmiss_nodes')
+        self._fieldmodule.beginChange()
+        field_cache = self._fieldmodule.createCache()
+        coordinate_field = self._fieldmodule.findFieldByName('coordinates')
+        nodeset = self._fieldmodule.findNodesetByName('cmiss_nodes')
         template = nodeset.createNodeTemplate()
         template.defineField(coordinate_field)
 
@@ -43,12 +43,12 @@ class CommandAdd(QtGui.QUndoCommand):
         field_cache.setNode(self._node)
         coordinate_field.assignReal(field_cache, self._position)
 
-        self._field_module.endChange()
+        self._fieldmodule.endChange()
 
         self._updateGL()
 
     def undo(self):
-        nodeset = self._field_module.findNodesetByName('cmiss_nodes')
+        nodeset = self._fieldmodule.findNodesetByName('cmiss_nodes')
         nodeset.destroyNode(self._node)
 
         self._updateGL()
@@ -92,5 +92,35 @@ class CommandChangeView(QtGui.QUndoCommand):
 
     def setCallbackMethod(self, viewport_parameters):
         self._set_viewport_parameters_method = viewport_parameters
+
+
+class CommandAddNode(QtGui.QUndoCommand):
+
+
+    def __init__(self, fieldmodule, position):
+        super(CommandAddNode, self).__init__()
+        self._fieldmodule = fieldmodule
+        self._nodeset = self._fieldmodule.findNodesetByName('nodes')
+        self._coordinate_field = self._fieldmodule.findFieldByName('coordinates')
+        self._position = position
+        self._id = -1
+        self._node = None
+
+    def redo(self):
+        self._fieldmodule.beginChange()
+        field_cache = self._fieldmodule.createFieldcache()
+        template = self._nodeset.createNodetemplate()
+        template.defineField(self._coordinate_field)
+
+        self._node = self._nodeset.createNode(self._id, template)
+        self._id = self._node.getIdentifier()
+        field_cache.setNode(self._node)
+        self._coordinate_field.assignReal(field_cache, self._position)
+
+        self._fieldmodule.endChange()
+
+    def undo(self):
+        self._nodeset.destroyNode(self._node)
+
 
 
