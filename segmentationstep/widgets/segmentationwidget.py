@@ -897,7 +897,6 @@ class SegmentationWidget(QtGui.QWidget):
             new_plane_centre = self._calcluatePlaneIntersection(mouseevent.x(), mouseevent.y())
             if not new_plane_centre is None:
                 new_plane_centre = self._boundCoordinatesToElement(new_plane_centre)
-                self._setPlaneRotationCentreGlyphPosition(new_plane_centre)
                 self._setPointOnPlane(new_plane_centre)
 
         elif not is_active and cur_mode == PlaneMovementMode.ROTATION:
@@ -975,12 +974,19 @@ class SegmentationWidget(QtGui.QWidget):
 
     def mouseReleaseEvent(self, mouseevent):
         c = None
+        cur_mode = self._getMode()
+        is_active = self._active_mode.isActive()
+        if not is_active and cur_mode == PlaneMovementMode.ROTATION:
+            plane_centre = self._calculatePlaneCentre()
+            if not plane_centre is None:
+                self._setPlaneNormalGlyphPosition(plane_centre)
+
         end_plane = PlaneDescription(self._getPointOnPlane(), self._getPlaneNormal(), self._getPlaneNormalGlyphPosition())
-        if self._active_mode.isActive():
+        if is_active:
             self._active_mode.setActive(False)
 
             c = CommandMovePlane(self._start_plane, end_plane)
-        elif self._getMode() == PlaneMovementMode.NORMAL:
+        elif cur_mode == PlaneMovementMode.NORMAL:
             self._ui.zinc_widget.processZincMouseReleaseEvent(mouseevent)
         elif not self._start_plane is None:
             c = CommandMovePlane(self._start_plane, end_plane)
