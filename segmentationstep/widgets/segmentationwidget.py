@@ -29,6 +29,7 @@ from opencmiss.zinc.context import Context
 from opencmiss.zinc.field import Field
 from opencmiss.zinc.glyph import Glyph
 from opencmiss.zinc.material import Material
+from opencmiss.zinc.element import Element, Elementbasis
 
 from segmentationstep.widgets.zincwidget import ProjectionMode
 from segmentationstep.math.vectorops import add, cross, div, dot, eldiv, elmult, mult, normalize, sub
@@ -69,8 +70,8 @@ class SegmentationWidget(QtGui.QWidget):
 #         self._ui.actionButton.setText('Add Point(s)')
 
         self._context = Context('Segmentation')
-#         self._ui.zinc_widget.setParent(self)
-        self._ui.zinc_widget.setContext(self._context)
+        self._ui._sceneviewer2d.setContext(self._context)
+        self._ui._sceneviewer3d.setContext(self._context)
 
         self._image_data_location = ''
         self._dimensions = []
@@ -95,12 +96,14 @@ class SegmentationWidget(QtGui.QWidget):
         self._streaming_create_active = False
 
         self._undoStack = QtGui.QUndoStack()
-        self._ui.zinc_widget.setUndoStack(self._undoStack)
+        self._ui._sceneviewer2d.setUndoStack(self._undoStack)
+        self._ui._sceneviewer3d.setUndoStack(self._undoStack)
 
         self._makeConnections()
 
     def _makeConnections(self):
-        self._ui.zinc_widget.graphicsInitialized.connect(self.sceneviewerReady)
+        self._ui._sceneviewer2d.graphicsInitialized.connect(self.sceneviewerReady)
+        self._ui._sceneviewer3d.graphicsInitialized.connect(self.sceneviewerReady)
         self._ui._pushButtonReset.clicked.connect(self._resetViewClicked)
         self._ui._pushButtonViewAll.clicked.connect(self._viewAllClicked)
 
@@ -186,20 +189,20 @@ class SegmentationWidget(QtGui.QWidget):
         self._undoStack.clear()
 
     def _saveViewState(self):
-        eye, lookat, up = self._ui.zinc_widget.getViewParameters()
+        eye, lookat, up = self._ui._sceneviewer3d.getViewParameters()
 
         self._viewstate = SegmentationState()
         self._viewstate.setViewParameters(eye, lookat, up)
         self._viewstate.setPointOnPlane(self._getPointOnPlane())
         self._viewstate.setPlaneNormal(self._getPlaneNormal())
         self._viewstate.setPlaneRotationMode(self._getMode())
-        self._viewstate.setProjectionMode(self._ui.zinc_widget.getProjectionMode())
+        self._viewstate.setProjectionMode(self._ui._sceneviewer3d.getProjectionMode())
         self._viewstate.setPlaneNormalGlyphBaseSize(self._ui._doubleSpinBoxNormalArrow.value())
         self._viewstate.setPlaneRotationCentreGlyphBaseSize(self._ui._doubleSpinBoxRotationCentre.value())
 
     def _loadViewState(self):
         eye, lookat, up = self._viewstate.getViewParameters()
-        self._ui.zinc_widget.setViewParameters(eye, lookat, up)
+        self._ui._sceneviewer3d.setViewParameters(eye, lookat, up)
         self._setPlaneEquation(self._viewstate.getPlaneNormal(), self._viewstate.getPointOnPlane())
         self._setMode(self._viewstate.getPlaneRotationMode())
         self._setProjectionMode(self._viewstate.getProjectionMode())
@@ -211,18 +214,18 @@ class SegmentationWidget(QtGui.QWidget):
         self._setPlaneRotationCentreGlyphBaseSize(base_size)
 
     def _viewAllClicked(self):
-        self._ui.zinc_widget.viewAll()
+        self._ui._sceneviewer3d.viewAll()
 
     def _projectionModeChanged(self):
         if self.sender() == self._ui._radioButtonParallel:
-            self._ui.zinc_widget.setProjectionMode(ProjectionMode.PARALLEL)
+            self._ui._sceneviewer3d.setProjectionMode(ProjectionMode.PARALLEL)
         elif self.sender() == self._ui._radioButtonPerspective:
-            self._ui.zinc_widget.setProjectionMode(ProjectionMode.PERSPECTIVE)
+            self._ui._sceneviewer3d.setProjectionMode(ProjectionMode.PERSPECTIVE)
 
     def _setProjectionMode(self, mode):
         self._ui._radioButtonParallel.setChecked(mode == ProjectionMode.PARALLEL)
         self._ui._radioButtonPerspective.setChecked(mode == ProjectionMode.PERSPECTIVE)
-        self._ui.zinc_widget.setProjectionMode(mode)
+        self._ui._sceneviewer3d.setProjectionMode(mode)
 
     def _zincWidgetModeChanged(self):
         if self.sender() == self._ui._radioButtonSegment:
@@ -367,6 +370,50 @@ class SegmentationWidget(QtGui.QWidget):
 
         return finite_element_field
 
+    def create3DFiniteElement(self, field_module, finite_element_field, node_coordinate_set):
+        '''
+        Create finite element from a template
+        '''
+        # Find a special node set named 'cmiss_nodes'
+        nodeset = field_module.findNodesetByName('nodes')
+        node_template = nodeset.createNodetemplate()
+
+        # Set the finite element coordinate field for the nodes to use
+        node_template.defineField(finite_element_field)
+        field_cache = field_module.createFieldcache()
+
+        node_identifiers = []
+        # Create eight nodes to define a cube finite element
+        for node_coordinate in node_coordinate_set:
+            node = nodeset.createNode(-1, node_template)
+            node_identifiers.append(node.getIdentifier())
+            # Set the node coordinates, first set the field cache to use the current node
+            field_cache.setNode(node)
+            # Pass in floats as an array
+            finite_element_field.assignReal(field_cache, node_coordinate)
+
+        # Use a 3D mesh to to create the 3D finite element.
+        mesh = field_module.findMeshByDimension(3)
+        element_template = mesh.createElementtemplate()
+        element_template.setElementShapeType(Element.SHAPE_TYPE_CUBE)
+        element_node_count = 8
+        element_template.setNumberOfNodes(element_node_count)
+        # Specify the dimension and the interpolation function for the element basis function
+        linear_basis = field_module.createElementbasis(3, Elementbasis.FUNCTION_TYPE_LINEAR_LAGRANGE)
+        # the indecies of the nodes in the node template we want to use.
+        node_indexes = [1, 2, 3, 4, 5, 6, 7, 8]
+
+
+        # Define a nodally interpolated element field or field component in the
+        # element_template
+        element_template.defineFieldSimpleNodal(finite_element_field, -1, linear_basis, node_indexes)
+
+        for i, node_identifier in enumerate(node_identifiers):
+            node = nodeset.findNodeByIdentifier(node_identifier)
+            element_template.setNode(i + 1, node)
+
+        mesh.defineElement(-1, element_template)
+
     def _createFiniteElement(self, region, finite_element_field, dim):
         '''
         Create finite element meshes for each of the images.
@@ -377,7 +424,7 @@ class SegmentationWidget(QtGui.QWidget):
         node_coordinate_set = [[0, 0, 0], [dim[0], 0, 0], [0, dim[1], 0], [dim[0], dim[1], 0], [0, 0, dim[2]], [dim[0], 0, dim[2]], [0, dim[1], dim[2]], [dim[0], dim[1], dim[2]]]
 #         node_coordinate_set = [[-0.5, -0.5, -0.5], [dim[0] + 0.5, -0.5, -0.5], [-0.5, dim[1] + 0.5, -0.5], [dim[0] + 0.5, dim[1] + 0.5, -0.5],
 #                                 [-0.5, -0.5, dim[2] + 0.5], [dim[0] + 0.5, -0.5, dim[2] + 0.5], [-0.5, dim[1] + 0.5, dim[2] + 0.5], [dim[0] + 0.5, dim[1] + 0.5, dim[2] + 0.5]]
-        self._ui.zinc_widget.create3DFiniteElement(field_module, finite_element_field, node_coordinate_set)
+        self.create3DFiniteElement(field_module, finite_element_field, node_coordinate_set)
 
         field_module.defineAllFaces()
         field_module.endChange()
@@ -469,19 +516,18 @@ class SegmentationWidget(QtGui.QWidget):
         plane_glyph_filter = filtermodule.createScenefilterOperatorAnd()
         plane_glyph_filter.appendOperand(visibility_filter)
         plane_glyph_filter.appendOperand(glyph_filter)
-#         self._ui.zinc_widget.setSelectionfilter(picking_filter)
 
         segment_mode = self._modes[PlaneMovementMode.NONE]
         segment_mode.setSelectionFilter(segmentation_point_filter)
-        segment_mode.setSelectionFilterMethod(self._ui.zinc_widget.setSelectionfilter)
+        segment_mode.setSelectionFilterMethod(self._ui._sceneviewer3d.setSelectionfilter)
 
         normal_mode = self._modes[PlaneMovementMode.NORMAL]
         normal_mode.setSelectionFilter(plane_glyph_filter)
-        normal_mode.setSelectionFilterMethod(self._ui.zinc_widget.setSelectionfilter)
+        normal_mode.setSelectionFilterMethod(self._ui._sceneviewer3d.setSelectionfilter)
 
         rotation_mode = self._modes[PlaneMovementMode.ROTATION]
         rotation_mode.setSelectionFilter(plane_glyph_filter)
-        rotation_mode.setSelectionFilterMethod(self._ui.zinc_widget.setSelectionfilter)
+        rotation_mode.setSelectionFilterMethod(self._ui._sceneviewer3d.setSelectionfilter)
 
 
     def _createTestPoints(self):
@@ -589,9 +635,20 @@ class SegmentationWidget(QtGui.QWidget):
     def setImageDirectory(self, imagedir):
         self._image_data_location = imagedir
 
+    def defineStandardGlyphs(self):
+        glyph_module = self._context.getGlyphmodule()
+        glyph_module.defineStandardGlyphs()
+
+    def defineStandardMaterials(self):
+        '''
+        Helper method to define the standard materials.
+        '''
+        material_module = self._context.getMaterialmodule()
+        material_module.defineStandardMaterials()
+
     def showImages(self):
-        self._ui.zinc_widget.defineStandardMaterials()
-        self._ui.zinc_widget.defineStandardGlyphs()
+        self.defineStandardMaterials()
+        self.defineStandardGlyphs()
         self._setMaterialsForGlyphModes()
         self._createMaterialUsingImageField()
         self._updateImageUI()
@@ -645,8 +702,9 @@ class SegmentationWidget(QtGui.QWidget):
         return graphic
 
     def sceneviewerReady(self):
-        self._setMode(PlaneMovementMode.NONE)
-        self._saveViewState()
+        if self.sender() == self._ui._sceneviewer3d:
+            self._setMode(PlaneMovementMode.NONE)
+            self._saveViewState()
 
     def _checkRange(self, value, bound1, bound2):
         '''
@@ -804,7 +862,7 @@ class SegmentationWidget(QtGui.QWidget):
             self._active_mode = self._modes[mode]
             self._active_mode.enter()
 
-            self._ui.zinc_widget.setIgnoreMouseEvents(mode != PlaneMovementMode.NONE)
+#             self._ui.zinc_widget.setIgnoreMouseEvents(mode != PlaneMovementMode.NONE)
 
     def _addNode(self, mouseevent):
         position = self._calcluatePlaneIntersection(mouseevent.x(), mouseevent.y())
@@ -818,9 +876,9 @@ class SegmentationWidget(QtGui.QWidget):
         point_on_plane = self._getPointOnPlane()  # self._plane_centre_position  # self._getPointOnPlane()
         plane_normal = self._getPlaneNormal()
 
-        x, y = self._ui.zinc_widget.mapToWidget(x, y)
-        far_plane_point = self._ui.zinc_widget.unproject(x, -y, -1.0)
-        near_plane_point = self._ui.zinc_widget.unproject(x, -y, 1.0)
+        x, y = self._ui._sceneviewer3d.mapToWidget(x, y)
+        far_plane_point = self._ui._sceneviewer3d.unproject(x, -y, -1.0)
+        near_plane_point = self._ui._sceneviewer3d.unproject(x, -y, 1.0)
         line_direction = sub(near_plane_point, far_plane_point)
         d = dot(sub(point_on_plane, far_plane_point), plane_normal) / dot(line_direction, plane_normal)
         intersection_point = add(mult(line_direction, d), far_plane_point)
@@ -872,14 +930,14 @@ class SegmentationWidget(QtGui.QWidget):
         self._start_plane = None
         cur_mode = self._getMode()
         if cur_mode != PlaneMovementMode.NONE:
-            self._plane_rotation_mode_graphic = self._ui.zinc_widget.getNearestGraphicsPoint(mouseevent.x(), mouseevent.y())
+            self._plane_rotation_mode_graphic = self._ui._sceneviewer3d.getNearestGraphicsPoint(mouseevent.x(), mouseevent.y())
             if self._plane_rotation_mode_graphic:
                 self._active_mode.setActive()
 
             self._previous_mouse_position = [mouseevent.x(), mouseevent.y()]
 
             if not self._active_mode.isActive() and cur_mode == PlaneMovementMode.NORMAL:
-                self._ui.zinc_widget.processZincMousePressEvent(mouseevent)
+                self._ui._sceneviewer3d.processZincMousePressEvent(mouseevent)
             else:
                 self._start_plane = PlaneDescription(self._getPointOnPlane(), self._getPlaneNormal(), self._getPlaneNormalGlyphPosition())
 
@@ -900,8 +958,8 @@ class SegmentationWidget(QtGui.QWidget):
                 self._setPointOnPlane(new_plane_centre)
 
         elif not is_active and cur_mode == PlaneMovementMode.ROTATION:
-            width = self._ui.zinc_widget.width()
-            height = self._ui.zinc_widget.height()
+            width = self._ui._sceneviewer3d.width()
+            height = self._ui._sceneviewer3d.height()
             radius = min([width, height]) / 2.0
             delta_x = float(mouseevent.x() - self._previous_mouse_position[0])
             delta_y = float(mouseevent.y() - self._previous_mouse_position[1])
@@ -917,7 +975,7 @@ class SegmentationWidget(QtGui.QWidget):
                 phi = acos(d / radius) - 0.5 * pi
                 angle = 1.0 * tangent_dist / radius
 
-                eye, lookat, up = self._ui.zinc_widget.getViewParameters()
+                eye, lookat, up = self._ui._sceneviewer3d.getViewParameters()
 
                 b = up[:]
                 b = normalize(b)
@@ -947,9 +1005,9 @@ class SegmentationWidget(QtGui.QWidget):
                 self._previous_mouse_position = [mouseevent.x(), mouseevent.y()]
         elif is_active and cur_mode == PlaneMovementMode.NORMAL:
             pos = self._getPlaneNormalGlyphPosition()  # self._plane_centre_position  # self._getPointOnPlane()
-            screen_pos = self._ui.zinc_widget.project(pos[0], pos[1], pos[2])
-            global_cur_pos = self._ui.zinc_widget.unproject(mouseevent.x(), -mouseevent.y(), screen_pos[2])
-            global_old_pos = self._ui.zinc_widget.unproject(self._previous_mouse_position[0], -self._previous_mouse_position[1], screen_pos[2])
+            screen_pos = self._ui._sceneviewer3d.project(pos[0], pos[1], pos[2])
+            global_cur_pos = self._ui._sceneviewer3d.unproject(mouseevent.x(), -mouseevent.y(), screen_pos[2])
+            global_old_pos = self._ui._sceneviewer3d.unproject(self._previous_mouse_position[0], -self._previous_mouse_position[1], screen_pos[2])
             global_pos_diff = sub(global_cur_pos, global_old_pos)
 
             n = self._getPlaneNormal()
@@ -968,7 +1026,7 @@ class SegmentationWidget(QtGui.QWidget):
             scene.endChange()
             self._previous_mouse_position = [mouseevent.x(), mouseevent.y()]
         elif not is_active and cur_mode == PlaneMovementMode.NORMAL:
-            self._ui.zinc_widget.processZincMouseMoveEvent(mouseevent)
+            self._ui._sceneviewer3d.processZincMouseMoveEvent(mouseevent)
         elif self._streaming_create_active:
             self._addNode(mouseevent)
 
@@ -987,7 +1045,7 @@ class SegmentationWidget(QtGui.QWidget):
 
             c = CommandMovePlane(self._start_plane, end_plane)
         elif cur_mode == PlaneMovementMode.NORMAL:
-            self._ui.zinc_widget.processZincMouseReleaseEvent(mouseevent)
+            self._ui._sceneviewer3d.processZincMouseReleaseEvent(mouseevent)
         elif not self._start_plane is None:
             c = CommandMovePlane(self._start_plane, end_plane)
 
@@ -1002,5 +1060,5 @@ class SegmentationWidget(QtGui.QWidget):
         return self._undoStack
 
     def getPointCloud(self):
-        return self._ui.zinc_widget.getPointCloud()
+        return self._ui._sceneviewer3d.getPointCloud()
 

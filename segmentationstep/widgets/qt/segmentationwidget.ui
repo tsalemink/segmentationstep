@@ -14,30 +14,6 @@
    <string>Form</string>
   </property>
   <layout class="QGridLayout" name="gridLayout_2">
-   <item row="1" column="0">
-    <layout class="QHBoxLayout" name="horizontalLayout">
-     <item>
-      <spacer name="horizontalSpacer">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>40</width>
-         <height>20</height>
-        </size>
-       </property>
-      </spacer>
-     </item>
-     <item>
-      <widget class="QPushButton" name="doneButton">
-       <property name="text">
-        <string>&amp;Done</string>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </item>
    <item row="0" column="0">
     <widget class="QSplitter" name="splitter">
      <property name="orientation">
@@ -76,8 +52,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>227</width>
-            <height>334</height>
+            <width>184</width>
+            <height>234</height>
            </rect>
           </property>
           <attribute name="label">
@@ -130,7 +106,7 @@
           <property name="geometry">
            <rect>
             <x>0</x>
-            <y>-130</y>
+            <y>0</y>
             <width>227</width>
             <height>455</height>
            </rect>
@@ -338,8 +314,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>227</width>
-            <height>334</height>
+            <width>184</width>
+            <height>234</height>
            </rect>
           </property>
           <attribute name="label">
@@ -388,7 +364,7 @@
            <item>
             <widget class="QGroupBox" name="groupBox_8">
              <property name="title">
-              <string>Create</string>
+              <string>Create Mode</string>
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_11">
               <item>
@@ -421,8 +397,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>227</width>
-            <height>334</height>
+            <width>170</width>
+            <height>244</height>
            </rect>
           </property>
           <attribute name="label">
@@ -592,38 +568,114 @@
        </item>
       </layout>
      </widget>
-     <widget class="ZincWidget" name="zinc_widget" native="true">
+     <widget class="SegmentationTabWidget" name="_tabWidget1">
       <property name="sizePolicy">
        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-        <horstretch>2</horstretch>
+        <horstretch>1</horstretch>
         <verstretch>1</verstretch>
        </sizepolicy>
       </property>
-      <property name="minimumSize">
-       <size>
-        <width>30</width>
-        <height>30</height>
-       </size>
+      <property name="currentIndex">
+       <number>0</number>
       </property>
+      <widget class="QWidget" name="tab3d">
+       <attribute name="title">
+        <string>3D View</string>
+       </attribute>
+       <layout class="QVBoxLayout" name="verticalLayoutTab3d">
+        <item>
+         <widget class="SceneviewerWidget3D" name="_sceneviewer3d" native="true">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+            <horstretch>1</horstretch>
+            <verstretch>1</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>30</width>
+            <height>30</height>
+           </size>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="tab2d">
+       <attribute name="title">
+        <string>2D View</string>
+       </attribute>
+       <layout class="QVBoxLayout" name="verticalLayoutTab2d">
+        <item>
+         <widget class="SceneviewerWidget2D" name="_sceneviewer2d" native="true">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
      </widget>
+     <widget class="SegmentationTabWidget" name="_tabWidget2"/>
     </widget>
+   </item>
+   <item row="1" column="0">
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <spacer name="horizontalSpacer">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="doneButton">
+       <property name="text">
+        <string>&amp;Done</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </item>
   </layout>
  </widget>
  <customwidgets>
-  <customwidget>
-   <class>ZincWidget</class>
-   <extends>QWidget</extends>
-   <header>segmentationstep/widgets/zincwidget.h</header>
-   <container>1</container>
-  </customwidget>
   <customwidget>
    <class>GroupBox</class>
    <extends>QGroupBox</extends>
    <header>segmentationstep/widgets/groupbox.h</header>
    <container>1</container>
   </customwidget>
+  <customwidget>
+   <class>SceneviewerWidget2D</class>
+   <extends>QWidget</extends>
+   <header>segmentationstep/widgets/sceneviewerwidget2d.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>SegmentationTabWidget</class>
+   <extends>QTabWidget</extends>
+   <header>segmentationstep/widgets/segmentationtabwidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>SceneviewerWidget3D</class>
+   <extends>QWidget</extends>
+   <header>segmentationstep/widgets/sceneviewerwidget3d.h</header>
+   <container>1</container>
+  </customwidget>
  </customwidgets>
- <resources/>
+ <resources>
+  <include location="resources.qrc"/>
+ </resources>
  <connections/>
 </ui>
