@@ -26,6 +26,58 @@ class SegmentationTabWidget(QtGui.QTabWidget):
     def __init__(self, parent=None):
         super(SegmentationTabWidget, self).__init__(parent)
         tb = SegmentationTabBar()
+        tb.tabReorderRequested.connect(self.repositionTab)
         self.setTabBar(tb)
 
+        self.setAcceptDrops(True)
+
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
+        sizePolicy.setHorizontalStretch(100)
+#         sizePolicy.setVerticalStretch(1)
+#         sizePolicy.setHeightForWidth(self._tabWidget1.sizePolicy().hasHeightForWidth())
+        self.setSizePolicy(sizePolicy)
+
+    def repositionTab(self, fromIndex, toIndex):
+        w = self.widget(fromIndex);
+        icon = self.tabIcon(fromIndex);
+        text = self.tabText(fromIndex);
+
+        self.removeTab(fromIndex);
+        self.insertTab(toIndex, w, icon, text);
+        self.setCurrentIndex(toIndex);
+
+    def dragEnterEvent(self, event):
+        m = event.mimeData()
+        if m.hasFormat('application/tab-moving'):
+            event.acceptProposedAction()
+
+#         super(SegmentationTabWidget, self).dragEnterEvent(event)
+
+    def dragMoveEvent(self, event):
+        m = event.mimeData()
+        if m.hasFormat('application/tab-moving'):
+            self._stop_drag_pos = event.pos()
+            event.acceptProposedAction()
+
+#         super(SegmentationTabWidget, self).dragMoveEvent(event)
+
+    def dropEvent(self, event):
+        m = event.mimeData()
+        if m.hasFormat('application/tab-moving'):
+            event.acceptProposedAction()
+
+#         super(SegmentationTabWidget, self).dropEvent(event)
+#     def dragEnterEvent(self, event):
+#         print('yooyoyoyoyoyo')
+#         m = event.mimeData()
+#         f = m.formats()
+#         if 'action' in f and m.data('action') == 'application/tab-moving':
+#             print 'tab widget accept p action'
+#             event.acceptProposedAction()
+#
+#     def dropEvent(self, event):
+#         print('kdkdkddkdk')
+#         fromIndex = self.tabAt(self._start_drag_pos)
+#         toIndex = self.tabAt(event.pos())
+#         print fromIndex, toIndex
 
