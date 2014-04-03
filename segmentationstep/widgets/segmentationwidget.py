@@ -67,6 +67,10 @@ class SegmentationWidget(QtGui.QWidget):
         self._ui = Ui_SegmentationWidget()
         self._ui.setupUi(self)
         self._setupUi()
+
+#         self._ui.splitter.setStretchFactor(0, 8)
+        self._ui.splitterToolBox.setStretchFactor(1, 2)
+        self._ui.splitterSceneviewers.setStretchFactor(1, 66)
 #         self._ui.actionButton.setText('Add Point(s)')
 
         self._context = Context('Segmentation')

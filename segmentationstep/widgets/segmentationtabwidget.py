@@ -18,7 +18,7 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
     along with MAP Client.  If not, see <http://www.gnu.org/licenses/>..
 '''
 
-from PySide import QtGui
+from PySide import QtCore, QtGui
 from segmentationstep.widgets.segmentationtabbar import SegmentationTabBar
 
 class SegmentationTabWidget(QtGui.QTabWidget):
@@ -31,11 +31,23 @@ class SegmentationTabWidget(QtGui.QTabWidget):
 
         self.setAcceptDrops(True)
 
-        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
-        sizePolicy.setHorizontalStretch(100)
+        self._animation_increase = QtCore.QPropertyAnimation(self, 'maximumWidth')
+        self._animation_increase.setStartValue(1)
+        self._animation_increase.setEndValue(100)
+        self._animation_decrease = QtCore.QPropertyAnimation(self, 'maximumWidth')
+        self._animation_decrease.setStartValue(100)
+        self._animation_decrease.setEndValue(1)
+        self._animation_decrease.finished.connect(self._animationFinished)
+
+#         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
+#         sizePolicy.setHorizontalStretch(100)
 #         sizePolicy.setVerticalStretch(1)
 #         sizePolicy.setHeightForWidth(self._tabWidget1.sizePolicy().hasHeightForWidth())
-        self.setSizePolicy(sizePolicy)
+#         sizePolicy.setHeightForWidth(True)
+#         self.setSizePolicy(sizePolicy)
+
+    def _animationFinished(self):
+        self.setStyleSheet("")
 
     def repositionTab(self, fromIndex, toIndex):
         w = self.widget(fromIndex);
@@ -50,8 +62,16 @@ class SegmentationTabWidget(QtGui.QTabWidget):
         m = event.mimeData()
         if m.hasFormat('application/tab-moving'):
             event.acceptProposedAction()
+            if self.width() < 100:
+                self._animation_increase.setStartValue(self.width())
+                self.setStyleSheet("background-color: rgb(107, 186, 255);")
+                self._animation_increase.start()
 
-#         super(SegmentationTabWidget, self).dragEnterEvent(event)
+    def dragLeaveEvent(self, event):
+#         super(SegmentationTabDropWidget, self).dragLeaveEvent(event)
+        if self.width() > 1 and self.count() == 0:
+            self._animation_decrease.setStartValue(self.width())
+            self._animation_decrease.start()
 
     def dragMoveEvent(self, event):
         m = event.mimeData()
@@ -65,6 +85,16 @@ class SegmentationTabWidget(QtGui.QTabWidget):
         m = event.mimeData()
         if m.hasFormat('application/tab-moving'):
             event.acceptProposedAction()
+
+    def tabInserted(self, index):
+        if self.count() == 1:
+            self.setStyleSheet("")
+            self._animation_increase.setEndValue(16777215)
+            self._animation_increase.start()
+
+    def tabRemoved(self, index):
+        if self.count() == 0:
+            self._animation_decrease.start()
 
 #         super(SegmentationTabWidget, self).dropEvent(event)
 #     def dragEnterEvent(self, event):
