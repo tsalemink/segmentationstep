@@ -25,5 +25,9 @@ class SceneviewerWidget2D(SceneviewerWidget):
 
     def __init__(self, parent=None):
         super(SceneviewerWidget2D, self).__init__(parent)
+        self._plane = None
+
+    def setPlane(self, plane):
+        self._plane = plane
 
 

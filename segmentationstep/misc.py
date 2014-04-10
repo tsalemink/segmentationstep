@@ -31,3 +31,18 @@ def alphanum_key(s):
     """
     return [ tryint(c) for c in re.split('([0-9]+)', s) ]
 
+def checkRange(value, bound1, bound2):
+    '''
+    Check whether the value 'value' lies within the range 'bound1' and 'bound2'.
+    Irrespective of the order of the bounds!
+    '''
+    check = False
+    if bound1 < bound2:
+        if bound1 <= value <= bound2:
+            check = True
+    else:
+        if bound2 <= value <= bound1:
+            check = True
+
+    return check
+

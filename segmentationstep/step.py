@@ -23,6 +23,7 @@ from PySide import QtGui, QtCore
 
 from mapclient.mountpoints.workflowstep import WorkflowStepMountPoint
 
+from segmentationstep.model import SegmentationModel
 from segmentationstep.widgets.segmentationwidget import SegmentationWidget
 from segmentationstep.widgets.configuredialog import ConfigureDialog, ConfigureDialogState
 
@@ -42,7 +43,8 @@ class SegmentationStep(WorkflowStepMountPoint):
         self._icon = QtGui.QImage(':/segmentation/icons/seg.gif')
         self.addPort(('http://physiomeproject.org/workflow/1.0/rdf-schema#port', 'http://physiomeproject.org/workflow/1.0/rdf-schema#uses', 'http://physiomeproject.org/workflow/1.0/rdf-schema#images'))
         self.addPort(('http://physiomeproject.org/workflow/1.0/rdf-schema#port', 'http://physiomeproject.org/workflow/1.0/rdf-schema#provides', 'http://physiomeproject.org/workflow/1.0/rdf-schema#pointcloud'))
-        self._widget = None
+        self._model = SegmentationModel()
+        self._view = None
         self._dataIn = None
 #        self._configured = True
         self._state = ConfigureDialogState()
@@ -82,12 +84,12 @@ class SegmentationStep(WorkflowStepMountPoint):
         self._dataIn = dataIn
 
     def getPortOutput(self, portId):
-        return self._widget.getPointCloud()
+        return self._model.getPointCloud()
 
     def execute(self):
-        if not self._widget:
-            self._widget = SegmentationWidget(self._dataIn)
-            self._widget._ui.doneButton.clicked.connect(self._doneExecution)
+        if not self._view:
+            self._view = SegmentationWidget(self._model, self._dataIn)
+            self._view._ui.doneButton.clicked.connect(self._doneExecution)
 
-        self._setCurrentUndoRedoStack(self._widget.undoRedoStack())
-        self._setCurrentWidget(self._widget)
+        self._setCurrentUndoRedoStack(self._model.undoRedoStack())
+        self._setCurrentWidget(self._view)

@@ -24,7 +24,7 @@ GRAPHIC_LABEL_NAME = 'label_only'
 
 class PlaneMovementMode(object):
 
-    NONE = 1
+    POSITION = 1
     NORMAL = 2
     ROTATION = 4
 

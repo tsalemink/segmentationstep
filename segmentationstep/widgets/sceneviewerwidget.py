@@ -17,10 +17,7 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
     You should have received a copy of the GNU General Public License
     along with MAP Client.  If not, see <http://www.gnu.org/licenses/>..
 '''
-try:
-    from PySide import QtCore, QtOpenGL
-except ImportError:
-    from PyQt4 import QtCore, QtOpenGL
+from PySide import QtCore, QtOpenGL
 
 # from opencmiss.zinc.glyph import Glyph
 from opencmiss.zinc.sceneviewer import Sceneviewer, Sceneviewerevent
@@ -294,13 +291,13 @@ class SceneviewerWidget(QtOpenGL.QGLWidget):
         y = local_pt.y() - 5
         return x, y
 
-    def getNearestGraphicsPoint(self, parent_x, parent_y):
+    def getNearestGraphicsPoint(self, x, y):
         '''
         Assuming given x and y is in the sending widgets coordinates 
         which is a parent of this widget.  For example the values given 
         directly from the mouseevent in the parent widget.
         '''
-        x, y = self.mapToWidget(parent_x, parent_y)
+#         x, y = self.mapToWidget(parent_x, parent_y)
         self._scenepicker.setSceneviewerRectangle(self._sceneviewer, SCENECOORDINATESYSTEM_LOCAL, x - 0.5, y - 0.5, x + 0.5, y + 0.5)
         nearest_graphics = self._scenepicker.getNearestGraphics()
         if nearest_graphics.isValid() and nearest_graphics.getFieldDomainType() == Field.DOMAIN_TYPE_POINT:
@@ -354,6 +351,7 @@ class SceneviewerWidget(QtOpenGL.QGLWidget):
         '''
         Inform the scene viewer of a mouse press event.
         '''
+        mouseevent.accept()
         self._handle_mouse_events = False  # Track when the zinc should be handling mouse events
         if not self._ignore_mouse_events and (mouseevent.modifiers() & QtCore.Qt.SHIFT) and (self._nodeSelectMode or self._elemSelectMode) and button_map[mouseevent.button()] == Sceneviewerinput.BUTTON_TYPE_LEFT:
             self._selectionPositionStart = (mouseevent.x(), mouseevent.y())
@@ -370,6 +368,7 @@ class SceneviewerWidget(QtOpenGL.QGLWidget):
         '''
         Inform the scene viewer of a mouse release event.
         '''
+        mouseevent.accept()
         if not self._ignore_mouse_events and self._selectionMode != SelectionMode.NONE:
             x = mouseevent.x()
             y = mouseevent.y()
@@ -450,6 +449,7 @@ class SceneviewerWidget(QtOpenGL.QGLWidget):
         change to the viewport.
         '''
 
+        mouseevent.accept()
         if not self._ignore_mouse_events and self._selectionMode != SelectionMode.NONE:
             x = mouseevent.x()
             y = mouseevent.y()

@@ -21,6 +21,8 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
 from PySide import QtCore, QtGui
 from segmentationstep.widgets.segmentationtabbar import SegmentationTabBar
 
+TABWIDGET_TARGET_SIZE = 100
+
 class SegmentationTabWidget(QtGui.QTabWidget):
 
     def __init__(self, parent=None):
@@ -33,18 +35,11 @@ class SegmentationTabWidget(QtGui.QTabWidget):
 
         self._animation_increase = QtCore.QPropertyAnimation(self, 'maximumWidth')
         self._animation_increase.setStartValue(1)
-        self._animation_increase.setEndValue(100)
+        self._animation_increase.setEndValue(TABWIDGET_TARGET_SIZE)
         self._animation_decrease = QtCore.QPropertyAnimation(self, 'maximumWidth')
-        self._animation_decrease.setStartValue(100)
+        self._animation_decrease.setStartValue(TABWIDGET_TARGET_SIZE)
         self._animation_decrease.setEndValue(1)
         self._animation_decrease.finished.connect(self._animationFinished)
-
-#         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
-#         sizePolicy.setHorizontalStretch(100)
-#         sizePolicy.setVerticalStretch(1)
-#         sizePolicy.setHeightForWidth(self._tabWidget1.sizePolicy().hasHeightForWidth())
-#         sizePolicy.setHeightForWidth(True)
-#         self.setSizePolicy(sizePolicy)
 
     def _animationFinished(self):
         self.setStyleSheet("")
@@ -62,7 +57,7 @@ class SegmentationTabWidget(QtGui.QTabWidget):
         m = event.mimeData()
         if m.hasFormat('application/tab-moving'):
             event.acceptProposedAction()
-            if self.width() < 100:
+            if self.width() < TABWIDGET_TARGET_SIZE:
                 self._animation_increase.setStartValue(self.width())
                 self.setStyleSheet("background-color: rgb(107, 186, 255);")
                 self._animation_increase.start()
@@ -94,20 +89,7 @@ class SegmentationTabWidget(QtGui.QTabWidget):
 
     def tabRemoved(self, index):
         if self.count() == 0:
+            self._animation_increase.setEndValue(TABWIDGET_TARGET_SIZE)
             self._animation_decrease.start()
 
-#         super(SegmentationTabWidget, self).dropEvent(event)
-#     def dragEnterEvent(self, event):
-#         print('yooyoyoyoyoyo')
-#         m = event.mimeData()
-#         f = m.formats()
-#         if 'action' in f and m.data('action') == 'application/tab-moving':
-#             print 'tab widget accept p action'
-#             event.acceptProposedAction()
-#
-#     def dropEvent(self, event):
-#         print('kdkdkddkdk')
-#         fromIndex = self.tabAt(self._start_drag_pos)
-#         toIndex = self.tabAt(event.pos())
-#         print fromIndex, toIndex
 
