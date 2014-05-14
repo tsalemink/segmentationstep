@@ -25,13 +25,13 @@ from opencmiss.zinc.field import Field
 from opencmiss.zinc.material import Material
 from opencmiss.zinc.glyph import Glyph
 
-from segmentationstep.math.vectorops import add, cross, dot, mult, normalize, sub
-from segmentationstep.widgets.sceneviewerwidget import SceneviewerWidget
-from segmentationstep.widgets.definitions import PlaneMovementMode
-from segmentationstep.undoredo import CommandMovePlane
-from segmentationstep.widgets.definitions import GRAPHIC_LABEL_NAME
+from mapclientplugins.segmentationstep.maths.vectorops import add, cross, dot, mult, normalize, sub
+from mapclientplugins.segmentationstep.widgets.sceneviewerwidget import SceneviewerWidget
+from mapclientplugins.segmentationstep.widgets.definitions import PlaneMovementMode
+from mapclientplugins.segmentationstep.undoredo import CommandMovePlane
+from mapclientplugins.segmentationstep.widgets.definitions import GRAPHIC_LABEL_NAME
 
-from segmentationstep.widgets.viewmodes import NormalMode, RotationMode, PositionMode
+from mapclientplugins.segmentationstep.widgets.viewmodes import NormalMode, RotationMode, PositionMode
 
 class SceneviewerWidget3D(SceneviewerWidget):
 

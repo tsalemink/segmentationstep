@@ -30,7 +30,7 @@ from opencmiss.zinc.field import Field
 from opencmiss.zinc.element import Element, Elementbasis
 from opencmiss.zinc.material import Material
 
-from segmentationstep.undoredo import CommandAdd
+from mapclientplugins.segmentationstep.undoredo import CommandAdd
 
 def tryint(s):
     try:

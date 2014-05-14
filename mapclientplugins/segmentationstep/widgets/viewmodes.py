@@ -21,7 +21,7 @@ from opencmiss.zinc.field import Field
 from opencmiss.zinc.material import Material
 from opencmiss.zinc.glyph import Glyph
 
-from segmentationstep.widgets.definitions import PlaneMovementMode, DEFAULT_GRAPHICS_SPHERE_SIZE, DEFAULT_NORMAL_ARROW_SIZE
+from mapclientplugins.segmentationstep.widgets.definitions import PlaneMovementMode, DEFAULT_GRAPHICS_SPHERE_SIZE, DEFAULT_NORMAL_ARROW_SIZE
 
 class ViewMode(object):
 

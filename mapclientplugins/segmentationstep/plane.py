@@ -17,13 +17,11 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
     You should have received a copy of the GNU General Public License
     along with MAP Client.  If not, see <http://www.gnu.org/licenses/>..
 '''
-import sys
-print(sys.path)
 from math import sqrt
 
-from segmentationstep.math.algorithms import CentroidAlgorithm
-from segmentationstep.math.vectorops import add, dot, mult, sub
-from segmentationstep.misc import checkRange
+from mapclientplugins.segmentationstep.misc import checkRange
+from mapclientplugins.segmentationstep.maths.algorithms import CentroidAlgorithm
+from mapclientplugins.segmentationstep.maths.vectorops import add, dot, mult, sub
 
 class Plane(object):
 

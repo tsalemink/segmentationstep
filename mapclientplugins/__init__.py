@@ -17,17 +17,6 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
     You should have received a copy of the GNU General Public License
     along with MAP Client.  If not, see <http://www.gnu.org/licenses/>..
 '''
-
-from segmentationstep.widgets.sceneviewerwidget import SceneviewerWidget
-
-
-class SceneviewerWidget2D(SceneviewerWidget):
-
-    def __init__(self, parent=None):
-        super(SceneviewerWidget2D, self).__init__(parent)
-        self._plane = None
-
-    def setPlane(self, plane):
-        self._plane = plane
-
+from pkgutil import extend_path
+__path__ = extend_path(__path__, __name__)
 

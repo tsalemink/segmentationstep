@@ -27,7 +27,7 @@ from opencmiss.zinc.field import Field
 from opencmiss.zinc.glyph import Glyph
 from opencmiss.zinc.status import OK
 
-from segmentationstep.undoredo import CommandChangeView
+from mapclientplugins.segmentationstep.undoredo import CommandChangeView
 
 # mapping from qt to zinc start
 # Create a button map of Qt mouse buttons to Zinc input buttons
@@ -359,7 +359,16 @@ class SceneviewerWidget(QtOpenGL.QGLWidget):
             if mouseevent.modifiers() & QtCore.Qt.ALT:
                 self._selectionMode = SelectionMode.ADDITIVE
         elif not self._ignore_mouse_events and not mouseevent.modifiers() or (mouseevent.modifiers() & QtCore.Qt.SHIFT and button_map[mouseevent.button()] == Sceneviewerinput.BUTTON_TYPE_RIGHT):
-            self.processZincMousePressEvent(mouseevent)
+            scene_input = self._sceneviewer.createSceneviewerinput()
+            scene_input.setPosition(mouseevent.x(), mouseevent.y())
+            scene_input.setEventType(Sceneviewerinput.EVENT_TYPE_BUTTON_PRESS)
+            scene_input.setButtonType(button_map[mouseevent.button()])
+            scene_input.setModifierFlags(modifier_map(mouseevent.modifiers()))
+
+            self._sceneviewer.processSceneviewerinput(scene_input)
+            p = self.getViewParameters()
+            self._start_view_parameters = ViewportParameters(p[0], p[1], p[2])
+
             self._handle_mouse_events = True
         else:
             mouseevent.ignore()
@@ -439,7 +448,17 @@ class SceneviewerWidget(QtOpenGL.QGLWidget):
             root_region.endHierarchicalChange()
             self._selectionMode = SelectionMode.NONE
         elif not self._ignore_mouse_events and self._handle_mouse_events:
-            self.processZincMouseReleaseEvent(mouseevent)
+            scene_input = self._sceneviewer.createSceneviewerinput()
+            scene_input.setPosition(mouseevent.x(), mouseevent.y())
+            scene_input.setEventType(Sceneviewerinput.EVENT_TYPE_BUTTON_RELEASE)
+            scene_input.setButtonType(button_map[mouseevent.button()])
+
+            self._sceneviewer.processSceneviewerinput(scene_input)
+            p = self.getViewParameters()
+            end_view_parameters = ViewportParameters(p[0], p[1], p[2])
+            c = CommandChangeView(self._start_view_parameters, end_view_parameters)
+            c.setCallbackMethod(self.setViewParameters)
+            self._undoStack.push(c)
         else:
             mouseevent.ignore()
 
@@ -468,42 +487,14 @@ class SceneviewerWidget(QtOpenGL.QGLWidget):
             self._selectionBox.setVisibilityFlag(True)
             scene.endChange()
         elif not self._ignore_mouse_events and self._handle_mouse_events:
-            self.processZincMouseMoveEvent(mouseevent)
+            scene_input = self._sceneviewer.createSceneviewerinput()
+            scene_input.setPosition(mouseevent.x(), mouseevent.y())
+            scene_input.setEventType(Sceneviewerinput.EVENT_TYPE_MOTION_NOTIFY)
+            if mouseevent.type() == QtCore.QEvent.Leave:
+                scene_input.setPosition(-1, -1)
+
+            self._sceneviewer.processSceneviewerinput(scene_input)
         else:
             mouseevent.ignore()
-
-    def processZincMousePressEvent(self, mouseevent):
-        scene_input = self._sceneviewer.createSceneviewerinput()
-        scene_input.setPosition(mouseevent.x(), mouseevent.y())
-        scene_input.setEventType(Sceneviewerinput.EVENT_TYPE_BUTTON_PRESS)
-        scene_input.setButtonType(button_map[mouseevent.button()])
-        scene_input.setModifierFlags(modifier_map(mouseevent.modifiers()))
-
-        self._sceneviewer.processSceneviewerinput(scene_input)
-        p = self.getViewParameters()
-        self._start_view_parameters = ViewportParameters(p[0], p[1], p[2])
-
-
-    def processZincMouseMoveEvent(self, mouseevent):
-        scene_input = self._sceneviewer.createSceneviewerinput()
-        scene_input.setPosition(mouseevent.x(), mouseevent.y())
-        scene_input.setEventType(Sceneviewerinput.EVENT_TYPE_MOTION_NOTIFY)
-        if mouseevent.type() == QtCore.QEvent.Leave:
-            scene_input.setPosition(-1, -1)
-
-        self._sceneviewer.processSceneviewerinput(scene_input)
-
-    def processZincMouseReleaseEvent(self, mouseevent):
-        scene_input = self._sceneviewer.createSceneviewerinput()
-        scene_input.setPosition(mouseevent.x(), mouseevent.y())
-        scene_input.setEventType(Sceneviewerinput.EVENT_TYPE_BUTTON_RELEASE)
-        scene_input.setButtonType(button_map[mouseevent.button()])
-
-        self._sceneviewer.processSceneviewerinput(scene_input)
-        p = self.getViewParameters()
-        end_view_parameters = ViewportParameters(p[0], p[1], p[2])
-        c = CommandChangeView(self._start_view_parameters, end_view_parameters)
-        c.setCallbackMethod(self.setViewParameters)
-        self._undoStack.push(c)
 
 

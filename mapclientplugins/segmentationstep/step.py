@@ -23,9 +23,9 @@ from PySide import QtGui, QtCore
 
 from mapclient.mountpoints.workflowstep import WorkflowStepMountPoint
 
-from segmentationstep.model import SegmentationModel
-from segmentationstep.widgets.segmentationwidget import SegmentationWidget
-from segmentationstep.widgets.configuredialog import ConfigureDialog, ConfigureDialogState
+from mapclientplugins.segmentationstep.model import SegmentationModel
+from mapclientplugins.segmentationstep.widgets.segmentationwidget import SegmentationWidget
+from mapclientplugins.segmentationstep.widgets.configuredialog import ConfigureDialog, ConfigureDialogState
 
 STEP_SERIALISATION_FILENAME = 'step.conf'
 

@@ -16,7 +16,7 @@ from opencmiss.zinc.field import Field
 from opencmiss.zinc.glyph import Glyph
 from opencmiss.zinc.status import OK
 
-from segmentationstep.undoredo import CommandChangeView
+from mapclientplugins.segmentationstep.undoredo import CommandChangeView
 
 # mapping from qt to zinc start
 # Create a button map of Qt mouse buttons to Zinc input buttons

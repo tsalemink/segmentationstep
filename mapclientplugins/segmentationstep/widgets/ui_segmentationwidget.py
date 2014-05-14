@@ -407,7 +407,7 @@ class Ui_SegmentationWidget(object):
         self._tabWidget1.setTabText(self._tabWidget1.indexOf(self.tab3d), QtGui.QApplication.translate("SegmentationWidget", "3D View", None, QtGui.QApplication.UnicodeUTF8))
         self._tabWidget1.setTabText(self._tabWidget1.indexOf(self.tab2d), QtGui.QApplication.translate("SegmentationWidget", "2D View", None, QtGui.QApplication.UnicodeUTF8))
 
-from segmentationstep.widgets.sceneviewerwidget3d import SceneviewerWidget3D
-from segmentationstep.widgets.segmentationtabwidget import SegmentationTabWidget
-from segmentationstep.widgets.sceneviewerwidget2d import SceneviewerWidget2D
+from mapclientplugins.segmentationstep.widgets.sceneviewerwidget3d import SceneviewerWidget3D
+from mapclientplugins.segmentationstep.widgets.segmentationtabwidget import SegmentationTabWidget
+from mapclientplugins.segmentationstep.widgets.sceneviewerwidget2d import SceneviewerWidget2D
 from . import resources_rc

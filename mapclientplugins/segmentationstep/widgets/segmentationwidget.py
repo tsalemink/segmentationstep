@@ -22,8 +22,8 @@ from math import sqrt, acos, pi, sin, cos
 
 from PySide import QtGui, QtCore
 
-from segmentationstep.widgets.ui_segmentationwidget import Ui_SegmentationWidget
-from segmentationstep.undoredo import CommandMovePlane, CommandAddNode
+from mapclientplugins.segmentationstep.widgets.ui_segmentationwidget import Ui_SegmentationWidget
+from mapclientplugins.segmentationstep.undoredo import CommandMovePlane, CommandAddNode
 
 from opencmiss.zinc.context import Context
 from opencmiss.zinc.field import Field
@@ -31,14 +31,14 @@ from opencmiss.zinc.glyph import Glyph
 from opencmiss.zinc.material import Material
 from opencmiss.zinc.element import Element, Elementbasis
 
-from segmentationstep.widgets.zincwidget import ProjectionMode
-from segmentationstep.math.vectorops import add, cross, div, dot, eldiv, elmult, mult, normalize, sub
-from segmentationstep.widgets.definitions import DEFAULT_GRAPHICS_SPHERE_SIZE, DEFAULT_NORMAL_ARROW_SIZE, DEFAULT_SEGMENTATION_POINT_SIZE, GRAPHIC_LABEL_NAME
-from segmentationstep.widgets.definitions import PlaneMovementMode
-from segmentationstep.widgets.segmentationstate import SegmentationState
-from segmentationstep.misc import alphanum_key
-from segmentationstep.math.algorithms import CentroidAlgorithm
-from segmentationstep.zincutils import create3DFiniteElement, createFiniteElement, createFiniteElementField
+from mapclientplugins.segmentationstep.widgets.zincwidget import ProjectionMode
+from mapclientplugins.segmentationstep.maths.vectorops import add, cross, div, dot, eldiv, elmult, mult, normalize, sub
+from mapclientplugins.segmentationstep.widgets.definitions import DEFAULT_GRAPHICS_SPHERE_SIZE, DEFAULT_NORMAL_ARROW_SIZE, DEFAULT_SEGMENTATION_POINT_SIZE, GRAPHIC_LABEL_NAME
+from mapclientplugins.segmentationstep.widgets.definitions import PlaneMovementMode
+from mapclientplugins.segmentationstep.widgets.segmentationstate import SegmentationState
+from mapclientplugins.segmentationstep.misc import alphanum_key
+from mapclientplugins.segmentationstep.maths.algorithms import CentroidAlgorithm
+from mapclientplugins.segmentationstep.zincutils import create3DFiniteElement, createFiniteElement, createFiniteElementField
 
 class FakeMouseEvent(object):
 
@@ -93,7 +93,7 @@ class SegmentationWidget(QtGui.QWidget):
         self._streaming_create = False
         self._streaming_create_active = False
 
-        self._undoStack = QtGui.QUndoStack()
+        self._undoStack = self._model.getUndoRedoStack()
         self._ui._sceneviewer2d.setUndoStack(self._undoStack)
         self._ui._sceneviewer3d.setUndoStack(self._undoStack)
 
@@ -388,7 +388,7 @@ class SegmentationWidget(QtGui.QWidget):
         self._updateImageUI()
         # Resize the element to match the size of the images
         self._model.resizeImageElement(dimensions)
-        self._plane.setDimensions()
+        self._plane.setDimensions(dimensions)
 
 #         plane_centre = self._calculatePlaneCentre()
 #         glyph = self._ui._sceneviewer3d.getPlaneNormalGlyph()

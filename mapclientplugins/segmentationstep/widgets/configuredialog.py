@@ -19,7 +19,7 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
 '''
 from PySide.QtGui import QDialog, QDialogButtonBox
 
-from segmentationstep.widgets.ui_configuredialog import Ui_ConfigureDialog
+from mapclientplugins.segmentationstep.widgets.ui_configuredialog import Ui_ConfigureDialog
 
 REQUIRED_STYLE_SHEET = 'border: 1px solid red; border-radius: 3px'
 DEFAULT_STYLE_SHEET = 'border: 1px solid gray; border-radius: 3px'

@@ -19,7 +19,7 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
 '''
 
 from math import atan2, pi, sqrt
-from segmentationstep.math.vectorops import add, cross, div, dot, normalize, sub
+from mapclientplugins.segmentationstep.maths.vectorops import add, cross, div, dot, normalize, sub
 
 class CentroidAlgorithm(object):
 

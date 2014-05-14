@@ -18,8 +18,8 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
     along with MAP Client.  If not, see <http://www.gnu.org/licenses/>..
 '''
 
-from segmentationstep.widgets.definitions import DEFAULT_NORMAL_ARROW_SIZE, DEFAULT_GRAPHICS_SPHERE_SIZE
-from segmentationstep.widgets.zincwidget import ProjectionMode
+from mapclientplugins.segmentationstep.widgets.definitions import DEFAULT_NORMAL_ARROW_SIZE, DEFAULT_GRAPHICS_SPHERE_SIZE
+from mapclientplugins.segmentationstep.widgets.zincwidget import ProjectionMode
 
 class SegmentationState(object):
 

@@ -21,9 +21,9 @@ from PySide import QtGui
 
 from opencmiss.zinc.context import Context
 
-from segmentationstep.math.vectorops import elmult
-from segmentationstep.plane import Plane
-from segmentationstep.zincutils import createFiniteElementField, createFiniteElement
+from mapclientplugins.segmentationstep.maths.vectorops import elmult
+from mapclientplugins.segmentationstep.plane import Plane
+from mapclientplugins.segmentationstep.zincutils import createFiniteElementField, createFiniteElement
 
 class SegmentationModel(object):
 

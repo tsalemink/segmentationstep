@@ -19,68 +19,77 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
 '''
 
 from PySide import QtCore, QtGui
+from mapclientplugins.segmentationstep.widgets.segmentationtabbar import SegmentationTabBar
 
-from segmentationstep.widgets.segmentationtabwidget import SegmentationTabWidget
+TABWIDGET_TARGET_SIZE = 100
 
-class SegmentationTabDropWidget(QtGui.QWidget):
+class SegmentationTabWidget(QtGui.QTabWidget):
 
-    def __init__(self, parent):
-        super(SegmentationTabDropWidget, self).__init__(parent)
+    def __init__(self, parent=None):
+        super(SegmentationTabWidget, self).__init__(parent)
+        tb = SegmentationTabBar()
+        tb.tabReorderRequested.connect(self.repositionTab)
+        self.setTabBar(tb)
+
         self.setAcceptDrops(True)
+
         self._animation_increase = QtCore.QPropertyAnimation(self, 'maximumWidth')
         self._animation_increase.setStartValue(1)
-        self._animation_increase.setEndValue(100)
+        self._animation_increase.setEndValue(TABWIDGET_TARGET_SIZE)
         self._animation_decrease = QtCore.QPropertyAnimation(self, 'maximumWidth')
-        self._animation_decrease.setStartValue(100)
+        self._animation_decrease.setStartValue(TABWIDGET_TARGET_SIZE)
         self._animation_decrease.setEndValue(1)
         self._animation_decrease.finished.connect(self._animationFinished)
-        self._tabWidget = None
 
     def _animationFinished(self):
         self.setStyleSheet("")
 
+    def repositionTab(self, fromIndex, toIndex):
+        w = self.widget(fromIndex);
+        icon = self.tabIcon(fromIndex);
+        text = self.tabText(fromIndex);
+
+        self.removeTab(fromIndex);
+        self.insertTab(toIndex, w, icon, text);
+        self.setCurrentIndex(toIndex);
+
     def dragEnterEvent(self, event):
-        super(SegmentationTabDropWidget, self).dragEnterEvent(event)
         m = event.mimeData()
         if m.hasFormat('application/tab-moving'):
             event.acceptProposedAction()
-            if self.width() < 100:
+            if self.width() < TABWIDGET_TARGET_SIZE:
                 self._animation_increase.setStartValue(self.width())
                 self.setStyleSheet("background-color: rgb(107, 186, 255);")
                 self._animation_increase.start()
 
     def dragLeaveEvent(self, event):
-        super(SegmentationTabDropWidget, self).dragLeaveEvent(event)
-        if self.width() > 1:
+#         super(SegmentationTabDropWidget, self).dragLeaveEvent(event)
+        if self.width() > 1 and self.count() == 0:
             self._animation_decrease.setStartValue(self.width())
             self._animation_decrease.start()
 
-    def paintEvent(self, event):
-        opt = QtGui.QStyleOption()
-        opt.initFrom(self)
-        p = QtGui.QPainter(self)
-        self.style().drawPrimitive(QtGui.QStyle.PE_Widget, opt, p, self)
+    def dragMoveEvent(self, event):
+        m = event.mimeData()
+        if m.hasFormat('application/tab-moving'):
+            self._stop_drag_pos = event.pos()
+            event.acceptProposedAction()
+
+#         super(SegmentationTabWidget, self).dragMoveEvent(event)
 
     def dropEvent(self, event):
         m = event.mimeData()
         if m.hasFormat('application/tab-moving'):
             event.acceptProposedAction()
 
-        super(SegmentationTabDropWidget, self).dropEvent(event)
+    def tabInserted(self, index):
+        if self.count() == 1:
+            self.setStyleSheet("")
+            self._animation_increase.setEndValue(16777215)
+            self._animation_increase.start()
 
-    def addTab(self, widget, text):
-        if self._tabWidget is None:
-            v_layout = QtGui.QVBoxLayout()
-            v_layout.setContentsMargins(0, 0, 0, 0)
-            self._tabWidget = SegmentationTabWidget(self)
-#             moveWidget = widget.widget(index)
-            self._tabWidget.addTab(widget, text)
-#             moveWidget.setParent(self._tabWidget)
-#             self._tabWidget.resize(300, 200)
-            v_layout.addWidget(self._tabWidget)
-            self.setLayout(v_layout)
-            self.setMaximumWidth(16777215)
-#             moveWidget.show()
-            self._tabWidget.show()
+    def tabRemoved(self, index):
+        if self.count() == 0:
+            self._animation_increase.setEndValue(TABWIDGET_TARGET_SIZE)
+            self._animation_decrease.start()
 
 
