@@ -33,14 +33,18 @@ class AbstractModel(object):
     def __init__(self, context):
         self._context = context
 
-        self._coordinate_field = None
         self._region = None
+        self._coordinate_field = None
+        self._scaled_coordinate_field = None
 
     def getRegion(self):
         return self._region
 
     def getCoordinateField(self):
         return self._coordinate_field
+
+    def getScaledCoordinateField(self):
+        return self._scaled_coordinate_field
 
 class ImageModel(AbstractModel):
     '''
@@ -62,9 +66,6 @@ class ImageModel(AbstractModel):
     def getPlane(self):
         return self._plane
 
-    def getScaledCoordinateField(self):
-        self._scaled_coordinate_field
-
     def getIsoScalarField(self):
         return self._iso_scalar_field
 
@@ -74,27 +75,55 @@ class ImageModel(AbstractModel):
     def setImageDimensionsInPixels(self, dimensions):
         self._dimensions_px = dimensions
 
-    def getImageScale(self):
+    def getScale(self):
         fieldmodule = self._scale_field.getFieldmodule()
         fieldcache = fieldmodule.createFieldcache()
         _, scale = self._scale_field.evaluateReal(fieldcache, 3)
 
         return scale
 
-    def setImageScale(self, scale):
+    def setScale(self, scale):
+        '''
+        Don't call this 'setScale' method directly let the main model do that
+        this way we can ensure that the two scale fields have the same
+        values.
+        '''
         fieldmodule = self._scale_field.getFieldmodule()
         fieldcache = fieldmodule.createFieldcache()
         fieldmodule.beginChange()
         self._scale_field.assignReal(fieldcache, scale)
         fieldmodule.endChange()
+        # Do I also need to set the dimensions for the self._plane?
+        # I'm going to go with yes.
+        self._plane.setDimensions(elmult(self._dimensions_px, scale))
 
     def getDimensions(self):
         '''
         Get the scaled dimensions of the texture block
         '''
-        scale = self.getImageScale()
+        scale = self.getScale()
         scaled_dimensions = elmult(self._dimensions_px, scale)
         return scaled_dimensions
+
+    def getMaterial(self):
+        return self._material
+
+    def calculatePlaneCentre(self):
+        return self._plane.calculatePlaneCentre()
+
+    def resizeElement(self, dimensions):
+        node_coordinate_set = [[0, 0, 0], [dimensions[0], 0, 0], [0, dimensions[1], 0], [dimensions[0], dimensions[1], 0], [0, 0, dimensions[2]], [dimensions[0], 0, dimensions[2]], [0, dimensions[1], dimensions[2]], [dimensions[0], dimensions[1], dimensions[2]]]
+        fieldmodule = self._region.getFieldmodule()
+        fieldmodule.beginChange()
+        field_cache = fieldmodule.createFieldcache()
+        nodeset = fieldmodule.findNodesetByName('nodes')
+        for node_id in range(1, nodeset.getSize() + 1):
+            node = nodeset.findNodeByIdentifier(node_id)
+            field_cache.setNode(node)
+            # Pass in floats as an array
+            self._coordinate_field.assignReal(field_cache, node_coordinate_set[node_id - 1])
+
+        fieldmodule.endChange()
 
     def _createImageRegion(self):
         '''
@@ -102,6 +131,8 @@ class ImageModel(AbstractModel):
         a handle to the region in the class attribute '_region'.
         '''
         self._region = self._context.getDefaultRegion().createChild('image')
+        
+    def _createPlane
 
     def _setupImageRegion(self):
         '''
@@ -134,20 +165,6 @@ class ImageModel(AbstractModel):
         createFiniteElement(self._region, self._coordinate_field, self._dimensions_px)
 
         self._iso_scalar_field = self._createIsoScalarField(fieldmodule, self._scaled_coordinate_field, normal_field, rotation_point_field)
-        fieldmodule.endChange()
-
-    def resizeElement(self, dimensions):
-        node_coordinate_set = [[0, 0, 0], [dimensions[0], 0, 0], [0, dimensions[1], 0], [dimensions[0], dimensions[1], 0], [0, 0, dimensions[2]], [dimensions[0], 0, dimensions[2]], [0, dimensions[1], dimensions[2]], [dimensions[0], dimensions[1], dimensions[2]]]
-        fieldmodule = self._region.getFieldmodule()
-        fieldmodule.beginChange()
-        field_cache = fieldmodule.createFieldcache()
-        nodeset = fieldmodule.findNodesetByName('nodes')
-        for node_id in range(1, nodeset.getSize() + 1):
-            node = nodeset.findNodeByIdentifier(node_id)
-            field_cache.setNode(node)
-            # Pass in floats as an array
-            self._coordinate_field.assignReal(field_cache, node_coordinate_set[node_id - 1])
-
         fieldmodule.endChange()
 
     def _createIsoScalarField(self, fieldmodule, finite_element_field, plane_normal_field, point_on_plane_field):
@@ -194,6 +211,13 @@ class ImageModel(AbstractModel):
         self._dimensions_px = image_field.getSizeInPixels(3)[1]
         return image_field
 
+    def _setImageTextureSize(self, size):
+        '''
+        Required if not using 'xi' for the texture coordinate field.
+        '''
+        image_field = self._material.getTextureField(1).castImage()
+        image_field.setTextureCoordinateSizes(size)
+
     def _createMaterialUsingImageField(self, image_field):
         ''' 
         Use an image field in a material to create an OpenGL texture.  Returns the
@@ -209,11 +233,32 @@ class ImageModel(AbstractModel):
 
         return material
 
-#         self._model.resizeImageElement(dimensions)
-#         self._plane.setDimensions(dimensions)
 
-class NodeModel(object):
-    pass
+class NodeModel(AbstractModel):
+
+    def __init__(self, context):
+        super(NodeModel, self).__init__(context)
+        self._setupNodeRegion()
+
+
+    def _setupNodeRegion(self):
+        self._region = self._context.getDefaultRegion().createChild('point_cloud')
+        self._coordinate_field = createFiniteElementField(self._region)
+        fieldmodule = self._region.getFieldmodule()
+        fieldmodule.beginChange()
+        self._scale_field = fieldmodule.createFieldConstant([1.0, 1.0, 1.0])
+        self._scaled_coordinate_field = self._coordinate_field * self._scale_field
+        fieldmodule.endChange()
+
+    def setScale(self, scale):
+        '''
+        Don't call this 'setScale' method directly let the main model do that
+        this way we can ensure that the two scale fields have the same
+        values.
+        '''
+        fieldmodule = self._region.getFieldmodule()
+        fieldcache = fieldmodule.createFieldcache()
+        self._scale_field.assignReal(fieldcache, scale)
 
 
 class SegmentationModel(object):
@@ -226,17 +271,7 @@ class SegmentationModel(object):
         self.defineStandardGlyphs()
 
         self._image_model = ImageModel(self._context, dataIn)
-        self._node_model = NodeModel()
-        self._setupNodeRegion()
-
-    def _setupNodeRegion(self):
-        self._node_region = self._context.getDefaultRegion().createChild('point_cloud')
-        node_coordinate_field = createFiniteElementField(self._node_region)
-        fieldmodule = node_coordinate_field.getFieldmodule()
-        fieldmodule.beginChange()
-        self._scaled_node_coordinate_field = fieldmodule.createFieldConstant([1.0, 1.0, 1.0])
-        self._scaled_node_coordinate_field = node_coordinate_field * self._scaled_node_coordinate_field
-        fieldmodule.endChange()
+        self._node_model = NodeModel(self._context)
 
     def getContext(self):
         return self._context
@@ -264,17 +299,24 @@ class SegmentationModel(object):
         material_module = self._context.getMaterialmodule()
         material_module.defineStandardMaterials()
 
-    def getNodeRegion(self):
-        return self._node_region
+    def getScale(self):
+        '''
+        The scale is mirrored in both the image model and node model
+        unfortunately, we expect them to be the same so just return
+        the value from the image model.
+        '''
+        return self._image_model.getScale()
 
-    def getNodeCoordinateField(self):
-        return self._scaled_node_coordinate_field
+    def setScale(self, scale):
+        '''
+        Have to set the scale in both the image model and 
+        node model.  As long as we always use this method
+        to set the scale they should always have the same value.
+        '''
+        self._image_model.setScale(scale)
+        self._node_model.setScale(scale)
 
-    def setNodeScale(self, scale):
-        fieldmodule = self._scaled_node_coordinate_field.getFieldmodule()
-        fieldcache = fieldmodule.createFieldcache()
-        fieldmodule.beginChange()
-        self._scaled_node_coordinate_field.assignReal(fieldcache, scale)
-        fieldmodule.endChange()
+    def calculatePlaneCentre(self):
+        self._image_model
 
 

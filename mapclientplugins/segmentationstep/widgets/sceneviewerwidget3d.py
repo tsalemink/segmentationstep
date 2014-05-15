@@ -71,15 +71,6 @@ class SceneviewerWidget3D(SceneviewerWidget):
         self._setGlyphsForGlyphModes(self._rotation_glyph, self._normal_glyph)
         self._setMaterialsForGlyphModes()
 
-    def setPlane(self, plane):
-        '''
-        Setting the plane allows us to setup the view modes for
-        this class.
-        '''
-        self._plane = plane
-        self._setupModes(plane)
-#         self._setupUi()
-
     def setModel(self, model):
         self._model = model
         self._setupModes(self._model.getImageModel().getPlane())

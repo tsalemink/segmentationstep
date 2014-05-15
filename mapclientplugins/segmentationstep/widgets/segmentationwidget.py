@@ -230,20 +230,14 @@ class SegmentationWidget(QtGui.QWidget):
     def _setStreamingCreate(self, on=True):
         self._streaming_create = on
 
-    def _setImageTextureSize(self, size):
-        image_field = self._material.getTextureField(1).castImage()
-        image_field.setTextureCoordinateSizes(size)
+    def _getScale(self):
+        return self._model.getScale()
 
     def _setScale(self, scale):
-        self._model.setImageScale(scale)
-        self._model.setNodeScale(scale)
-        # _model.getDimensions() must be called after set image scale
-        # in this method otherwise the old scale will be
-        # retrieved.
-        self._setImageTextureSize(self._model.getDimensions())
-        plane_centre = self._calculatePlaneCentre()
-        self._setPlaneNormalGlyphPosition(plane_centre)
-        self._plane.setRotationPoint(plane_centre)
+        self._model.setScale(scale)
+        plane_centre = self._model.calculatePlaneCentre()
+#         self._setPlaneNormalGlyphPosition(plane_centre)
+#         self._plane.setRotationPoint(plane_centre)
 
     def _createImageOutline(self, region, finite_element_field):
         scene = region.getScene()
@@ -258,15 +252,17 @@ class SegmentationWidget(QtGui.QWidget):
 
         return outline
 
-    def _createTextureSurface(self, region, finite_element_field, iso_scalar_field):
+    def _createTextureSurface(self, region, coordinate_field, iso_scalar_field):
         scene = region.getScene()
 
+        fm = region.getFieldmodule()
+        xi = fm.findFieldByName('xi')
         scene.beginChange()
         # Create a surface graphic and set it's coordinate field
         # to the finite element coordinate field.
         iso_graphic = scene.createGraphicsContours()
-        iso_graphic.setCoordinateField(finite_element_field)
-        iso_graphic.setTextureCoordinateField(finite_element_field)
+        iso_graphic.setCoordinateField(coordinate_field)
+        iso_graphic.setTextureCoordinateField(xi)
         iso_graphic.setIsoscalarField(iso_scalar_field)
         iso_graphic.setListIsovalues(0.0)
 
@@ -338,17 +334,20 @@ class SegmentationWidget(QtGui.QWidget):
     def _setupImageVisualisation(self):
         image_model = self._model.getImageModel()
         image_region = image_model.getRegion()
-        image_coordinate_field = image_model.getCoordinateField()
+        image_coordinate_field = image_model.getScaledCoordinateField()
         iso_scalar_field = image_model.getIsoScalarField()
+        material = image_model.getMaterial()
 
         self._iso_graphic = self._createTextureSurface(image_region, image_coordinate_field, iso_scalar_field)
+        self._iso_graphic.setMaterial(material)
         self._image_outline = self._createImageOutline(image_region, image_coordinate_field)
         self._coordinate_labels = self._createNodeLabels(image_region, image_coordinate_field)
 
     def _setupNodeVisualisation(self):
-        node_region = self._model.getNodeRegion()
-        node_coordinate_field = self._model.getNodeCoordinateField()
-        self._segmentation_point_glyph = self._createNodeGraphics(node_region, node_coordinate_field)
+        node_model = self._model.getNodeModel()
+        region = node_model.getRegion()
+        coordinate_field = node_model.getScaledCoordinateField()
+        self._segmentation_point_glyph = self._createNodeGraphics(region, coordinate_field)
 
 #         self._createTestPoints()
 
