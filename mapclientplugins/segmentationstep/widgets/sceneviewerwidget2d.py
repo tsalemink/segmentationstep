@@ -30,4 +30,7 @@ class SceneviewerWidget2D(SceneviewerWidget):
     def setPlane(self, plane):
         self._plane = plane
 
+    def setModel(self, model):
+        pass
+
 

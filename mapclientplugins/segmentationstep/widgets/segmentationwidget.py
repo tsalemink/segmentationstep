@@ -17,7 +17,6 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
     You should have received a copy of the GNU General Public License
     along with MAP Client.  If not, see <http://www.gnu.org/licenses/>..
 '''
-import os
 from math import sqrt, acos, pi, sin, cos
 
 from PySide import QtGui, QtCore
@@ -59,7 +58,7 @@ class SegmentationWidget(QtGui.QWidget):
     '''
 
 
-    def __init__(self, model, dataIn, parent=None):
+    def __init__(self, model, parent=None):
         '''
         Constructor
         '''
@@ -75,10 +74,9 @@ class SegmentationWidget(QtGui.QWidget):
         self._context = self._model.getContext()
         self._ui._sceneviewer2d.setContext(self._context)
         self._ui._sceneviewer3d.setContext(self._context)
-        self._ui._sceneviewer2d.setPlane(self._model.getPlane())
-        self._ui._sceneviewer3d.setPlane(self._model.getPlane())
+        self._ui._sceneviewer2d.setModel(self._model)
+        self._ui._sceneviewer3d.setModel(self._model)
 
-        self._image_data_location = dataIn
         self._maxdim = 100
 
         self._debug_print = False
@@ -93,7 +91,7 @@ class SegmentationWidget(QtGui.QWidget):
         self._streaming_create = False
         self._streaming_create_active = False
 
-        self._undoStack = self._model.getUndoRedoStack()
+        self._undoStack = self._model.undoRedoStack()
         self._ui._sceneviewer2d.setUndoStack(self._undoStack)
         self._ui._sceneviewer3d.setUndoStack(self._undoStack)
 
@@ -247,48 +245,6 @@ class SegmentationWidget(QtGui.QWidget):
         self._setPlaneNormalGlyphPosition(plane_centre)
         self._plane.setRotationPoint(plane_centre)
 
-    def _createMaterialUsingImageField(self):
-        ''' 
-        Use an image field in a material to create an OpenGL texture.  Returns the
-        created material.
-        '''
-        # create a graphics material from the graphics module, assign it a name
-        # and set flag to true
-        materials_module = self._context.getMaterialmodule()
-        material = materials_module.createMaterial()
-
-        # Get a handle to the root _surface_region
-        root_region = self._context.getDefaultRegion()
-
-        # The field module allows us to create a field image to
-        # store the image data into.
-        field_module = root_region.getFieldmodule()
-
-        # Create an image field. A temporary xi source field is created for us.
-        image_field = field_module.createFieldImage()
-        image_field.setName('image_field')
-        image_field.setFilterMode(image_field.FILTER_MODE_LINEAR)
-
-        # Create a stream information object that we can use to read the
-        # image file from disk
-        stream_information = image_field.createStreaminformationImage()
-        # specify depth of texture block i.e. number of images
-#        stream_information.setAttributeInteger(stream_information.IMAGE_ATTRIBUTE_, self.number_of_images)
-
-        # Load images onto an invidual texture blocks.
-        directory = self._image_data_location
-        files = os.listdir(directory)
-        files.sort(key=alphanum_key)
-        for filename in files:
-            # We are reading in a file from the local disk so our resource is a file.
-            stream_information.createStreamresourceFile(os.path.join(directory, filename))
-
-        # Actually read in the image file into the image field.
-        image_field.read(stream_information)
-        material.setTextureField(1, image_field)
-
-        return material
-
     def _createImageOutline(self, region, finite_element_field):
         scene = region.getScene()
 
@@ -366,40 +322,24 @@ class SegmentationWidget(QtGui.QWidget):
 #         self._test_point_2.setFieldDomainType(Field.DOMAIN_TYPE_POINT)
         scene.endChange()
 
-    def setImageDirectory(self, imagedir):
-        self._image_data_location = imagedir
-
     def _createImageScaleField(self, fieldmodule):
         return fieldmodule.createFieldConstant([1.0, 1.0, 1.0])
 
     def showImages(self):
         # create a material with the images passed in
-        self._material = self._createMaterialUsingImageField()
+        image_model = self._model.getImageModel()
+        material = image_model.getMaterial()
         # Set the iso graphic to use the image field, that is set
         # the material to the iso graphic
-        self._iso_graphic.setMaterial(self._material)
-        # Set the dimensions of the image field to the model
-        # and set the texture coordinate sizes to the image dimensions
-        image_field = self._material.getTextureField(1).castImage()
-        dimensions = image_field.getSizeInPixels(3)[1]
-        image_field.setTextureCoordinateSizes(dimensions)
-        self._model.setImageDimensionsInPixels(dimensions)
+        self._iso_graphic.setMaterial(material)
         # update ui elements that use the image information
         self._updateImageUI()
-        # Resize the element to match the size of the images
-        self._model.resizeImageElement(dimensions)
-        self._plane.setDimensions(dimensions)
-
-#         plane_centre = self._calculatePlaneCentre()
-#         glyph = self._ui._sceneviewer3d.getPlaneNormalGlyph()
-#         self._setGlyphPosition(glyph, plane_centre)
-#         self._plane.setRotationPoint(plane_centre)
 
     def _setupImageVisualisation(self):
-        self._plane = self._model.getPlane()
-        image_region = self._model.getImageRegion()
-        image_coordinate_field = self._model.getImageCoordinateField()
-        iso_scalar_field = self._model.getIsoScalarField()
+        image_model = self._model.getImageModel()
+        image_region = image_model.getRegion()
+        image_coordinate_field = image_model.getCoordinateField()
+        iso_scalar_field = image_model.getIsoScalarField()
 
         self._iso_graphic = self._createTextureSurface(image_region, image_coordinate_field, iso_scalar_field)
         self._image_outline = self._createImageOutline(image_region, image_coordinate_field)

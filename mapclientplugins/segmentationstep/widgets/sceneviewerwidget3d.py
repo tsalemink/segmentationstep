@@ -41,7 +41,6 @@ class SceneviewerWidget3D(SceneviewerWidget):
         self._modes = None
         self._plane = None
 
-
     def initializeGL(self):
         super(SceneviewerWidget3D, self).initializeGL()
 
@@ -80,6 +79,10 @@ class SceneviewerWidget3D(SceneviewerWidget):
         self._plane = plane
         self._setupModes(plane)
 #         self._setupUi()
+
+    def setModel(self, model):
+        self._model = model
+        self._setupModes(self._model.getImageModel().getPlane())
 
     def getPlaneNormalGlyph(self):
         return self._normal_glyph
