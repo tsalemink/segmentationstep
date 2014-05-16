@@ -105,7 +105,7 @@ class Plane(object):
 
         return None
 
-    def calculatePlaneCentre(self):
+    def calculateCentroid(self):
         tol = 1e-08
         dim = self.getDimensions()
         plane_normal = self.getNormal()
@@ -141,11 +141,6 @@ class Plane(object):
                     insert = False
             if insert:
                 unique_ipts.append(p)
-
-        if self._debug_print:
-            print
-            print(ipts)
-            print(unique_ipts)
 
         ca = CentroidAlgorithm(unique_ipts)
 #         wa = WeiszfeldsAlgorithm(unique_ipts)

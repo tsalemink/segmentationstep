@@ -33,7 +33,7 @@ from opencmiss.zinc.element import Element, Elementbasis
 from mapclientplugins.segmentationstep.widgets.zincwidget import ProjectionMode
 from mapclientplugins.segmentationstep.maths.vectorops import add, cross, div, dot, eldiv, elmult, mult, normalize, sub
 from mapclientplugins.segmentationstep.widgets.definitions import DEFAULT_GRAPHICS_SPHERE_SIZE, DEFAULT_NORMAL_ARROW_SIZE, DEFAULT_SEGMENTATION_POINT_SIZE, GRAPHIC_LABEL_NAME
-from mapclientplugins.segmentationstep.widgets.definitions import PlaneMovementMode
+from mapclientplugins.segmentationstep.widgets.definitions import PlaneMovementMode, IMAGE_PLANE_GRAPHIC_NAME
 from mapclientplugins.segmentationstep.widgets.segmentationstate import SegmentationState
 from mapclientplugins.segmentationstep.misc import alphanum_key
 from mapclientplugins.segmentationstep.maths.algorithms import CentroidAlgorithm
@@ -50,7 +50,6 @@ class FakeMouseEvent(object):
 
     def y(self):
         return self._y
-
 
 class SegmentationWidget(QtGui.QWidget):
     '''
@@ -138,7 +137,7 @@ class SegmentationWidget(QtGui.QWidget):
         self._ui._doubleSpinBoxSegmentationPoint.setValue(DEFAULT_SEGMENTATION_POINT_SIZE)
 
     def _updateImageUI(self):
-        dimensions = self._model.getImageDimensionsInPixels()
+        dimensions = self._model.getImageModel().getDimensionsInPixels()
         self._ui._labelmageWidth.setText(str(dimensions[0]) + ' px')
         self._ui._labelmageHeight.setText(str(dimensions[1]) + ' px')
         self._ui._labelmageDepth.setText(str(dimensions[2]) + ' px')
@@ -206,7 +205,7 @@ class SegmentationWidget(QtGui.QWidget):
         if self.sender() == self._ui._checkBoxCoordinateLabels:
             self._coordinate_labels.setVisibilityFlag(self._ui._checkBoxCoordinateLabels.isChecked())
         elif self.sender() == self._ui._checkBoxImagePlane:
-            self._iso_graphic.setVisibilityFlag(self._ui._checkBoxImagePlane.isChecked())
+            self._plane_image_graphic.setVisibilityFlag(self._ui._checkBoxImagePlane.isChecked())
         elif self.sender() == self._ui._checkBoxImageOutline:
             self._image_outline.setVisibilityFlag(self._ui._checkBoxImageOutline.isChecked())
 
@@ -235,7 +234,7 @@ class SegmentationWidget(QtGui.QWidget):
 
     def _setScale(self, scale):
         self._model.setScale(scale)
-        plane_centre = self._model.calculatePlaneCentre()
+        plane_centre = self._model.getImageModel().calculatePlaneCentre()
 #         self._setPlaneNormalGlyphPosition(plane_centre)
 #         self._plane.setRotationPoint(plane_centre)
 
@@ -265,6 +264,7 @@ class SegmentationWidget(QtGui.QWidget):
         iso_graphic.setTextureCoordinateField(xi)
         iso_graphic.setIsoscalarField(iso_scalar_field)
         iso_graphic.setListIsovalues(0.0)
+        iso_graphic.setName(IMAGE_PLANE_GRAPHIC_NAME)
 
         scene.endChange()
 
@@ -322,12 +322,13 @@ class SegmentationWidget(QtGui.QWidget):
         return fieldmodule.createFieldConstant([1.0, 1.0, 1.0])
 
     def showImages(self):
+        print('Am I used???')
         # create a material with the images passed in
         image_model = self._model.getImageModel()
         material = image_model.getMaterial()
         # Set the iso graphic to use the image field, that is set
         # the material to the iso graphic
-        self._iso_graphic.setMaterial(material)
+        self._plane_image_graphic.setMaterial(material)
         # update ui elements that use the image information
         self._updateImageUI()
 
@@ -338,10 +339,12 @@ class SegmentationWidget(QtGui.QWidget):
         iso_scalar_field = image_model.getIsoScalarField()
         material = image_model.getMaterial()
 
-        self._iso_graphic = self._createTextureSurface(image_region, image_coordinate_field, iso_scalar_field)
-        self._iso_graphic.setMaterial(material)
+        self._plane_image_graphic = self._createTextureSurface(image_region, image_coordinate_field, iso_scalar_field)
+        self._plane_image_graphic.setMaterial(material)
         self._image_outline = self._createImageOutline(image_region, image_coordinate_field)
         self._coordinate_labels = self._createNodeLabels(image_region, image_coordinate_field)
+
+        self._updateImageUI()
 
     def _setupNodeVisualisation(self):
         node_model = self._model.getNodeModel()

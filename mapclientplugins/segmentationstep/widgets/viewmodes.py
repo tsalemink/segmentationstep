@@ -18,10 +18,11 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
     along with MAP Client.  If not, see <http://www.gnu.org/licenses/>..
 '''
 from opencmiss.zinc.field import Field
-from opencmiss.zinc.material import Material
+# from opencmiss.zinc.material import Material
 from opencmiss.zinc.glyph import Glyph
 
 from mapclientplugins.segmentationstep.widgets.definitions import PlaneMovementMode, DEFAULT_GRAPHICS_SPHERE_SIZE, DEFAULT_NORMAL_ARROW_SIZE
+from mapclientplugins.segmentationstep.maths.vectorops import div, eldiv
 
 class ViewMode(object):
 
@@ -101,12 +102,18 @@ class RotationMode(GlyphMode):
 
     def mousePressEvent(self, event):
         super(RotationMode, self).mousePressEvent(event)
-
         event.ignore()
 
     def mouseReleaseEvent(self, event):
         super(RotationMode, self).mouseReleaseEvent(event)
         event.ignore()
+
+    def enter(self):
+        scene = self._glyph.getScene()
+        scene.beginChange()
+        super(RotationMode, self).enter()
+        _setGlyphPosition(self._glyph, self._plane.calculateCentroid())
+        scene.endChange()
 
 
 class NormalMode(GlyphMode):
@@ -117,6 +124,7 @@ class NormalMode(GlyphMode):
     '''
     def __init__(self, plane):
         super(NormalMode, self).__init__(plane)
+        self._plane = plane
         self._mode = PlaneMovementMode.NORMAL
         self._glyph = _createPlaneNormalIndicator(plane.getRegion(), plane.getNormalField())
 
@@ -130,6 +138,13 @@ class NormalMode(GlyphMode):
     def mouseReleaseEvent(self, event):
         super(NormalMode, self).mouseReleaseEvent(event)
         event.ignore()
+
+    def enter(self):
+        scene = self._glyph.getScene()
+        scene.beginChange()
+        super(NormalMode, self).enter()
+        _setGlyphPosition(self._glyph, self._plane.calculateCentroid())
+        scene.endChange()
 
 
 class PositionMode(ViewMode):
@@ -191,5 +206,14 @@ def _createPlaneNormalIndicator(region, plane_normal_field):
     scene.endChange()
 
     return plane_normal_indicator
+
+def _setGlyphPosition(glyph, position):
+    '''
+    Sets the glyph position, doesn't set scene beginChange, endChange
+    do this outside of this function.
+    '''
+    attributes = glyph.getGraphicspointattributes()
+    _, base_size = attributes.getBaseSize(3)
+    attributes.setGlyphOffset(eldiv(position, base_size))
 
 

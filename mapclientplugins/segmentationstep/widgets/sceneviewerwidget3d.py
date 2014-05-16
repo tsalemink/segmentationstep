@@ -35,8 +35,9 @@ from mapclientplugins.segmentationstep.widgets.viewmodes import NormalMode, Rota
 
 class SceneviewerWidget3D(SceneviewerWidget):
 
-    def __init__(self, parent=None):
-        super(SceneviewerWidget3D, self).__init__(parent)
+    def __init__(self, parent=None, shared=None):
+        super(SceneviewerWidget3D, self).__init__(parent, shared)
+
         self._active_mode = None
         self._modes = None
         self._plane = None
@@ -68,6 +69,7 @@ class SceneviewerWidget3D(SceneviewerWidget):
                        PlaneMovementMode.ROTATION: rotation_mode}
 
     def _setupUi(self):
+        print('Am I actually used')
         self._setGlyphsForGlyphModes(self._rotation_glyph, self._normal_glyph)
         self._setMaterialsForGlyphModes()
 

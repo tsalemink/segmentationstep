@@ -61,7 +61,9 @@ class ImageModel(AbstractModel):
         self._createImageRegion()
         self._image_field = self._createImageField(dataIn)
         self._material = self._createMaterialUsingImageField(self._image_field)
+        self._plane = self._createPlane()
         self._setupImageRegion()
+        self._plane.setDimensions(self.getDimensions())
 
     def getPlane(self):
         return self._plane
@@ -69,10 +71,10 @@ class ImageModel(AbstractModel):
     def getIsoScalarField(self):
         return self._iso_scalar_field
 
-    def getImageDimensionsInPixels(self):
+    def getDimensionsInPixels(self):
         return self._dimensions_px
 
-    def setImageDimensionsInPixels(self, dimensions):
+    def setDimensionsInPixels(self, dimensions):
         self._dimensions_px = dimensions
 
     def getScale(self):
@@ -109,7 +111,7 @@ class ImageModel(AbstractModel):
         return self._material
 
     def calculatePlaneCentre(self):
-        return self._plane.calculatePlaneCentre()
+        return self._plane.calculateCentroid()
 
     def resizeElement(self, dimensions):
         node_coordinate_set = [[0, 0, 0], [dimensions[0], 0, 0], [0, dimensions[1], 0], [dimensions[0], dimensions[1], 0], [0, 0, dimensions[2]], [dimensions[0], 0, dimensions[2]], [0, dimensions[1], dimensions[2]], [dimensions[0], dimensions[1], dimensions[2]]]
@@ -131,8 +133,21 @@ class ImageModel(AbstractModel):
         a handle to the region in the class attribute '_region'.
         '''
         self._region = self._context.getDefaultRegion().createChild('image')
-        
-    def _createPlane
+
+    def _createPlane(self):
+        '''
+        Sets up a number of fields to represent the image plane and stores
+        a handle to an object encapsulating these fields in the 
+        class attribute '_plane'.  The plane has a normal, centre point and a
+        point of rotation.
+        '''
+        fieldmodule = self._region.getFieldmodule()
+
+        fieldmodule.beginChange()
+        plane = Plane(fieldmodule)
+        fieldmodule.endChange()
+
+        return plane
 
     def _setupImageRegion(self):
         '''
@@ -143,19 +158,10 @@ class ImageModel(AbstractModel):
             '_scale_field'
             '_scaled_coordinate_field'
             '_iso_scalar_field'
-        
-        Sets up a number of fields to represent the image plane and stores
-        a handle to an object encapsulating these fields in the 
-        class attribute '_plane'.
-        
-        Stores a handle to the image texture in the class attribute '_material'.
         '''
         fieldmodule = self._region.getFieldmodule()
         fieldmodule.beginChange()
 
-        # Create a representation of the plane.  The plane has a normal, centre point and a
-        # point of rotation.
-        self._plane = Plane(fieldmodule)
         normal_field = self._plane.getNormalField()
         rotation_point_field = self._plane.getRotationPointField()
 
