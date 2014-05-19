@@ -36,7 +36,6 @@ from mapclientplugins.segmentationstep.widgets.definitions import DEFAULT_GRAPHI
 from mapclientplugins.segmentationstep.widgets.definitions import PlaneMovementMode, IMAGE_PLANE_GRAPHIC_NAME
 from mapclientplugins.segmentationstep.widgets.segmentationstate import SegmentationState
 from mapclientplugins.segmentationstep.misc import alphanum_key
-from mapclientplugins.segmentationstep.maths.algorithms import CentroidAlgorithm
 from mapclientplugins.segmentationstep.zincutils import create3DFiniteElement, createFiniteElement, createFiniteElementField
 
 class FakeMouseEvent(object):
@@ -234,9 +233,6 @@ class SegmentationWidget(QtGui.QWidget):
 
     def _setScale(self, scale):
         self._model.setScale(scale)
-        plane_centre = self._model.getImageModel().calculatePlaneCentre()
-#         self._setPlaneNormalGlyphPosition(plane_centre)
-#         self._plane.setRotationPoint(plane_centre)
 
     def _createImageOutline(self, region, finite_element_field):
         scene = region.getScene()

@@ -19,13 +19,12 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
 '''
 from math import cos, sin, sqrt, acos, pi
 
-from opencmiss.zinc.status import OK
 from opencmiss.zinc.field import Field
-# from opencmiss.zinc.material import Material
 from opencmiss.zinc.glyph import Glyph
 
 from mapclientplugins.segmentationstep.widgets.definitions import PlaneMovementMode, DEFAULT_GRAPHICS_SPHERE_SIZE, DEFAULT_NORMAL_ARROW_SIZE
-from mapclientplugins.segmentationstep.maths.vectorops import eldiv, add, mult, cross, dot, sub, normalize, elmult
+from mapclientplugins.segmentationstep.maths.vectorops import add, mult, cross, dot, sub, normalize
+from mapclientplugins.segmentationstep.maths.algorithms import calculateCentroid, boundCoordinatesToCuboid
 
 class ViewMode(object):
 
@@ -61,11 +60,11 @@ class GlyphMode(ViewMode):
 
     def __init__(self, plane):
         super(GlyphMode, self).__init__(plane)
-        self._plane = plane
         self._glyph = None
         self._glyph_picker_method = None
         self._project_method = None
         self._unproject_method = None
+        self._get_dimension_method = None
 
     def setGlyph(self, glyph):
         self._glyph = glyph
@@ -76,6 +75,9 @@ class GlyphMode(ViewMode):
     def setProjectUnProjectMethods(self, project_method, unproject_method):
         self._project_method = project_method
         self._unproject_method = unproject_method
+
+    def setGetDimensionsMethod(self, get_dimensions_method):
+        self._get_dimension_method = get_dimensions_method
 
     def setDefaultMaterial(self, material):
         self._default_material = material
@@ -137,7 +139,7 @@ class RotationMode(GlyphMode):
             near_plane_point = self._unproject_method(x, -y, 1.0)
             point_on_plane = self._plane.calcluateIntersection(near_plane_point, far_plane_point)
             if not point_on_plane is None:
-#                 point_on_plane = self._plane.boundCoordinatesToElement(point_on_plane)
+                point_on_plane = boundCoordinatesToCuboid(self._plane, point_on_plane, self._get_dimension_method())
 #                 self._plane.setRotationPoint(point_on_plane)
                 _setGlyphPosition(self._glyph, point_on_plane)
 #                 print('valid plane centre', point_on_plane)
@@ -224,7 +226,7 @@ class NormalMode(GlyphMode):
         scene = self._glyph.getScene()
         scene.beginChange()
         super(NormalMode, self).enter()
-        _setGlyphPosition(self._glyph, self._plane.calculateCentroid())
+        _setGlyphPosition(self._glyph, calculateCentroid(self._plane, self._get_dimension_method()))
         scene.endChange()
 
     def mouseMoveEvent(self, event):
@@ -264,6 +266,9 @@ def _createPlaneManipulationSphere(region):
     plane_rotation_sphere = scene.createGraphicsPoints()
     plane_rotation_sphere.setFieldDomainType(Field.DOMAIN_TYPE_POINT)
     plane_rotation_sphere.setVisibilityFlag(False)
+    fm = region.getFieldmodule()
+    zero_field = fm.createFieldConstant([0, 0, 0])
+    plane_rotation_sphere.setCoordinateField(zero_field)
     tessellation = plane_rotation_sphere.getTessellation()
     tessellation.setCircleDivisions(24)
     plane_rotation_sphere.setTessellation(tessellation)
@@ -292,37 +297,23 @@ def _createPlaneNormalIndicator(region, plane_normal_field):
     attributes.setGlyphShapeType(Glyph.SHAPE_TYPE_ARROW_SOLID)
     attributes.setBaseSize([DEFAULT_NORMAL_ARROW_SIZE, DEFAULT_NORMAL_ARROW_SIZE / 4, DEFAULT_NORMAL_ARROW_SIZE / 4])
     attributes.setScaleFactors([0, 0, 0])
-#     attributes.setOrientationScaleField(plane_normal_field)
+    attributes.setOrientationScaleField(plane_normal_field)
 
     scene.endChange()
 
     return plane_normal_indicator
 
 def _setGlyphPosition(glyph, position):
-    '''
-    Sets the glyph position taking into account 
-    the glyphs basesize, doesn't use scene 
-    beginChange, endChange do this outside of 
-    this function.
-    '''
-    attributes = glyph.getGraphicspointattributes()
-    result, base_size = attributes.getBaseSize(3)
-    if result == OK and position is not None:
-        attributes.setGlyphOffset(eldiv(position, base_size))
+    position_field = glyph.getCoordinateField()
+    fieldmodule = position_field.getFieldmodule()
+    fieldcache = fieldmodule.createFieldcache()
+    position_field.assignReal(fieldcache, position)
 
 def _getGlyphPosition(glyph):
-    '''
-    Gets the glyph position taking into account 
-    the glyphs basesize, doesn't use scene 
-    beginChange, endChange do this outside of 
-    this function.
-    '''
-    attributes = glyph.getGraphicspointattributes()
-    _, base_size = attributes.getBaseSize(3)
-    _, position = attributes.getGlyphOffset(3)
+    position_field = glyph.getCoordinateField()
+    fieldmodule = position_field.getFieldmodule()
+    fieldcache = fieldmodule.createFieldcache()
+    _, position = position_field.evaluateReal(fieldcache, 3)
 
-    return elmult(position, base_size)
-#     if result == OK and position is not None:
-#         attributes.setGlyphOffset(eldiv(position, base_size))
-
+    return position
 

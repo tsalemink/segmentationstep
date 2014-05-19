@@ -17,9 +17,62 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
     You should have received a copy of the GNU General Public License
     along with MAP Client.  If not, see <http://www.gnu.org/licenses/>..
 '''
-
 from math import atan2, pi, sqrt
-from mapclientplugins.segmentationstep.maths.vectorops import add, cross, div, dot, normalize, sub
+
+from mapclientplugins.segmentationstep.maths.vectorops import add, cross, div, dot, normalize, sub, mult
+from mapclientplugins.segmentationstep.misc import checkRange
+
+def boundCoordinatesToCuboid(plane, point_on_plane, cuboid_dimensions):
+    return point_on_plane
+
+def calculateCentroid(plane, cuboid_dimensions):
+    '''
+    Takes a description of a plane and a cuboids dimensions, with 
+    one corner defined by [0, 0, 0] and the opposite by 
+    cuboid_dimensions, and calculates the centroid formed by the
+    plane intersecting with the cuboid.
+    '''
+    tol = 1e-08
+    dim = cuboid_dimensions
+    plane_normal = plane.getNormal()
+    point_on_plane = plane.getRotationPoint()
+#         print(point_on_plane, plane_normal)
+    axes = [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
+    coordinate_set = [[0, 0, 0], [dim[0], 0, 0], [0, dim[1], 0], [dim[0], dim[1], 0], [0, 0, dim[2]], [dim[0], 0, dim[2]], [0, dim[1], dim[2]], [dim[0], dim[1], dim[2]]]
+
+    ipts = []
+    for axis in axes:
+        den = dot(axis, plane_normal)
+        if abs(den) < tol:
+            continue
+
+        for corner in coordinate_set:
+            num = dot(sub(point_on_plane, corner), plane_normal)
+            d = num / den
+
+            ipt = add(mult(axis, d), corner)
+            # check if all intersections are valid, taking care to be aware of minus signs.
+            ipt_0 = checkRange(ipt[0], 0.0, dim[0])
+            ipt_1 = checkRange(ipt[1], 0.0, dim[1])
+            ipt_2 = checkRange(ipt[2], 0.0, dim[2])
+
+            if ipt_0 and ipt_1 and ipt_2:
+                ipts.append(ipt)
+
+    unique_ipts = []
+    for p in ipts:
+        insert = True
+        for u in unique_ipts:
+            vdiff = sub(p, u)
+            if sqrt(dot(vdiff, vdiff)) < tol:
+                insert = False
+        if insert:
+            unique_ipts.append(p)
+
+    ca = CentroidAlgorithm(unique_ipts)
+#         wa = WeiszfeldsAlgorithm(unique_ipts)
+    plane_centre = ca.compute()
+    return plane_centre
 
 class CentroidAlgorithm(object):
 

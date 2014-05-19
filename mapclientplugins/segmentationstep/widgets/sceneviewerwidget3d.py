@@ -48,19 +48,23 @@ class SceneviewerWidget3D(SceneviewerWidget):
         # Set the initial state for the view
         self._active_mode = self._modes[PlaneMovementMode.POSITION]
 
-    def _setupModes(self, plane):
+    def _setupModes(self, model):
+        plane = model.getPlane()
+
         purple_material, red_material, yellow_material, orange_material = self._createModeMaterials()
 
         position_mode = PositionMode(plane)
 
         normal_mode = NormalMode(plane)
         normal_mode.setGlyphPickerMethod(self.getNearestGraphicsPoint)
+        normal_mode.setGetDimensionsMethod(model.getDimensions)
         normal_mode.setDefaultMaterial(yellow_material)
         normal_mode.setSelectedMaterial(orange_material)
 
         rotation_mode = RotationMode(plane)
         rotation_mode.setGlyphPickerMethod(self.getNearestGraphicsPoint)
         rotation_mode.setProjectUnProjectMethods(self.project, self.unproject)
+        rotation_mode.setGetDimensionsMethod(model.getDimensions)
         rotation_mode.setWidthHeightMethods(self.width, self.height)
         rotation_mode.setGetViewParametersMethod(self.getViewParameters)
         rotation_mode.setDefaultMaterial(purple_material)
@@ -77,7 +81,7 @@ class SceneviewerWidget3D(SceneviewerWidget):
 
     def setModel(self, model):
         self._model = model
-        self._setupModes(self._model.getImageModel().getPlane())
+        self._setupModes(self._model.getImageModel())
 
     def getPlaneNormalGlyph(self):
         return self._normal_glyph

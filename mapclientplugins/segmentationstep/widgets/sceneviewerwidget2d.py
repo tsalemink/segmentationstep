@@ -34,13 +34,14 @@ class SceneviewerWidget2D(SceneviewerWidget):
         self._plane.notifyChange.addObserver(self._setViewParameters)
 
     def _setViewParameters(self):
-        normal = self._plane.getNormal()
-        centre = self._plane.getRotationPoint()
-        _, _, up = self.getViewParameters()
-        self._sceneviewer.beginChange()
-        self.setViewParameters(add(normal, centre), centre, up)
-        self.viewAll()
-        self._sceneviewer.endChange()
+        if self._sceneviewer is not None:
+            normal = self._plane.getNormal()
+            centre = self._plane.getRotationPoint()
+            _, _, up = self.getViewParameters()
+            self._sceneviewer.beginChange()
+            self.setViewParameters(add(normal, centre), centre, up)
+            self.viewAll()
+            self._sceneviewer.endChange()
 
     def _setSceneviewerFilters(self):
         filtermodule = self._context.getScenefiltermodule()

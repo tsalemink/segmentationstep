@@ -110,9 +110,6 @@ class ImageModel(AbstractModel):
     def getMaterial(self):
         return self._material
 
-    def calculatePlaneCentre(self):
-        return self._plane.calculateCentroid()
-
     def resizeElement(self, dimensions):
         node_coordinate_set = [[0, 0, 0], [dimensions[0], 0, 0], [0, dimensions[1], 0], [dimensions[0], dimensions[1], 0], [0, 0, dimensions[2]], [dimensions[0], 0, dimensions[2]], [0, dimensions[1], dimensions[2]], [dimensions[0], dimensions[1], dimensions[2]]]
         fieldmodule = self._region.getFieldmodule()
@@ -321,8 +318,5 @@ class SegmentationModel(object):
         '''
         self._image_model.setScale(scale)
         self._node_model.setScale(scale)
-
-    def calculatePlaneCentre(self):
-        self._image_model
 
 
