@@ -63,7 +63,6 @@ class ImageModel(AbstractModel):
         self._material = self._createMaterialUsingImageField(self._image_field)
         self._plane = self._createPlane()
         self._setupImageRegion()
-        self._plane.setDimensions(self.getDimensions())
 
     def getPlane(self):
         return self._plane

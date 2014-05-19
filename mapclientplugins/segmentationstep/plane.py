@@ -17,8 +17,6 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
     You should have received a copy of the GNU General Public License
     along with MAP Client.  If not, see <http://www.gnu.org/licenses/>..
 '''
-from math import sqrt
-
 from mapclientplugins.segmentationstep.observed import event
 from mapclientplugins.segmentationstep.maths.vectorops import add, dot, mult, sub
 
@@ -28,7 +26,6 @@ class Plane(object):
         self._normal_field = self._createNormalField(fieldmodule)
         self._rotation_point_field = self._createRotationPointField(fieldmodule)
         self._centre_point_field = self._createRotationPointField(fieldmodule)
-        self._dimensions = [1, 1, 1]
 
     def _createNormalField(self, fieldmodule):
         plane_normal_field = fieldmodule.createFieldConstant([1, 0, 0])
@@ -44,9 +41,6 @@ class Plane(object):
         Using this as an event notification call.
         '''
         pass
-
-    def getDimensions(self):
-        return self._dimensions
 
     def getRegion(self):
         return self._normal_field.getFieldmodule().getRegion()
@@ -70,9 +64,6 @@ class Plane(object):
         _, point = self._rotation_point_field.evaluateReal(fieldcache, 3)
 
         return point
-
-    def setDimensions(self, dimensions):
-        self._dimensions = dimensions
 
     def setPlaneEquation(self, normal, point):
         fieldmodule = self._normal_field.getFieldmodule()
