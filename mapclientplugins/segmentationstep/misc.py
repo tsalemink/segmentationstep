@@ -19,6 +19,8 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
 '''
 import re
 
+tol = 1e-08
+
 def tryint(s):
     try:
         return int(s)
@@ -38,10 +40,10 @@ def checkRange(value, bound1, bound2):
     '''
     check = False
     if bound1 < bound2:
-        if bound1 <= value <= bound2:
+        if (bound1 - tol) <= value <= (bound2 + tol):
             check = True
     else:
-        if bound2 <= value <= bound1:
+        if (bound2 - tol) <= value <= (bound1 + tol):
             check = True
 
     return check

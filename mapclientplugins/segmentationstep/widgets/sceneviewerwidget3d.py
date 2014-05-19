@@ -60,9 +60,11 @@ class SceneviewerWidget3D(SceneviewerWidget):
 
         rotation_mode = RotationMode(plane)
         rotation_mode.setGlyphPickerMethod(self.getNearestGraphicsPoint)
+        rotation_mode.setProjectUnProjectMethods(self.project, self.unproject)
+        rotation_mode.setWidthHeightMethods(self.width, self.height)
+        rotation_mode.setGetViewParametersMethod(self.getViewParameters)
         rotation_mode.setDefaultMaterial(purple_material)
         rotation_mode.setSelectedMaterial(red_material)
-
 
         self._modes = {PlaneMovementMode.POSITION: position_mode,
                        PlaneMovementMode.NORMAL: normal_mode,

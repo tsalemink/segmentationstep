@@ -17,8 +17,6 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
     You should have received a copy of the GNU General Public License
     along with MAP Client.  If not, see <http://www.gnu.org/licenses/>..
 '''
-# from opencmiss.zinc.field import Field
-
 from mapclientplugins.segmentationstep.widgets.sceneviewerwidget import SceneviewerWidget
 from mapclientplugins.segmentationstep.maths.vectorops import add
 from mapclientplugins.segmentationstep.widgets.definitions import IMAGE_PLANE_GRAPHIC_NAME
@@ -32,13 +30,17 @@ class SceneviewerWidget2D(SceneviewerWidget):
 
     def setModel(self, model):
         self._model = model
+        self._plane = self._model.getImageModel().getPlane()
+        self._plane._notifyChange.addObserver(self._setViewParameters)
 
     def _setViewParameters(self):
-        plane = self._model.getImageModel().getPlane()
-        normal = plane.getNormal()
-        centre = plane.calculateCentroid()
+        normal = self._plane.getNormal()
+        centre = self._plane.getRotationPoint()
         _, _, up = self.getViewParameters()
+        self._sceneviewer.beginChange()
         self.setViewParameters(add(normal, centre), centre, up)
+        self.viewAll()
+        self._sceneviewer.endChange()
 
     def _setSceneviewerFilters(self):
         filtermodule = self._context.getScenefiltermodule()

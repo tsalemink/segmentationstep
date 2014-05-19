@@ -19,6 +19,7 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
 '''
 from math import sqrt
 
+from mapclientplugins.segmentationstep.observed import event
 from mapclientplugins.segmentationstep.misc import checkRange
 from mapclientplugins.segmentationstep.maths.algorithms import CentroidAlgorithm
 from mapclientplugins.segmentationstep.maths.vectorops import add, dot, mult, sub
@@ -30,15 +31,7 @@ class Plane(object):
         self._rotation_point_field = self._createRotationPointField(fieldmodule)
         self._centre_point_field = self._createRotationPointField(fieldmodule)
         self._dimensions = [1, 1, 1]
-
-    def setDimensions(self, dimensions):
-        self._dimensions = dimensions
-
-    def getDimensions(self):
-        return self._dimensions
-
-    def getRegion(self):
-        return self._normal_field.getFieldmodule().getRegion()
+        self._notify_change_method = None
 
     def _createNormalField(self, fieldmodule):
         plane_normal_field = fieldmodule.createFieldConstant([1, 0, 0])
@@ -48,13 +41,16 @@ class Plane(object):
         point_on_plane_field = fieldmodule.createFieldConstant([0, 0, 0])
         return point_on_plane_field
 
-    def setPlaneEquation(self, normal, point):
-        fieldmodule = self._normal_field.getFieldmodule()
-        fieldcache = fieldmodule.createFieldcache()
-        fieldmodule.beginChange()
-        self._normal_field.assignReal(fieldcache, normal)
-        self._rotation_point_field.assignReal(fieldcache, point)
-        fieldmodule.endChange()
+    @event
+    def _notifyChange(self):
+        if self._notify_change_method is not None:
+            self._notify_change_method()
+
+    def getDimensions(self):
+        return self._dimensions
+
+    def getRegion(self):
+        return self._normal_field.getFieldmodule().getRegion()
 
     def getNormalField(self):
         return self._normal_field
@@ -69,12 +65,32 @@ class Plane(object):
 
         return normal
 
+    def getRotationPoint(self):
+        fieldmodule = self._rotation_point_field.getFieldmodule()
+        fieldcache = fieldmodule.createFieldcache()
+        _, point = self._rotation_point_field.evaluateReal(fieldcache, 3)
+
+        return point
+
+    def setDimensions(self, dimensions):
+        self._dimensions = dimensions
+
+    def setPlaneEquation(self, normal, point):
+        fieldmodule = self._normal_field.getFieldmodule()
+        fieldcache = fieldmodule.createFieldcache()
+        fieldmodule.beginChange()
+        self._normal_field.assignReal(fieldcache, normal)
+        self._rotation_point_field.assignReal(fieldcache, point)
+        fieldmodule.endChange()
+        self._notifyChange()
+
     def setNormal(self, normal):
         fieldmodule = self._normal_field.getFieldmodule()
         fieldcache = fieldmodule.createFieldcache()
         fieldmodule.beginChange()
         self._normal_field.assignReal(fieldcache, normal)
         fieldmodule.endChange()
+        self._notifyChange()
 
     def setRotationPoint(self, point):
         fieldmodule = self._rotation_point_field.getFieldmodule()
@@ -82,13 +98,7 @@ class Plane(object):
         fieldmodule.beginChange()
         self._rotation_point_field.assignReal(fieldcache, point)
         fieldmodule.endChange()
-
-    def getRotationPoint(self):
-        fieldmodule = self._rotation_point_field.getFieldmodule()
-        fieldcache = fieldmodule.createFieldcache()
-        _, point = self._rotation_point_field.evaluateReal(fieldcache, 3)
-
-        return point
+        self._notifyChange()
 
     def calcluateIntersection(self, pt1, pt2):
         point_on_plane = self.getRotationPoint()  # self._plane_centre_position  # self._getPointOnPlane()
@@ -110,6 +120,7 @@ class Plane(object):
         dim = self.getDimensions()
         plane_normal = self.getNormal()
         point_on_plane = self.getRotationPoint()
+#         print(point_on_plane, plane_normal)
         axes = [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
         coordinate_set = [[0, 0, 0], [dim[0], 0, 0], [0, dim[1], 0], [dim[0], dim[1], 0], [0, 0, dim[2]], [dim[0], 0, dim[2]], [0, dim[1], dim[2]], [dim[0], dim[1], dim[2]]]
 
