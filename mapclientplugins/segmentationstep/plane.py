@@ -90,21 +90,6 @@ class Plane(object):
         fieldmodule.endChange()
         self.notifyChange()
 
-    def calcluateIntersection(self, pt1, pt2):
-        point_on_plane = self.getRotationPoint()  # self._plane_centre_position  # self._getPointOnPlane()
-        plane_normal = self.getNormal()
-
-#         x, y = self._ui._sceneviewer3d.mapToWidget(x, y)
-#         far_plane_point = self._ui._sceneviewer3d.unproject(x, -y, -1.0)
-#         near_plane_point = self._ui._sceneviewer3d.unproject(x, -y, 1.0)
-        line_direction = sub(pt2, pt1)
-        d = dot(sub(point_on_plane, pt1), plane_normal) / dot(line_direction, plane_normal)
-        intersection_point = add(mult(line_direction, d), pt1)
-        if abs(dot(sub(point_on_plane, intersection_point), plane_normal)) < 1e-08:
-            return intersection_point
-
-        return None
-
 
 class PlaneMovement(object):
 

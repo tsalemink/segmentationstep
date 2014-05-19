@@ -17,13 +17,44 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
     You should have received a copy of the GNU General Public License
     along with MAP Client.  If not, see <http://www.gnu.org/licenses/>..
 '''
-from math import atan2, pi, sqrt
+from math import atan2, pi, sqrt, copysign
 
 from mapclientplugins.segmentationstep.maths.vectorops import add, cross, div, dot, normalize, sub, mult
 from mapclientplugins.segmentationstep.misc import checkRange
 
-def boundCoordinatesToCuboid(plane, point_on_plane, cuboid_dimensions):
-    return point_on_plane
+def boundCoordinatesToCuboid(pt1, pt2, cuboid_dimensions):
+    '''
+    Takes two points and a cuboids dimensions, with 
+    one corner defined by [0, 0, 0] and the opposite by 
+    cuboid_dimensions, and returns a point that is inside the 
+    cuboid.
+    '''
+    axes = [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
+    coordinate_set = [[0, 0, 0], [cuboid_dimensions[0], cuboid_dimensions[1], cuboid_dimensions[2]]]
+    outside = [False, False, False]
+
+    for i, axis in enumerate(axes):
+        v1 = sub(pt1, coordinate_set[0])
+        v2 = sub(pt1, coordinate_set[1])
+        if copysign(1, dot(v1, axis)) == copysign(1, dot(v2, axis)):
+            outside[i] = True
+
+    if any(outside):
+        print('must correct')
+        indices = [i for i, x in enumerate(outside) if x]
+        print(indices)
+        print(outside.index(True))
+
+    return pt1
+
+def calculateLinePlaneIntersection(pt1, pt2, point_on_plane, plane_normal):
+    line_direction = sub(pt2, pt1)
+    d = dot(sub(point_on_plane, pt1), plane_normal) / dot(line_direction, plane_normal)
+    intersection_point = add(mult(line_direction, d), pt1)
+    if abs(dot(sub(point_on_plane, intersection_point), plane_normal)) < 1e-08:
+        return intersection_point
+
+    return None
 
 def calculateCentroid(plane, cuboid_dimensions):
     '''

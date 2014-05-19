@@ -24,7 +24,7 @@ from opencmiss.zinc.glyph import Glyph
 
 from mapclientplugins.segmentationstep.widgets.definitions import PlaneMovementMode, DEFAULT_GRAPHICS_SPHERE_SIZE, DEFAULT_NORMAL_ARROW_SIZE
 from mapclientplugins.segmentationstep.maths.vectorops import add, mult, cross, dot, sub, normalize
-from mapclientplugins.segmentationstep.maths.algorithms import calculateCentroid, boundCoordinatesToCuboid
+from mapclientplugins.segmentationstep.maths.algorithms import calculateCentroid, boundCoordinatesToCuboid, calculateLinePlaneIntersection
 
 class ViewMode(object):
 
@@ -137,7 +137,7 @@ class RotationMode(GlyphMode):
             y = mouseevent.y()
             far_plane_point = self._unproject_method(x, -y, -1.0)
             near_plane_point = self._unproject_method(x, -y, 1.0)
-            point_on_plane = self._plane.calcluateIntersection(near_plane_point, far_plane_point)
+            point_on_plane = calculateLinePlaneIntersection(near_plane_point, far_plane_point, self._plane.getRotationPoint(), self._plane.getNormal())
             if not point_on_plane is None:
                 point_on_plane = boundCoordinatesToCuboid(self._plane, point_on_plane, self._get_dimension_method())
 #                 self._plane.setRotationPoint(point_on_plane)
