@@ -131,7 +131,6 @@ class RotationMode(GlyphMode):
         scene = self._glyph.getScene()
         scene.beginChange()
         super(RotationMode, self).mouseMoveEvent(mouseevent)
-#         event.ignore()
         if self._glyph.getMaterial().getName() == self._selected_material.getName():
             x = mouseevent.x()
             y = mouseevent.y()
@@ -139,10 +138,10 @@ class RotationMode(GlyphMode):
             near_plane_point = self._unproject_method(x, -y, 1.0)
             point_on_plane = calculateLinePlaneIntersection(near_plane_point, far_plane_point, self._plane.getRotationPoint(), self._plane.getNormal())
             if not point_on_plane is None:
-                point_on_plane = boundCoordinatesToCuboid(self._plane, point_on_plane, self._get_dimension_method())
-#                 self._plane.setRotationPoint(point_on_plane)
+                dimensions = self._get_dimension_method()
+                centroid = calculateCentroid(self._plane, dimensions)
+                point_on_plane = boundCoordinatesToCuboid(point_on_plane, centroid, dimensions)
                 _setGlyphPosition(self._glyph, point_on_plane)
-#                 print('valid plane centre', point_on_plane)
         else:
             width = self._width_method()
             height = self._height_method()
@@ -200,8 +199,6 @@ class RotationMode(GlyphMode):
 
         super(RotationMode, self).mouseReleaseEvent(event)
         scene.endChange()
-#                 self._plane.setRotationPoint(point_on_plane)
-#         event.ignore()
 
     def enter(self):
         scene = self._glyph.getScene()

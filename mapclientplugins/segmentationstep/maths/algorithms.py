@@ -27,8 +27,9 @@ def boundCoordinatesToCuboid(pt1, pt2, cuboid_dimensions):
     Takes two points and a cuboids dimensions, with 
     one corner defined by [0, 0, 0] and the opposite by 
     cuboid_dimensions, and returns a point that is inside the 
-    cuboid.
+    cuboid.  pt2 *must* be inside the cuboid.
     '''
+    bounded_pt = pt1[:]
     axes = [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
     coordinate_set = [[0, 0, 0], [cuboid_dimensions[0], cuboid_dimensions[1], cuboid_dimensions[2]]]
     outside = [False, False, False]
@@ -36,16 +37,54 @@ def boundCoordinatesToCuboid(pt1, pt2, cuboid_dimensions):
     for i, axis in enumerate(axes):
         v1 = sub(pt1, coordinate_set[0])
         v2 = sub(pt1, coordinate_set[1])
-        if copysign(1, dot(v1, axis)) == copysign(1, dot(v2, axis)):
-            outside[i] = True
+        dir1 = dot(v1, axis)
+        dir2 = dot(v2, axis)
+        if copysign(1, dir1) == copysign(1, dir2):
+            if copysign(1, dir1) < 0:
+                outside[i] = 1
+            else:
+                outside[i] = 2
 
     if any(outside):
-        print('must correct')
         indices = [i for i, x in enumerate(outside) if x]
-        print(indices)
-        print(outside.index(True))
+        ipt = None
+        for index in indices:
+            if outside[index] == 1:
+                ipt = calculateLinePlaneIntersection(pt1, pt2, coordinate_set[0], axes[index])
+            else:
+                ipt = calculateLinePlaneIntersection(pt1, pt2, coordinate_set[1], axes[index])
 
-    return pt1
+            ipt_0 = checkRange(ipt[0], coordinate_set[0][0], coordinate_set[1][0])
+            ipt_1 = checkRange(ipt[1], coordinate_set[0][1], coordinate_set[1][1])
+            ipt_2 = checkRange(ipt[2], coordinate_set[0][2], coordinate_set[1][2])
+
+            if ipt_0 and ipt_1 and ipt_2:
+                bounded_pt = ipt
+
+    return bounded_pt
+
+def pointOutsideCuboid(pt, cuboid_dimensions):
+    '''
+    Determine if the given point is outside the cuboid and 
+    return a number determining which planes it is outside of.
+    0 indicates that the pt is inside the cuboid.
+    '''
+    outside = 0
+
+    axes = [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
+    coordinate_set = [[0, 0, 0], [cuboid_dimensions[0], cuboid_dimensions[1], cuboid_dimensions[2]]]
+    for i, axis in enumerate(axes):
+        v1 = sub(pt, coordinate_set[0])
+        v2 = sub(pt, coordinate_set[1])
+        dir1 = dot(v1, axis)
+        dir2 = dot(v2, axis)
+        if copysign(1, dir1) == copysign(1, dir2):
+            if copysign(1, dir1) < 0:
+                outside += 2 ** (2 * i)
+            else:
+                outside += 2 ** (2 * i + 1)
+
+    return outside
 
 def calculateLinePlaneIntersection(pt1, pt2, point_on_plane, plane_normal):
     line_direction = sub(pt2, pt1)
