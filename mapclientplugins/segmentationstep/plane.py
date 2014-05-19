@@ -31,7 +31,6 @@ class Plane(object):
         self._rotation_point_field = self._createRotationPointField(fieldmodule)
         self._centre_point_field = self._createRotationPointField(fieldmodule)
         self._dimensions = [1, 1, 1]
-        self._notify_change_method = None
 
     def _createNormalField(self, fieldmodule):
         plane_normal_field = fieldmodule.createFieldConstant([1, 0, 0])
@@ -42,9 +41,11 @@ class Plane(object):
         return point_on_plane_field
 
     @event
-    def _notifyChange(self):
-        if self._notify_change_method is not None:
-            self._notify_change_method()
+    def notifyChange(self):
+        '''
+        Using this as an event notification call.
+        '''
+        pass
 
     def getDimensions(self):
         return self._dimensions
@@ -82,7 +83,7 @@ class Plane(object):
         self._normal_field.assignReal(fieldcache, normal)
         self._rotation_point_field.assignReal(fieldcache, point)
         fieldmodule.endChange()
-        self._notifyChange()
+        self.notifyChange()
 
     def setNormal(self, normal):
         fieldmodule = self._normal_field.getFieldmodule()
@@ -90,7 +91,7 @@ class Plane(object):
         fieldmodule.beginChange()
         self._normal_field.assignReal(fieldcache, normal)
         fieldmodule.endChange()
-        self._notifyChange()
+        self.notifyChange()
 
     def setRotationPoint(self, point):
         fieldmodule = self._rotation_point_field.getFieldmodule()
@@ -98,7 +99,7 @@ class Plane(object):
         fieldmodule.beginChange()
         self._rotation_point_field.assignReal(fieldcache, point)
         fieldmodule.endChange()
-        self._notifyChange()
+        self.notifyChange()
 
     def calcluateIntersection(self, pt1, pt2):
         point_on_plane = self.getRotationPoint()  # self._plane_centre_position  # self._getPointOnPlane()

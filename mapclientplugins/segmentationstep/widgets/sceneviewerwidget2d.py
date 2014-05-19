@@ -31,7 +31,7 @@ class SceneviewerWidget2D(SceneviewerWidget):
     def setModel(self, model):
         self._model = model
         self._plane = self._model.getImageModel().getPlane()
-        self._plane._notifyChange.addObserver(self._setViewParameters)
+        self._plane.notifyChange.addObserver(self._setViewParameters)
 
     def _setViewParameters(self):
         normal = self._plane.getNormal()
