@@ -18,7 +18,6 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
     along with MAP Client.  If not, see <http://www.gnu.org/licenses/>..
 '''
 from mapclientplugins.segmentationstep.observed import event
-from mapclientplugins.segmentationstep.maths.vectorops import add, dot, mult, sub
 
 class Plane(object):
 
@@ -89,6 +88,30 @@ class Plane(object):
         self._rotation_point_field.assignReal(fieldcache, point)
         fieldmodule.endChange()
         self.notifyChange()
+
+
+class PlaneAttitude(object):
+
+    prec = 12
+
+    def __init__(self, point, normal):
+        self._normal = normal
+        self._point = point
+
+    def getNormal(self):
+        return self._normal
+
+    def getPoint(self):
+        return self._point
+
+    def __hash__(self, *args, **kwargs):
+        p = [str(int(v * (10 ** self.prec))) for v in self._point]
+        n = [str(int(v * (10 ** self.prec))) for v in self._normal]
+        str_repr = ''.join(p) + ''.join(n)
+        return hash(str_repr)
+
+    def __eq__(self, other):
+        return hash(self) == hash(other)
 
 
 class PlaneMovement(object):
