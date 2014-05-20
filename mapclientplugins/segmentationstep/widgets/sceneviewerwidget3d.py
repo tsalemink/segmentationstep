@@ -51,6 +51,7 @@ class SceneviewerWidget3D(SceneviewerWidget):
         normal_mode = NormalMode(plane, self._undoStack)
         normal_mode.setGlyphPickerMethod(self.getNearestGraphicsPoint)
         normal_mode.setGetDimensionsMethod(model.getDimensions)
+        normal_mode.setProjectUnProjectMethods(self.project, self.unproject)
         normal_mode.setDefaultMaterial(yellow_material)
         normal_mode.setSelectedMaterial(orange_material)
 

@@ -95,17 +95,16 @@ def calculateLinePlaneIntersection(pt1, pt2, point_on_plane, plane_normal):
 
     return None
 
-def calculateCentroid(plane, cuboid_dimensions):
+def calculateCentroid(point_on_plane, plane_normal, cuboid_dimensions):
     '''
-    Takes a description of a plane and a cuboids dimensions, with 
+    Takes a description of a plane as a point on the plane 
+    and a normal of the plane with a cuboids dimensions, with 
     one corner defined by [0, 0, 0] and the opposite by 
     cuboid_dimensions, and calculates the centroid formed by the
-    plane intersecting with the cuboid.
+    given plane intersecting with the cuboid.
     '''
     tol = 1e-08
     dim = cuboid_dimensions
-    plane_normal = plane.getNormal()
-    point_on_plane = plane.getRotationPoint()
 #         print(point_on_plane, plane_normal)
     axes = [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
     coordinate_set = [[0, 0, 0], [dim[0], 0, 0], [0, dim[1], 0], [dim[0], dim[1], 0], [0, 0, dim[2]], [dim[0], 0, dim[2]], [0, dim[1], dim[2]], [dim[0], dim[1], dim[2]]]

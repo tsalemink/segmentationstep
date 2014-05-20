@@ -155,9 +155,9 @@ class RotationMode(GlyphMode):
             far_plane_point = self._unproject_method(x, -y, -1.0)
             near_plane_point = self._unproject_method(x, -y, 1.0)
             point_on_plane = calculateLinePlaneIntersection(near_plane_point, far_plane_point, self._plane.getRotationPoint(), self._plane.getNormal())
-            if not point_on_plane is None:
+            if point_on_plane is not None:
                 dimensions = self._get_dimension_method()
-                centroid = calculateCentroid(self._plane, dimensions)
+                centroid = calculateCentroid(self._plane.getRotationPoint(), self._plane.getNormal(), dimensions)
                 point_on_plane = boundCoordinatesToCuboid(point_on_plane, centroid, dimensions)
                 _setGlyphPosition(self._glyph, point_on_plane)
         else:
@@ -244,7 +244,7 @@ class NormalMode(GlyphMode):
         scene = self._glyph.getScene()
         scene.beginChange()
         super(NormalMode, self).enter()
-        _setGlyphPosition(self._glyph, calculateCentroid(self._plane, self._get_dimension_method()))
+        _setGlyphPosition(self._glyph, calculateCentroid(self._plane.getRotationPoint(), self._plane.getNormal(), self._get_dimension_method()))
         scene.endChange()
 
     def mousePressEvent(self, mouseevent):
@@ -256,24 +256,22 @@ class NormalMode(GlyphMode):
 
     def mouseMoveEvent(self, mouseevent):
         if self._glyph.getMaterial().getName() == self._selected_material.getName():
-            pos = self._getPlaneNormalGlyphPosition()  # self._plane_centre_position  # self._getPointOnPlane()
-            screen_pos = self.project(pos[0], pos[1], pos[2])
-            global_cur_pos = self.unproject(mouseevent.x(), -mouseevent.y(), screen_pos[2])
-            global_old_pos = self.unproject(self._previous_mouse_position[0], -self._previous_mouse_position[1], screen_pos[2])
+            pos = _getGlyphPosition(self._glyph)
+            screen_pos = self._project_method(pos[0], pos[1], pos[2])
+            global_cur_pos = self._unproject_method(mouseevent.x(), -mouseevent.y(), screen_pos[2])
+            global_old_pos = self._unproject_method(self._previous_mouse_position[0], -self._previous_mouse_position[1], screen_pos[2])
             global_pos_diff = sub(global_cur_pos, global_old_pos)
 
-            n = self._getPlaneNormal()
+            n = self._plane.getNormal()
             proj_n = mult(n, dot(global_pos_diff, n))
             new_pos = add(pos, proj_n)
-            scene = self._iso_graphic.getScene()
+            scene = self._glyph.getScene()
             scene.beginChange()
-            self._setPointOnPlane(new_pos)
-            plane_centre = self._calculatePlaneCentre()
-            if plane_centre is None:
-                self._setPointOnPlane(pos)
-            else:
-                self._setPlaneNormalGlyphPosition(plane_centre)
-                self._setPointOnPlane(plane_centre)
+
+            plane_centre = calculateCentroid(new_pos, self._plane.getNormal(), self._get_dimension_method())
+            if plane_centre is not None:
+                self._plane.setRotationPoint(plane_centre)
+                _setGlyphPosition(self._glyph, plane_centre)
 
             scene.endChange()
             self._previous_mouse_position = [mouseevent.x(), mouseevent.y()]
@@ -281,11 +279,21 @@ class NormalMode(GlyphMode):
             mouseevent.ignore()
 
     def mouseReleaseEvent(self, mouseevent):
-        super(NormalMode, self).mouseReleaseEvent(mouseevent)
+        scene = self._glyph.getScene()
+        scene.beginChange()
+        set_undo_redo_command = False
         if self._glyph.getMaterial().getName() == self._selected_material.getName():
-            pass
+            point_on_plane = _getGlyphPosition(self._glyph)
+            self._plane.setRotationPoint(point_on_plane)
+            set_undo_redo_command = True
         else:
             mouseevent.ignore()
+
+        super(NormalMode, self).mouseReleaseEvent(mouseevent)
+        scene.endChange()
+
+        if set_undo_redo_command:
+            self.setUndoRedoCommand('plane normal')
 
 
 class PositionMode(ViewMode):
