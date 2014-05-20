@@ -146,139 +146,15 @@ class SceneviewerWidget3D(SceneviewerWidget):
         self._active_mode.mousePressEvent(mouseevent)
         if not mouseevent.isAccepted():
             super(SceneviewerWidget3D, self).mousePressEvent(mouseevent)
-#         self._previous_mouse_position = None
-#         self._start_plane = None
-#         cur_mode = self._getMode()
-#         if cur_mode != PlaneMovementMode.POSITION:
-#             self._plane_rotation_mode_graphic = self.getNearestGraphicsPoint(mouseevent.x(), mouseevent.y())
-#             if self._plane_rotation_mode_graphic:
-#                 self._active_mode.setActive()
-#
-#             self._previous_mouse_position = [mouseevent.x(), mouseevent.y()]
-#
-#             if not self._active_mode.isActive() and cur_mode == PlaneMovementMode.NORMAL:
-#                 self.processZincMousePressEvent(mouseevent)
-#             else:
-#                 self._start_plane = PlaneDescription(self._getPointOnPlane(), self._getPlaneNormal(), self._getPlaneNormalGlyphPosition())
-#
-#         elif mouseevent.modifiers() & QtCore.Qt.CTRL and mouseevent.button() == QtCore.Qt.LeftButton:
-#             # If node already at this location then select it and get ready to move it.
-#             # otherwise add it and set streaming create mode if appropriate.
-#             self._addNode(mouseevent)
-#             if self._streaming_create:
-#                 self._streaming_create_active = True
 
     def mouseMoveEvent(self, mouseevent):
         self._active_mode.mouseMoveEvent(mouseevent)
         if not mouseevent.isAccepted():
             super(SceneviewerWidget3D, self).mouseMoveEvent(mouseevent)
-#         cur_mode = self._getMode()
-#         is_active = self._active_mode.isActive()
-#         if is_active and cur_mode == PlaneMovementMode.ROTATION:
-#             new_plane_centre = self._calcluatePlaneIntersection(mouseevent.x(), mouseevent.y())
-#             if not new_plane_centre is None:
-#                 new_plane_centre = self._boundCoordinatesToElement(new_plane_centre)
-#                 self._setPointOnPlane(new_plane_centre)
-#
-#         elif not is_active and cur_mode == PlaneMovementMode.ROTATION:
-#             width = self.width()
-#             height = self.height()
-#             radius = min([width, height]) / 2.0
-#             delta_x = float(mouseevent.x() - self._previous_mouse_position[0])
-#             delta_y = float(mouseevent.y() - self._previous_mouse_position[1])
-#             tangent_dist = sqrt((delta_x * delta_x + delta_y * delta_y))
-#             if tangent_dist > 0.0:
-#                 dx = -delta_y / tangent_dist;
-#                 dy = delta_x / tangent_dist;
-#
-#                 d = dx * (mouseevent.x() - 0.5 * (width - 1)) + dy * ((mouseevent.y() - 0.5 * (height - 1)))
-#                 if d > radius: d = radius
-#                 if d < -radius: d = -radius
-#
-#                 phi = acos(d / radius) - 0.5 * pi
-#                 angle = 1.0 * tangent_dist / radius
-#
-#                 eye, lookat, up = self.getViewParameters()
-#
-#                 b = up[:]
-#                 b = normalize(b)
-#                 a = sub(lookat, eye)
-#                 a = normalize(a)
-#                 c = cross(b, a)
-#                 c = normalize(c)
-#                 e = [None, None, None]
-#                 e[0] = dx * c[0] + dy * b[0]
-#                 e[1] = dx * c[1] + dy * b[1]
-#                 e[2] = dx * c[2] + dy * b[2]
-#                 axis = [None, None, None]
-#                 axis[0] = sin(phi) * a[0] + cos(phi) * e[0]
-#                 axis[1] = sin(phi) * a[1] + cos(phi) * e[1]
-#                 axis[2] = sin(phi) * a[2] + cos(phi) * e[2]
-#
-#                 plane_normal = self._getPlaneNormal()
-#                 point_on_plane = self._getPlaneRotationCentreGlyphPosition()
-#
-#                 plane_normal_prime_1 = mult(plane_normal, cos(angle))
-#                 plane_normal_prime_2 = mult(plane_normal, dot(plane_normal, axis) * (1 - cos(angle)))
-#                 plane_normal_prime_3 = mult(cross(axis, plane_normal), sin(angle))
-#                 plane_normal_prime = add(add(plane_normal_prime_1, plane_normal_prime_2), plane_normal_prime_3)
-#
-#                 self._setPlaneEquation(plane_normal_prime, point_on_plane)
-#
-#                 self._previous_mouse_position = [mouseevent.x(), mouseevent.y()]
-#         elif is_active and cur_mode == PlaneMovementMode.NORMAL:
-#             pos = self._getPlaneNormalGlyphPosition()  # self._plane_centre_position  # self._getPointOnPlane()
-#             screen_pos = self.project(pos[0], pos[1], pos[2])
-#             global_cur_pos = self.unproject(mouseevent.x(), -mouseevent.y(), screen_pos[2])
-#             global_old_pos = self.unproject(self._previous_mouse_position[0], -self._previous_mouse_position[1], screen_pos[2])
-#             global_pos_diff = sub(global_cur_pos, global_old_pos)
-#
-#             n = self._getPlaneNormal()
-#             proj_n = mult(n, dot(global_pos_diff, n))
-#             new_pos = add(pos, proj_n)
-#             scene = self._iso_graphic.getScene()
-#             scene.beginChange()
-#             self._setPointOnPlane(new_pos)
-#             plane_centre = self._calculatePlaneCentre()
-#             if plane_centre is None:
-#                 self._setPointOnPlane(pos)
-#             else:
-#                 self._setPlaneNormalGlyphPosition(plane_centre)
-#                 self._setPointOnPlane(plane_centre)
-#
-#             scene.endChange()
-#             self._previous_mouse_position = [mouseevent.x(), mouseevent.y()]
-#         elif not is_active and cur_mode == PlaneMovementMode.NORMAL:
-#             self.processZincMouseMoveEvent(mouseevent)
-#         elif self._streaming_create_active:
-#             self._addNode(mouseevent)
 
     def mouseReleaseEvent(self, mouseevent):
         self._active_mode.mouseReleaseEvent(mouseevent)
         if not mouseevent.isAccepted():
             super(SceneviewerWidget3D, self).mouseReleaseEvent(mouseevent)
-#         c = None
-#         cur_mode = self._getMode()
-#         is_active = self._active_mode.isActive()
-#         if not is_active and cur_mode == PlaneMovementMode.ROTATION:
-#             plane_centre = self._calculatePlaneCentre()
-#             if not plane_centre is None:
-#                 self._setPlaneNormalGlyphPosition(plane_centre)
-#
-#         end_plane = PlaneDescription(self._getPointOnPlane(), self._getPlaneNormal(), self._getPlaneNormalGlyphPosition())
-#         if is_active:
-#             self._active_mode.setActive(False)
-#             c = CommandMovePlane(self._start_plane, end_plane)
-#         elif cur_mode == PlaneMovementMode.NORMAL:
-#             self.processZincMouseReleaseEvent(mouseevent)
-#         elif not self._start_plane is None:
-#             c = CommandMovePlane(self._start_plane, end_plane)
-#
-#         if self._streaming_create:
-#             self._streaming_create_active = False
-#
-#         if not c is None:
-#             c.setMethodCallbacks(self._setPlaneNormalGlyphPosition, self._setPlaneEquation)
-#             self._undoStack.push(c)
 
 
