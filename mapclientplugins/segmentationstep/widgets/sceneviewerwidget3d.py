@@ -17,18 +17,11 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
     You should have received a copy of the GNU General Public License
     along with MAP Client.  If not, see <http://www.gnu.org/licenses/>..
 '''
-from math import sqrt, acos, pi, sin, cos
-
-from PySide import QtCore
-
 from opencmiss.zinc.field import Field
 from opencmiss.zinc.material import Material
-from opencmiss.zinc.glyph import Glyph
 
-from mapclientplugins.segmentationstep.maths.vectorops import add, cross, dot, mult, normalize, sub
 from mapclientplugins.segmentationstep.widgets.sceneviewerwidget import SceneviewerWidget
 from mapclientplugins.segmentationstep.widgets.definitions import PlaneMovementMode
-from mapclientplugins.segmentationstep.undoredo import CommandMovePlane
 from mapclientplugins.segmentationstep.widgets.definitions import GRAPHIC_LABEL_NAME
 
 from mapclientplugins.segmentationstep.widgets.viewmodes import NormalMode, RotationMode, PositionMode
@@ -53,15 +46,15 @@ class SceneviewerWidget3D(SceneviewerWidget):
 
         purple_material, red_material, yellow_material, orange_material = self._createModeMaterials()
 
-        position_mode = PositionMode(plane)
+        position_mode = PositionMode(plane, self._undoStack)
 
-        normal_mode = NormalMode(plane)
+        normal_mode = NormalMode(plane, self._undoStack)
         normal_mode.setGlyphPickerMethod(self.getNearestGraphicsPoint)
         normal_mode.setGetDimensionsMethod(model.getDimensions)
         normal_mode.setDefaultMaterial(yellow_material)
         normal_mode.setSelectedMaterial(orange_material)
 
-        rotation_mode = RotationMode(plane)
+        rotation_mode = RotationMode(plane, self._undoStack)
         rotation_mode.setGlyphPickerMethod(self.getNearestGraphicsPoint)
         rotation_mode.setProjectUnProjectMethods(self.project, self.unproject)
         rotation_mode.setGetDimensionsMethod(model.getDimensions)
@@ -81,6 +74,7 @@ class SceneviewerWidget3D(SceneviewerWidget):
 
     def setModel(self, model):
         self._model = model
+        self.setUndoStack(model.getUndoRedoStack())
         self._setupModes(self._model.getImageModel())
 
     def getPlaneNormalGlyph(self):

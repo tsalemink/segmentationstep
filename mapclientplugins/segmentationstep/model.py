@@ -281,7 +281,7 @@ class SegmentationModel(object):
     def getPointCloud(self):
         return None
 
-    def undoRedoStack(self):
+    def getUndoRedoStack(self):
         return self._undoStack
 
     def getImageModel(self):

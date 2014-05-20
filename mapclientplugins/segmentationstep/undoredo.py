@@ -56,24 +56,35 @@ class CommandAdd(QtGui.QUndoCommand):
 
 class CommandMovePlane(QtGui.QUndoCommand):
 
-    def __init__(self, plane_start, plane_end):
+    def __init__(self, plane, plane_start, plane_end):
         super(CommandMovePlane, self).__init__()
         self._plane_start = plane_start
         self._plane_end = plane_end
-        self._set_plane_centre_method = None
-        self._set_plane_equation_method = None
+        self._plane = plane
 
     def redo(self):
-        self._set_plane_centre_method(self._plane_end.getCentre())
-        self._set_plane_equation_method(self._plane_end.getNormal(), self._plane_end.getPoint())
+        self._plane.setPlaneEquation(self._plane_end.getNormal(), self._plane_end.getPoint())
 
     def undo(self):
-        self._set_plane_centre_method(self._plane_start.getCentre())
-        self._set_plane_equation_method(self._plane_start.getNormal(), self._plane_start.getPoint())
+        self._plane.setPlaneEquation(self._plane_start.getNormal(), self._plane_start.getPoint())
 
-    def setMethodCallbacks(self, plane_centre, plane_equation):
-        self._set_plane_centre_method = plane_centre
-        self._set_plane_equation_method = plane_equation
+class CommandMoveGlyph(QtGui.QUndoCommand):
+
+    def __init__(self, glyph, start_location, end_location):
+        super(CommandMoveGlyph, self).__init__()
+        self._start_location = start_location
+        self._end_location = end_location
+        self._glyph = glyph
+        self._glyph_move_method = None
+
+    def setGlyphMoveMethod(self, glyph_move_method):
+        self._glyph_move_method = glyph_move_method
+
+    def redo(self):
+        self._glyph_move_method(self._glyph, self._end_location)
+
+    def undo(self):
+        self._glyph_move_method(self._glyph, self._start_location)
 
 
 class CommandChangeView(QtGui.QUndoCommand):

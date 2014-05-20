@@ -17,26 +17,19 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
     You should have received a copy of the GNU General Public License
     along with MAP Client.  If not, see <http://www.gnu.org/licenses/>..
 '''
-from math import sqrt, acos, pi, sin, cos
-
 from PySide import QtGui, QtCore
 
 from mapclientplugins.segmentationstep.widgets.ui_segmentationwidget import Ui_SegmentationWidget
-from mapclientplugins.segmentationstep.undoredo import CommandMovePlane, CommandAddNode
+from mapclientplugins.segmentationstep.undoredo import CommandAddNode
 
-from opencmiss.zinc.context import Context
 from opencmiss.zinc.field import Field
 from opencmiss.zinc.glyph import Glyph
-from opencmiss.zinc.material import Material
-from opencmiss.zinc.element import Element, Elementbasis
 
 from mapclientplugins.segmentationstep.widgets.zincwidget import ProjectionMode
-from mapclientplugins.segmentationstep.maths.vectorops import add, cross, div, dot, eldiv, elmult, mult, normalize, sub
+from mapclientplugins.segmentationstep.maths.vectorops import div, eldiv, mult
 from mapclientplugins.segmentationstep.widgets.definitions import DEFAULT_GRAPHICS_SPHERE_SIZE, DEFAULT_NORMAL_ARROW_SIZE, DEFAULT_SEGMENTATION_POINT_SIZE, GRAPHIC_LABEL_NAME
 from mapclientplugins.segmentationstep.widgets.definitions import PlaneMovementMode, IMAGE_PLANE_GRAPHIC_NAME
 from mapclientplugins.segmentationstep.widgets.segmentationstate import SegmentationState
-from mapclientplugins.segmentationstep.misc import alphanum_key
-from mapclientplugins.segmentationstep.zincutils import create3DFiniteElement, createFiniteElement, createFiniteElementField
 
 class FakeMouseEvent(object):
 
@@ -88,10 +81,6 @@ class SegmentationWidget(QtGui.QWidget):
 
         self._streaming_create = False
         self._streaming_create_active = False
-
-        self._undoStack = self._model.undoRedoStack()
-        self._ui._sceneviewer2d.setUndoStack(self._undoStack)
-        self._ui._sceneviewer3d.setUndoStack(self._undoStack)
 
         self._setupImageVisualisation()
         self._setupNodeVisualisation()

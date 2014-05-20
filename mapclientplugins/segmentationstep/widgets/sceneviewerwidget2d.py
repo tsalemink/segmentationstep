@@ -30,6 +30,7 @@ class SceneviewerWidget2D(SceneviewerWidget):
 
     def setModel(self, model):
         self._model = model
+        self.setUndoStack(model.getUndoRedoStack())
         self._plane = self._model.getImageModel().getPlane()
         self._plane.notifyChange.addObserver(self._setViewParameters)
 

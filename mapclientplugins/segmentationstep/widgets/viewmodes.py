@@ -25,15 +25,18 @@ from opencmiss.zinc.glyph import Glyph
 from mapclientplugins.segmentationstep.widgets.definitions import PlaneMovementMode, DEFAULT_GRAPHICS_SPHERE_SIZE, DEFAULT_NORMAL_ARROW_SIZE
 from mapclientplugins.segmentationstep.maths.vectorops import add, mult, cross, dot, sub, normalize
 from mapclientplugins.segmentationstep.maths.algorithms import calculateCentroid, boundCoordinatesToCuboid, calculateLinePlaneIntersection
+from mapclientplugins.segmentationstep.plane import PlaneAttitude
+from mapclientplugins.segmentationstep.undoredo import CommandMovePlane, CommandMoveGlyph
 
 class ViewMode(object):
 
 
-    def __init__(self, plane):
+    def __init__(self, plane, undo_redo_stack):
         self._default_material = None
         self._selected_material = None
         self._mode = None
         self._plane = plane
+        self._undo_redo_stack = undo_redo_stack
 
     def leave(self):
         pass
@@ -58,13 +61,15 @@ class ViewMode(object):
 
 class GlyphMode(ViewMode):
 
-    def __init__(self, plane):
-        super(GlyphMode, self).__init__(plane)
+    def __init__(self, plane, undo_redo_stack):
+        super(GlyphMode, self).__init__(plane, undo_redo_stack)
         self._glyph = None
         self._glyph_picker_method = None
         self._project_method = None
         self._unproject_method = None
         self._get_dimension_method = None
+        self._plane_attitude_start = None
+        self._plane_attitude_end = None
 
     def setGlyph(self, glyph):
         self._glyph = glyph
@@ -92,14 +97,27 @@ class GlyphMode(ViewMode):
     def leave(self):
         self._glyph.setVisibilityFlag(False)
 
+    def setUndoRedoCommand(self, name):
+        if self._plane_attitude_start != self._plane_attitude_end:
+            self._undo_redo_stack.beginMacro(name)
+
+            c1 = CommandMovePlane(self._plane, self._plane_attitude_start, self._plane_attitude_end)
+            self._undo_redo_stack.push(c1)
+            c2 = CommandMoveGlyph(self._glyph, self._plane_attitude_start.getPoint(), self._plane_attitude_end.getPoint())
+            c2.setGlyphMoveMethod(_setGlyphPosition)
+            self._undo_redo_stack.push(c2)
+
+            self._undo_redo_stack.endMacro()
+
     def mousePressEvent(self, event):
         self._previous_mouse_position = [event.x(), event.y()]
-#         self._start_plane = PlaneAttitude(self._getPointOnPlane(), self._getPlaneNormal(), self._getPlaneNormalGlyphPosition())
+        self._plane_attitude_start = PlaneAttitude(self._plane.getRotationPoint(), self._plane.getNormal())
         graphic = self._glyph_picker_method(event.x(), event.y())
         if graphic and graphic.isValid():
             graphic.setMaterial(self._selected_material)
 
     def mouseReleaseEvent(self, event):
+        self._plane_attitude_end = PlaneAttitude(self._plane.getRotationPoint(), self._plane.getNormal())
         if self._glyph.getMaterial().getName() == self._selected_material.getName():
             self._glyph.setMaterial(self._default_material)
 
@@ -109,8 +127,8 @@ class RotationMode(GlyphMode):
     The rotation mode allows the user to re-orient the image
     plane and set the plane point of rotation.
     '''
-    def __init__(self, plane):
-        super(RotationMode, self).__init__(plane)
+    def __init__(self, plane, undo_redo_stack):
+        super(RotationMode, self).__init__(plane, undo_redo_stack)
         self._mode = PlaneMovementMode.ROTATION
         self._glyph = _createPlaneManipulationSphere(plane.getRegion())
         self._width_method = None
@@ -190,15 +208,18 @@ class RotationMode(GlyphMode):
                 self._previous_mouse_position = [mouseevent.x(), mouseevent.y()]
         scene.endChange()
 
-    def mouseReleaseEvent(self, event):
+    def mouseReleaseEvent(self, mouseevent):
         scene = self._glyph.getScene()
         scene.beginChange()
         if self._glyph.getMaterial().getName() == self._selected_material.getName():
             point_on_plane = _getGlyphPosition(self._glyph)
             self._plane.setRotationPoint(point_on_plane)
 
-        super(RotationMode, self).mouseReleaseEvent(event)
+        super(RotationMode, self).mouseReleaseEvent(mouseevent)
         scene.endChange()
+
+        self.setUndoRedoCommand('plane rotation')
+
 
     def enter(self):
         scene = self._glyph.getScene()
@@ -214,8 +235,8 @@ class NormalMode(GlyphMode):
     The normal mode allows the user to move the plane in 
     the direction of the normal of the plane.  
     '''
-    def __init__(self, plane):
-        super(NormalMode, self).__init__(plane)
+    def __init__(self, plane, undo_redo_stack):
+        super(NormalMode, self).__init__(plane, undo_redo_stack)
         self._mode = PlaneMovementMode.NORMAL
         self._glyph = _createPlaneNormalIndicator(plane.getRegion(), plane.getNormalField())
 
@@ -226,23 +247,52 @@ class NormalMode(GlyphMode):
         _setGlyphPosition(self._glyph, calculateCentroid(self._plane, self._get_dimension_method()))
         scene.endChange()
 
-    def mouseMoveEvent(self, event):
-        event.ignore()
+    def mousePressEvent(self, mouseevent):
+        super(NormalMode, self).mousePressEvent(mouseevent)
+        if self._glyph.getMaterial().getName() == self._selected_material.getName():
+            pass
+        else:
+            mouseevent.ignore()
 
-    def mousePressEvent(self, event):
-        super(NormalMode, self).mousePressEvent(event)
-        event.ignore()
+    def mouseMoveEvent(self, mouseevent):
+        if self._glyph.getMaterial().getName() == self._selected_material.getName():
+            pos = self._getPlaneNormalGlyphPosition()  # self._plane_centre_position  # self._getPointOnPlane()
+            screen_pos = self.project(pos[0], pos[1], pos[2])
+            global_cur_pos = self.unproject(mouseevent.x(), -mouseevent.y(), screen_pos[2])
+            global_old_pos = self.unproject(self._previous_mouse_position[0], -self._previous_mouse_position[1], screen_pos[2])
+            global_pos_diff = sub(global_cur_pos, global_old_pos)
 
-    def mouseReleaseEvent(self, event):
-        super(NormalMode, self).mouseReleaseEvent(event)
-        event.ignore()
+            n = self._getPlaneNormal()
+            proj_n = mult(n, dot(global_pos_diff, n))
+            new_pos = add(pos, proj_n)
+            scene = self._iso_graphic.getScene()
+            scene.beginChange()
+            self._setPointOnPlane(new_pos)
+            plane_centre = self._calculatePlaneCentre()
+            if plane_centre is None:
+                self._setPointOnPlane(pos)
+            else:
+                self._setPlaneNormalGlyphPosition(plane_centre)
+                self._setPointOnPlane(plane_centre)
+
+            scene.endChange()
+            self._previous_mouse_position = [mouseevent.x(), mouseevent.y()]
+        else:
+            mouseevent.ignore()
+
+    def mouseReleaseEvent(self, mouseevent):
+        super(NormalMode, self).mouseReleaseEvent(mouseevent)
+        if self._glyph.getMaterial().getName() == self._selected_material.getName():
+            pass
+        else:
+            mouseevent.ignore()
 
 
 class PositionMode(ViewMode):
     '''
     '''
-    def __init__(self, plane):
-        super(PositionMode, self).__init__(plane)
+    def __init__(self, plane, undo_redo_stack):
+        super(PositionMode, self).__init__(plane, undo_redo_stack)
         self._mode = PlaneMovementMode.POSITION
 
     def mouseMoveEvent(self, event):
