@@ -19,12 +19,11 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
 '''
 from PySide import QtGui, QtCore
 
-from mapclientplugins.segmentationstep.widgets.ui_segmentationwidget import Ui_SegmentationWidget
-from mapclientplugins.segmentationstep.undoredo import CommandAddNode
-
 from opencmiss.zinc.field import Field
 from opencmiss.zinc.glyph import Glyph
 
+from mapclientplugins.segmentationstep.widgets.ui_segmentationwidget import Ui_SegmentationWidget
+from mapclientplugins.segmentationstep.undoredo import CommandAddNode, CommandChangeViewMode
 from mapclientplugins.segmentationstep.widgets.zincwidget import ProjectionMode
 from mapclientplugins.segmentationstep.maths.vectorops import div, eldiv, mult
 from mapclientplugins.segmentationstep.widgets.definitions import DEFAULT_GRAPHICS_SPHERE_SIZE, DEFAULT_NORMAL_ARROW_SIZE, DEFAULT_SEGMENTATION_POINT_SIZE, GRAPHIC_LABEL_NAME
@@ -173,20 +172,6 @@ class SegmentationWidget(QtGui.QWidget):
         self._ui._radioButtonParallel.setChecked(mode == ProjectionMode.PARALLEL)
         self._ui._radioButtonPerspective.setChecked(mode == ProjectionMode.PERSPECTIVE)
         self._ui._sceneviewer3d.setProjectionMode(mode)
-
-    def _zincWidgetModeChanged(self):
-        if self.sender() == self._ui._radioButtonSegment:
-            print('segment', self._ui._radioButtonSegment.isChecked(), self._current_viewmode)
-            self._current_viewmode = ViewMode.SEGMENT
-#             self._setMode(ViewMode.POSITION)
-        elif self.sender() == self._ui._radioButtonMove:
-            print('move', self._ui._radioButtonMove.isChecked(), self._current_viewmode)
-            self._current_viewmode = ViewMode.PLANE_NORMAL
-#             self._setMode(ViewMode.NORMAL)
-        elif self.sender() == self._ui._radioButtonRotate:
-            print('rotate', self._ui._radioButtonRotate.isChecked(), self._current_viewmode)
-            self._current_viewmode = ViewMode.PLANE_ROTATION
-#             self._setMode(ViewMode.ROTATION)
 
     def _iconSizeChanged(self):
         if self.sender() == self._ui._doubleSpinBoxNormalArrow:
@@ -422,31 +407,6 @@ class SegmentationWidget(QtGui.QWidget):
         attributes = self._plane_normal_glyph.getGraphicspointattributes()
         attributes.setBaseSize([base_size, base_size / 4, base_size / 4])
 
-#     def _setGlyphPosition(self, glyph, position):
-#         '''
-#         This is synonymous with setting the plane centre.
-#         '''
-#         position_field = glyph.getCoordinateField()
-#         fieldmodule = position_field.getFieldmodule()
-#         fieldmodule.beginChange()
-#         fieldcache = fieldmodule.createFieldcache()
-#         position_field.assignReal(fieldcache, position)
-#
-#         fieldmodule.endChange()
-#
-#     def _getPlaneNormalGlyphPosition(self):
-#         '''
-#         This is synonymous with getting the plane centre.
-#         '''
-#         position_field = self._plane_normal_glyph.getCoordinateField()
-#         fieldmodule = position_field.getFieldmodule()
-#         fieldcache = fieldmodule.createFieldcache()
-#         _, position = position_field.evaluateReal(fieldcache, 3)
-#
-#         return position
-
-#             self._ui.zinc_widget.setIgnoreMouseEvents(mode != ViewMode.NONE)
-
     def _addNode(self, mouseevent):
         position = self._calcluatePlaneIntersection(mouseevent.x(), mouseevent.y())
         if self._coordinatesInElement(position):
@@ -482,8 +442,31 @@ class SegmentationWidget(QtGui.QWidget):
                 else:
                     new_mode = ViewMode.SEGMENT
 
-            self._ui._sceneviewer3d.setMode(new_mode)
+            self._setMode(new_mode)
 
         if keyevent.key() == 68 and not keyevent.isAutoRepeat():
             self._debug_print = False
 
+    def _zincWidgetModeChanged(self):
+        if self.sender() == self._ui._radioButtonSegment:
+            self._setMode(ViewMode.SEGMENT)
+        elif self.sender() == self._ui._radioButtonMove:
+            self._setMode(ViewMode.PLANE_NORMAL)
+        elif self.sender() == self._ui._radioButtonRotate:
+            self._setMode(ViewMode.PLANE_ROTATION)
+
+    def _setViewModeUi(self, mode):
+        if mode == ViewMode.SEGMENT:
+            self._ui._radioButtonSegment.setChecked(True)
+        elif mode == ViewMode.PLANE_NORMAL:
+            self._ui._radioButtonMove.setChecked(True)
+        elif mode == ViewMode.PLANE_ROTATION:
+            self._ui._radioButtonRotate.setChecked(True)
+
+    def _setMode(self, view_mode):
+        c = CommandChangeViewMode(self._current_viewmode, view_mode)
+        c.setSetViewModeMethod(self._ui._sceneviewer3d.setMode)
+        c.setSetViewModeUiMethod(self._setViewModeUi)
+
+        self._model.getUndoRedoStack().push(c)
+        self._current_viewmode = view_mode

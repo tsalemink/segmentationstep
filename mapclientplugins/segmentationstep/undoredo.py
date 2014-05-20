@@ -22,6 +22,7 @@ from PySide import QtGui
 class CommandAdd(QtGui.QUndoCommand):
     '''
     '''
+
     def __init__(self, field_module, position, updateGL):
         super(CommandAdd, self).__init__()
         self._fieldmodule = field_module
@@ -107,7 +108,6 @@ class CommandChangeView(QtGui.QUndoCommand):
 
 class CommandAddNode(QtGui.QUndoCommand):
 
-
     def __init__(self, fieldmodule, position):
         super(CommandAddNode, self).__init__()
         self._fieldmodule = fieldmodule
@@ -133,5 +133,28 @@ class CommandAddNode(QtGui.QUndoCommand):
     def undo(self):
         self._nodeset.destroyNode(self._node)
 
+
+class CommandChangeViewMode(QtGui.QUndoCommand):
+
+    def __init__(self, current, new):
+        super(CommandChangeViewMode, self).__init__()
+        self._current = current
+        self._new = new
+        self._set_view_mode_method = None
+        self._set_view_mode_ui_method = None
+
+    def setSetViewModeMethod(self, method):
+        self._set_view_mode_method = method
+
+    def setSetViewModeUiMethod(self, method):
+        self._set_view_mode_ui_method = method
+
+    def redo(self):
+        self._set_view_mode_method(self._new)
+        self._set_view_mode_ui_method(self._new)
+
+    def undo(self):
+        self._set_view_mode_method(self._current)
+        self._set_view_mode_ui_method(self._current)
 
 

@@ -24,7 +24,7 @@ from mapclientplugins.segmentationstep.widgets.sceneviewerwidget import Scenevie
 from mapclientplugins.segmentationstep.widgets.definitions import ViewMode
 from mapclientplugins.segmentationstep.widgets.definitions import GRAPHIC_LABEL_NAME
 
-from mapclientplugins.segmentationstep.widgets.viewmodes import NormalMode, RotationMode, PositionMode
+from mapclientplugins.segmentationstep.widgets.viewmodes import NormalMode, RotationMode, SegmentMode
 
 class SceneviewerWidget3D(SceneviewerWidget):
 
@@ -46,7 +46,7 @@ class SceneviewerWidget3D(SceneviewerWidget):
 
         purple_material, red_material, yellow_material, orange_material = self._createModeMaterials()
 
-        position_mode = PositionMode(plane, self._undoStack)
+        segment_mode = SegmentMode(plane, self._undoStack)
 
         normal_mode = NormalMode(plane, self._undoStack)
         normal_mode.setGlyphPickerMethod(self.getNearestGraphicsPoint)
@@ -64,7 +64,7 @@ class SceneviewerWidget3D(SceneviewerWidget):
         rotation_mode.setDefaultMaterial(purple_material)
         rotation_mode.setSelectedMaterial(red_material)
 
-        self._modes = {ViewMode.SEGMENT: position_mode,
+        self._modes = {ViewMode.SEGMENT: segment_mode,
                        ViewMode.PLANE_NORMAL: normal_mode,
                        ViewMode.PLANE_ROTATION: rotation_mode}
 
