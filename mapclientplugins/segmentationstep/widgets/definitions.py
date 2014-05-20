@@ -23,10 +23,10 @@ DEFAULT_SEGMENTATION_POINT_SIZE = 2.0
 GRAPHIC_LABEL_NAME = 'label_only'
 IMAGE_PLANE_GRAPHIC_NAME = 'image_plane'
 
-class PlaneMovementMode(object):
+class ViewMode(object):
 
-    POSITION = 1
-    NORMAL = 2
-    ROTATION = 4
+    SEGMENT = 1
+    PLANE_NORMAL = 2
+    PLANE_ROTATION = 4
 
 

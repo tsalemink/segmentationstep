@@ -23,6 +23,7 @@ from PySide import QtGui
 
 from opencmiss.zinc.context import Context
 
+from mapclientplugins.segmentationstep.maths.algorithms import calculateCentroid
 from mapclientplugins.segmentationstep.maths.vectorops import elmult
 from mapclientplugins.segmentationstep.plane import Plane
 from mapclientplugins.segmentationstep.zincutils import createFiniteElementField, createFiniteElement
@@ -96,7 +97,8 @@ class ImageModel(AbstractModel):
         fieldmodule.endChange()
         # Do I also need to set the dimensions for the self._plane?
         # I'm going to go with yes.
-        self._plane.setDimensions(elmult(self._dimensions_px, scale))
+        plane_centre = calculateCentroid(self._plane.getRotationPoint(), self._plane.getNormal(), elmult(self._dimensions_px, scale))
+        self._plane.setRotationPoint(plane_centre)  # (elmult(self._dimensions_px, scale))
 
     def getDimensions(self):
         '''
@@ -141,6 +143,8 @@ class ImageModel(AbstractModel):
 
         fieldmodule.beginChange()
         plane = Plane(fieldmodule)
+        plane_centre = calculateCentroid(plane.getRotationPoint(), plane.getNormal(), self._dimensions_px)
+        plane.setRotationPoint(plane_centre)  # (elmult(self._dimensions_px, scale))
         fieldmodule.endChange()
 
         return plane

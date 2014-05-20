@@ -22,7 +22,7 @@ from math import cos, sin, sqrt, acos, pi
 from opencmiss.zinc.field import Field
 from opencmiss.zinc.glyph import Glyph
 
-from mapclientplugins.segmentationstep.widgets.definitions import PlaneMovementMode, DEFAULT_GRAPHICS_SPHERE_SIZE, DEFAULT_NORMAL_ARROW_SIZE
+from mapclientplugins.segmentationstep.widgets.definitions import ViewMode, DEFAULT_GRAPHICS_SPHERE_SIZE, DEFAULT_NORMAL_ARROW_SIZE
 from mapclientplugins.segmentationstep.maths.vectorops import add, mult, cross, dot, sub, normalize
 from mapclientplugins.segmentationstep.maths.algorithms import calculateCentroid, boundCoordinatesToCuboid, calculateLinePlaneIntersection
 from mapclientplugins.segmentationstep.plane import PlaneAttitude
@@ -129,7 +129,7 @@ class RotationMode(GlyphMode):
     '''
     def __init__(self, plane, undo_redo_stack):
         super(RotationMode, self).__init__(plane, undo_redo_stack)
-        self._mode = PlaneMovementMode.ROTATION
+        self._mode = ViewMode.PLANE_ROTATION
         self._glyph = _createPlaneManipulationSphere(plane.getRegion())
         self._width_method = None
         self._height_method = None
@@ -237,7 +237,7 @@ class NormalMode(GlyphMode):
     '''
     def __init__(self, plane, undo_redo_stack):
         super(NormalMode, self).__init__(plane, undo_redo_stack)
-        self._mode = PlaneMovementMode.NORMAL
+        self._mode = ViewMode.PLANE_NORMAL
         self._glyph = _createPlaneNormalIndicator(plane.getRegion(), plane.getNormalField())
 
     def enter(self):
@@ -301,7 +301,7 @@ class PositionMode(ViewMode):
     '''
     def __init__(self, plane, undo_redo_stack):
         super(PositionMode, self).__init__(plane, undo_redo_stack)
-        self._mode = PlaneMovementMode.POSITION
+        self._mode = ViewMode.SEGMENT
 
     def mouseMoveEvent(self, event):
         event.ignore()

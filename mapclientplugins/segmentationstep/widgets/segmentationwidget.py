@@ -28,7 +28,7 @@ from opencmiss.zinc.glyph import Glyph
 from mapclientplugins.segmentationstep.widgets.zincwidget import ProjectionMode
 from mapclientplugins.segmentationstep.maths.vectorops import div, eldiv, mult
 from mapclientplugins.segmentationstep.widgets.definitions import DEFAULT_GRAPHICS_SPHERE_SIZE, DEFAULT_NORMAL_ARROW_SIZE, DEFAULT_SEGMENTATION_POINT_SIZE, GRAPHIC_LABEL_NAME
-from mapclientplugins.segmentationstep.widgets.definitions import PlaneMovementMode, IMAGE_PLANE_GRAPHIC_NAME
+from mapclientplugins.segmentationstep.widgets.definitions import ViewMode, IMAGE_PLANE_GRAPHIC_NAME
 from mapclientplugins.segmentationstep.widgets.segmentationstate import SegmentationState
 
 class FakeMouseEvent(object):
@@ -78,6 +78,7 @@ class SegmentationWidget(QtGui.QWidget):
         self._counter = 0
 
         self._viewstate = None
+        self._current_viewmode = ViewMode.SEGMENT if self._ui._radioButtonSegment.isChecked() else (ViewMode.PLANE_NORMAL if self._ui._radioButtonMove.isChecked() else ViewMode.PLANE_ROTATION)
 
         self._streaming_create = False
         self._streaming_create_active = False
@@ -175,11 +176,17 @@ class SegmentationWidget(QtGui.QWidget):
 
     def _zincWidgetModeChanged(self):
         if self.sender() == self._ui._radioButtonSegment:
-            self._setMode(PlaneMovementMode.POSITION)
+            print('segment', self._ui._radioButtonSegment.isChecked(), self._current_viewmode)
+            self._current_viewmode = ViewMode.SEGMENT
+#             self._setMode(ViewMode.POSITION)
         elif self.sender() == self._ui._radioButtonMove:
-            self._setMode(PlaneMovementMode.NORMAL)
+            print('move', self._ui._radioButtonMove.isChecked(), self._current_viewmode)
+            self._current_viewmode = ViewMode.PLANE_NORMAL
+#             self._setMode(ViewMode.NORMAL)
         elif self.sender() == self._ui._radioButtonRotate:
-            self._setMode(PlaneMovementMode.ROTATION)
+            print('rotate', self._ui._radioButtonRotate.isChecked(), self._current_viewmode)
+            self._current_viewmode = ViewMode.PLANE_ROTATION
+#             self._setMode(ViewMode.ROTATION)
 
     def _iconSizeChanged(self):
         if self.sender() == self._ui._doubleSpinBoxNormalArrow:
@@ -438,7 +445,7 @@ class SegmentationWidget(QtGui.QWidget):
 #
 #         return position
 
-#             self._ui.zinc_widget.setIgnoreMouseEvents(mode != PlaneMovementMode.NONE)
+#             self._ui.zinc_widget.setIgnoreMouseEvents(mode != ViewMode.NONE)
 
     def _addNode(self, mouseevent):
         position = self._calcluatePlaneIntersection(mouseevent.x(), mouseevent.y())
@@ -459,21 +466,21 @@ class SegmentationWidget(QtGui.QWidget):
             reverse = keyevent.modifiers() & QtCore.Qt.SHIFT
             cur_mode = self._ui._sceneviewer3d.getMode()
             new_mode = cur_mode
-            if cur_mode == PlaneMovementMode.POSITION:
+            if cur_mode == ViewMode.SEGMENT:
                 if reverse:
-                    new_mode = PlaneMovementMode.ROTATION
+                    new_mode = ViewMode.PLANE_ROTATION
                 else:
-                    new_mode = PlaneMovementMode.NORMAL
-            elif cur_mode == PlaneMovementMode.NORMAL:
+                    new_mode = ViewMode.PLANE_NORMAL
+            elif cur_mode == ViewMode.PLANE_NORMAL:
                 if reverse:
-                    new_mode = PlaneMovementMode.POSITION
+                    new_mode = ViewMode.SEGMENT
                 else:
-                    new_mode = PlaneMovementMode.ROTATION
-            elif cur_mode == PlaneMovementMode.ROTATION:
+                    new_mode = ViewMode.PLANE_ROTATION
+            elif cur_mode == ViewMode.PLANE_ROTATION:
                 if reverse:
-                    new_mode = PlaneMovementMode.NORMAL
+                    new_mode = ViewMode.PLANE_NORMAL
                 else:
-                    new_mode = PlaneMovementMode.POSITION
+                    new_mode = ViewMode.SEGMENT
 
             self._ui._sceneviewer3d.setMode(new_mode)
 

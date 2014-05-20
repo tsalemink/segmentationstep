@@ -21,7 +21,7 @@ from opencmiss.zinc.field import Field
 from opencmiss.zinc.material import Material
 
 from mapclientplugins.segmentationstep.widgets.sceneviewerwidget import SceneviewerWidget
-from mapclientplugins.segmentationstep.widgets.definitions import PlaneMovementMode
+from mapclientplugins.segmentationstep.widgets.definitions import ViewMode
 from mapclientplugins.segmentationstep.widgets.definitions import GRAPHIC_LABEL_NAME
 
 from mapclientplugins.segmentationstep.widgets.viewmodes import NormalMode, RotationMode, PositionMode
@@ -39,7 +39,7 @@ class SceneviewerWidget3D(SceneviewerWidget):
         super(SceneviewerWidget3D, self).initializeGL()
 
         # Set the initial state for the view
-        self._active_mode = self._modes[PlaneMovementMode.POSITION]
+        self._active_mode = self._modes[ViewMode.SEGMENT]
 
     def _setupModes(self, model):
         plane = model.getPlane()
@@ -64,9 +64,9 @@ class SceneviewerWidget3D(SceneviewerWidget):
         rotation_mode.setDefaultMaterial(purple_material)
         rotation_mode.setSelectedMaterial(red_material)
 
-        self._modes = {PlaneMovementMode.POSITION: position_mode,
-                       PlaneMovementMode.NORMAL: normal_mode,
-                       PlaneMovementMode.ROTATION: rotation_mode}
+        self._modes = {ViewMode.SEGMENT: position_mode,
+                       ViewMode.PLANE_NORMAL: normal_mode,
+                       ViewMode.PLANE_ROTATION: rotation_mode}
 
     def _setupUi(self):
         print('Am I actually used')
@@ -130,15 +130,15 @@ class SceneviewerWidget3D(SceneviewerWidget):
         plane_glyph_filter.appendOperand(visibility_filter)
         plane_glyph_filter.appendOperand(glyph_filter)
 
-        segment_mode = self._modes[PlaneMovementMode.POSITION]
+        segment_mode = self._modes[ViewMode.SEGMENT]
         segment_mode.setSelectionFilter(segmentation_point_filter)
         segment_mode.setSelectionFilterMethod(self._ui._sceneviewer3d.setSelectionfilter)
 
-        normal_mode = self._modes[PlaneMovementMode.NORMAL]
+        normal_mode = self._modes[ViewMode.PLANE_NORMAL]
         normal_mode.setSelectionFilter(plane_glyph_filter)
         normal_mode.setSelectionFilterMethod(self._ui._sceneviewer3d.setSelectionfilter)
 
-        rotation_mode = self._modes[PlaneMovementMode.ROTATION]
+        rotation_mode = self._modes[ViewMode.PLANE_ROTATION]
         rotation_mode.setSelectionFilter(plane_glyph_filter)
         rotation_mode.setSelectionFilterMethod(self._ui._sceneviewer3d.setSelectionfilter)
 
