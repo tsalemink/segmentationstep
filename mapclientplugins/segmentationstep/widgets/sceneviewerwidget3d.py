@@ -17,57 +17,11 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
     You should have received a copy of the GNU General Public License
     along with MAP Client.  If not, see <http://www.gnu.org/licenses/>..
 '''
-from mapclientplugins.segmentationstep.widgets.sceneviewerwidget import SceneviewerWidget
+from mapclientplugins.segmentationstep.widgets.sceneviewerwidgetsegmentation import SceneviewerWidgetSegmentation
 
-class SceneviewerWidget3D(SceneviewerWidget):
+class SceneviewerWidget3D(SceneviewerWidgetSegmentation):
 
     def __init__(self, parent=None, shared=None):
         super(SceneviewerWidget3D, self).__init__(parent, shared)
-
-        self._active_mode = None
-        self._modes = {}
-        self._plane = None
-
-    def initializeGL(self):
-        super(SceneviewerWidget3D, self).initializeGL()
-
-    def getActiveModeType(self):
-        return self._active_mode.getModeType()
-
-    def setActiveModeType(self, mode):
-        if (self._active_mode is None or mode != self._active_mode.getModeType()) and mode in self._modes:
-            if not self._active_mode is None:
-                self._active_mode.leave()
-            self._active_mode = self._modes[mode]
-            self._active_mode.enter()
-
-    def getMode(self, mode_type='ACTIVE'):
-        '''
-        Returns the mode specified by mode_type.  If the
-        specified mode is not in the _modes dict then it
-        returns the currently active mode.
-        '''
-        if mode_type in self._modes:
-            return self._modes[mode_type]
-
-        return self._active_mode
-
-    def addMode(self, mode):
-        self._modes[mode.getModeType()] = mode
-
-    def mousePressEvent(self, mouseevent):
-        self._active_mode.mousePressEvent(mouseevent)
-        if not mouseevent.isAccepted():
-            super(SceneviewerWidget3D, self).mousePressEvent(mouseevent)
-
-    def mouseMoveEvent(self, mouseevent):
-        self._active_mode.mouseMoveEvent(mouseevent)
-        if not mouseevent.isAccepted():
-            super(SceneviewerWidget3D, self).mouseMoveEvent(mouseevent)
-
-    def mouseReleaseEvent(self, mouseevent):
-        self._active_mode.mouseReleaseEvent(mouseevent)
-        if not mouseevent.isAccepted():
-            super(SceneviewerWidget3D, self).mouseReleaseEvent(mouseevent)
 
 

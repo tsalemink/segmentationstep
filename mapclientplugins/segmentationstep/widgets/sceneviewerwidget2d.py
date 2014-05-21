@@ -17,16 +17,15 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
     You should have received a copy of the GNU General Public License
     along with MAP Client.  If not, see <http://www.gnu.org/licenses/>..
 '''
-from mapclientplugins.segmentationstep.widgets.sceneviewerwidget import SceneviewerWidget
+from mapclientplugins.segmentationstep.widgets.sceneviewerwidgetsegmentation import SceneviewerWidgetSegmentation
 from mapclientplugins.segmentationstep.maths.vectorops import add
 from mapclientplugins.segmentationstep.widgets.definitions import IMAGE_PLANE_GRAPHIC_NAME
 
-class SceneviewerWidget2D(SceneviewerWidget):
+class SceneviewerWidget2D(SceneviewerWidgetSegmentation):
 
     def __init__(self, parent=None, shared=None):
         super(SceneviewerWidget2D, self).__init__(parent, shared)
         self._plane = None
-        self._model = None
 
     def setPlane(self, plane):
         self._plane = plane
@@ -55,7 +54,6 @@ class SceneviewerWidget2D(SceneviewerWidget):
         master_filter.appendOperand(label_filter)
 
         self._sceneviewer.setScenefilter(master_filter)
-
 
     def initializeGL(self):
         super(SceneviewerWidget2D, self).initializeGL()
