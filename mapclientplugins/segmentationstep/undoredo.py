@@ -134,12 +134,18 @@ class CommandAddNode(QtGui.QUndoCommand):
         self._nodeset.destroyNode(self._node)
 
 
-class CommandChangeViewMode(QtGui.QUndoCommand):
+class CommandCurrentNew(QtGui.QUndoCommand):
 
     def __init__(self, current, new):
-        super(CommandChangeViewMode, self).__init__()
+        super(CommandCurrentNew, self).__init__()
         self._current = current
         self._new = new
+
+
+class CommandChangeViewMode(CommandCurrentNew):
+
+    def __init__(self, current, new):
+        super(CommandChangeViewMode, self).__init__(current, new)
         self._set_active_mode_type_method = None
         self._set_view_mode_ui_method = None
 
@@ -158,12 +164,10 @@ class CommandChangeViewMode(QtGui.QUndoCommand):
         self._set_view_mode_ui_method(self._current)
 
 
-class CommandSetScale(QtGui.QUndoCommand):
+class CommandSetScale(CommandCurrentNew):
 
     def __init__(self, current, new, scale_index):
-        super(CommandSetScale, self).__init__()
-        self._current = current
-        self._new = new
+        super(CommandSetScale, self).__init__(current, new)
         self._scale_index = scale_index
         self._set_scale_method = None
         self._line_edit = None
@@ -182,4 +186,43 @@ class CommandSetScale(QtGui.QUndoCommand):
     def undo(self):
         self._set_scale_method(self._current)
         self._line_edit.setText(str(self._current[self._scale_index]))
+
+
+class CommandSetProjectionMode(CommandCurrentNew):
+
+    def __init__(self, current, new):
+        super(CommandSetProjectionMode, self).__init__(current, new)
+        self._set_projection_mode_method = None
+
+    def setSetProjectionModeMethod(self, method):
+        self._set_projection_mode_method = method
+
+    def redo(self):
+        self._set_projection_mode_method(self._new)
+
+    def undo(self):
+        self._set_projection_mode_method(self._current)
+
+
+class CommandSetGraphicVisibility(CommandCurrentNew):
+
+    def __init__(self, current, new):
+        super(CommandSetGraphicVisibility, self).__init__(current, new)
+        self._graphic = None
+        self._check_box = None
+
+    def setGraphic(self, graphic):
+        self._graphic = graphic
+
+    def setCheckBox(self, check_box):
+        self._check_box = check_box
+
+    def redo(self):
+        self._graphic.setVisibilityFlag(self._new)
+        self._check_box.setChecked(self._new)
+
+    def undo(self):
+        self._graphic.setVisibilityFlag(self._current)
+        self._check_box.setChecked(self._current)
+
 

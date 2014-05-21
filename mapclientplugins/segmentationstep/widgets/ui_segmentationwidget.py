@@ -134,7 +134,7 @@ class Ui_SegmentationWidget(object):
         self._checkBoxImageOutline.setObjectName("_checkBoxImageOutline")
         self.verticalLayout_10.addWidget(self._checkBoxImageOutline)
         self._checkBoxCoordinateLabels = QtGui.QCheckBox(self.groupBox_7)
-        self._checkBoxCoordinateLabels.setChecked(True)
+        self._checkBoxCoordinateLabels.setChecked(False)
         self._checkBoxCoordinateLabels.setObjectName("_checkBoxCoordinateLabels")
         self.verticalLayout_10.addWidget(self._checkBoxCoordinateLabels)
         self.verticalLayout_3.addWidget(self.groupBox_7)

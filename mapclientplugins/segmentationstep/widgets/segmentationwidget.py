@@ -24,7 +24,7 @@ from opencmiss.zinc.glyph import Glyph
 
 from mapclientplugins.segmentationstep.widgets.viewmodes import NormalMode, RotationMode, SegmentMode
 from mapclientplugins.segmentationstep.widgets.ui_segmentationwidget import Ui_SegmentationWidget
-from mapclientplugins.segmentationstep.undoredo import CommandAddNode, CommandChangeViewMode, CommandSetScale
+from mapclientplugins.segmentationstep.undoredo import CommandAddNode, CommandChangeViewMode, CommandSetScale, CommandSetProjectionMode, CommandSetGraphicVisibility
 from mapclientplugins.segmentationstep.widgets.zincwidget import ProjectionMode
 from mapclientplugins.segmentationstep.maths.vectorops import div, eldiv, mult
 from mapclientplugins.segmentationstep.widgets.definitions import DEFAULT_GRAPHICS_SPHERE_SIZE, DEFAULT_NORMAL_ARROW_SIZE, DEFAULT_SEGMENTATION_POINT_SIZE, GRAPHIC_LABEL_NAME
@@ -167,10 +167,12 @@ class SegmentationWidget(QtGui.QWidget):
         self._ui._sceneviewer3d.viewAll()
 
     def _projectionModeChanged(self):
-        if self.sender() == self._ui._radioButtonParallel:
-            self._ui._sceneviewer3d.setProjectionMode(ProjectionMode.PARALLEL)
-        elif self.sender() == self._ui._radioButtonPerspective:
-            self._ui._sceneviewer3d.setProjectionMode(ProjectionMode.PERSPECTIVE)
+        current_mode = ProjectionMode.PERSPECTIVE if self._ui._radioButtonParallel.isChecked() else ProjectionMode.PARALLEL
+        new_mode = ProjectionMode.PARALLEL if self._ui._radioButtonParallel.isChecked() else ProjectionMode.PERSPECTIVE
+        c = CommandSetProjectionMode(current_mode, new_mode)
+        c.setSetProjectionModeMethod(self._setProjectionMode)
+
+        self._model.getUndoRedoStack().push(c)
 
     def _setProjectionMode(self, mode):
         self._ui._radioButtonParallel.setChecked(mode == ProjectionMode.PARALLEL)
@@ -186,12 +188,23 @@ class SegmentationWidget(QtGui.QWidget):
             self._setSegmentationPointBaseSize(self._ui._doubleSpinBoxSegmentationPoint.value())
 
     def _graphicVisibilityChanged(self):
-        if self.sender() == self._ui._checkBoxCoordinateLabels:
-            self._coordinate_labels.setVisibilityFlag(self._ui._checkBoxCoordinateLabels.isChecked())
-        elif self.sender() == self._ui._checkBoxImagePlane:
-            self._plane_image_graphic.setVisibilityFlag(self._ui._checkBoxImagePlane.isChecked())
-        elif self.sender() == self._ui._checkBoxImageOutline:
-            self._image_outline.setVisibilityFlag(self._ui._checkBoxImageOutline.isChecked())
+        check_box = self.sender()
+        graphic = None
+        if check_box == self._ui._checkBoxCoordinateLabels:
+            graphic = self._coordinate_labels
+        elif check_box == self._ui._checkBoxImagePlane:
+            graphic = self._plane_image_graphic
+        elif check_box == self._ui._checkBoxImageOutline:
+            graphic = self._image_outline
+
+        c = CommandSetGraphicVisibility(not check_box.isChecked(), check_box.isChecked())
+        c.setCheckBox(check_box)
+        c.setGraphic(graphic)
+
+        self._model.getUndoRedoStack().push(c)
+
+    def _setGraphicVisibility(self, graphic, state):
+        graphic.setVisibilityFlag(state)
 
     def _streamingCreateClicked(self):
         if self.sender() == self._ui._checkBoxStreamingCreate:
@@ -326,6 +339,7 @@ class SegmentationWidget(QtGui.QWidget):
         self._plane_image_graphic.setMaterial(material)
         self._image_outline = self._createImageOutline(image_region, image_coordinate_field)
         self._coordinate_labels = self._createNodeLabels(image_region, image_coordinate_field)
+        self._coordinate_labels.setVisibilityFlag(False)
 
         self._updateImageUI()
 
