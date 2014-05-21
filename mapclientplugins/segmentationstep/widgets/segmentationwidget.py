@@ -140,10 +140,10 @@ class SegmentationWidget(QtGui.QWidget):
         self._undoRedoStack.clear()
 
     def _saveViewState(self):
-        eye, lookat, up = self._ui._sceneviewer3d.getViewParameters()
+        eye, lookat, up, angle = self._ui._sceneviewer3d.getViewParameters()
 
         self._viewstate = SegmentationState()
-        self._viewstate.setViewParameters(eye, lookat, up)
+        self._viewstate.setViewParameters(eye, lookat, up, angle)
 #         self._viewstate.setPointOnPlane(self._getPointOnPlane())
 #         self._viewstate.setPlaneNormal(self._getPlaneNormal())
         self._viewstate.setPlaneRotationMode(self._ui._sceneviewer3d.getActiveModeType())
@@ -152,8 +152,8 @@ class SegmentationWidget(QtGui.QWidget):
         self._viewstate.setPlaneRotationCentreGlyphBaseSize(self._ui._doubleSpinBoxRotationCentre.value())
 
     def _loadViewState(self):
-        eye, lookat, up = self._viewstate.getViewParameters()
-        self._ui._sceneviewer3d.setViewParameters(eye, lookat, up)
+        eye, lookat, up, angle = self._viewstate.getViewParameters()
+        self._ui._sceneviewer3d.setViewParameters(eye, lookat, up, angle)
 #         self._setPlaneEquation(self._viewstate.getPlaneNormal(), self._viewstate.getPointOnPlane())
         self._ui._sceneviewer3d.setActiveModeType(self._viewstate.getPlaneRotationMode())
         self._setProjectionMode(self._viewstate.getProjectionMode())

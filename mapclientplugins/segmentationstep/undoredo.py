@@ -97,10 +97,12 @@ class CommandChangeView(QtGui.QUndoCommand):
         self._set_viewport_parameters_method = None
 
     def redo(self):
-        self._set_viewport_parameters_method(self._view_end.getEye(), self._view_end.getLookat(), self._view_end.getUp())
+        self._set_viewport_parameters_method(self._view_end.getEye(), self._view_end.getLookat(),
+                                             self._view_end.getUp(), self._view_end.getAngle())
 
     def undo(self):
-        self._set_viewport_parameters_method(self._view_start.getEye(), self._view_start.getLookat(), self._view_start.getUp())
+        self._set_viewport_parameters_method(self._view_start.getEye(), self._view_start.getLookat(),
+                                             self._view_start.getUp(), self._view_start.getAngle())
 
     def setCallbackMethod(self, viewport_parameters):
         self._set_viewport_parameters_method = viewport_parameters

@@ -36,7 +36,7 @@ class SceneviewerWidget2D(SceneviewerWidget):
         if self._sceneviewer is not None:
             normal = self._plane.getNormal()
             centre = self._plane.getRotationPoint()
-            _, _, up = self.getViewParameters()
+            _, _, up, _ = self.getViewParameters()
             self._sceneviewer.beginChange()
             self.setViewParameters(add(normal, centre), centre, up)
             self.viewAll()

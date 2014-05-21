@@ -27,6 +27,7 @@ class SegmentationState(object):
         self._eye = None
         self._lookat = None
         self._up = None
+        self._angle = None
         self._pop = None
         self._normal = None
         self._rotation_mode = None
@@ -34,13 +35,14 @@ class SegmentationState(object):
         self._normal_base_size = DEFAULT_NORMAL_ARROW_SIZE
         self._rotation_centre_base_size = DEFAULT_GRAPHICS_SPHERE_SIZE
 
-    def setViewParameters(self, eye, lookat, up):
+    def setViewParameters(self, eye, lookat, up, angle):
         self._eye = eye
         self._lookat = lookat
         self._up = up
+        self._angle = angle
 
     def getViewParameters(self):
-        return self._eye, self._lookat, self._up
+        return self._eye, self._lookat, self._up, self._angle
 
     def setPointOnPlane(self, pt):
         self._pop = pt

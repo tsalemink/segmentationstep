@@ -64,10 +64,11 @@ class SelectionMode(object):
 
 class ViewportParameters(object):
 
-    def __init__(self, eye, lookat, up):
+    def __init__(self, eye, lookat, up, angle):
         self._eye = eye
         self._lookat = lookat
         self._up = up
+        self._angle = angle
 
     def getEye(self):
         return self._eye
@@ -77,6 +78,9 @@ class ViewportParameters(object):
 
     def getUp(self):
         return self._up
+
+    def getAngle(self):
+        return self._angle
 
 
 class SceneviewerWidget(QtOpenGL.QGLWidget):
@@ -215,12 +219,16 @@ class SceneviewerWidget(QtOpenGL.QGLWidget):
     def getViewParameters(self):
         result, eye, lookat, up = self._sceneviewer.getLookatParameters()
         if result == OK:
-            return (eye, lookat, up)
+            angle = self._sceneviewer.getViewAngle()
+            return (eye, lookat, up, angle)
 
         return None
 
-    def setViewParameters(self, eye, lookat, up):
+    def setViewParameters(self, eye, lookat, up, angle):
+        self._sceneviewer.beginChange()
         self._sceneviewer.setLookatParametersNonSkew(eye, lookat, up)
+        self._sceneviewer.setViewAngle(angle)
+        self._sceneviewer.endChange()
 
     def setScenefilter(self, scenefilter):
         self._sceneviewer.setScenefilter(scenefilter)
@@ -313,7 +321,14 @@ class SceneviewerWidget(QtOpenGL.QGLWidget):
         Helper method to set the current scene viewer to view everything
         visible in the current scene.
         '''
+        p1 = self.getViewParameters()
         self._sceneviewer.viewAll()
+        p2 = self.getViewParameters()
+        start_view_parameters = ViewportParameters(p1[0], p1[1], p1[2], p1[3])
+        end_view_parameters = ViewportParameters(p2[0], p2[1], p2[2], p2[3])
+        c = CommandChangeView(start_view_parameters, end_view_parameters)
+        c.setCallbackMethod(self.setViewParameters)
+        self._undoRedoStack.push(c)
 
     # paintGL start
     def paintGL(self):
@@ -367,7 +382,7 @@ class SceneviewerWidget(QtOpenGL.QGLWidget):
 
             self._sceneviewer.processSceneviewerinput(scene_input)
             p = self.getViewParameters()
-            self._start_view_parameters = ViewportParameters(p[0], p[1], p[2])
+            self._start_view_parameters = ViewportParameters(p[0], p[1], p[2], p[3])
 
             self._handle_mouse_events = True
         else:
@@ -455,7 +470,7 @@ class SceneviewerWidget(QtOpenGL.QGLWidget):
 
             self._sceneviewer.processSceneviewerinput(scene_input)
             p = self.getViewParameters()
-            end_view_parameters = ViewportParameters(p[0], p[1], p[2])
+            end_view_parameters = ViewportParameters(p[0], p[1], p[2], p[3])
             c = CommandChangeView(self._start_view_parameters, end_view_parameters)
             c.setCallbackMethod(self.setViewParameters)
             self._undoRedoStack.push(c)

@@ -182,7 +182,7 @@ class RotationMode(GlyphMode):
                 phi = acos(d / radius) - 0.5 * pi
                 angle = 1.0 * tangent_dist / radius
 
-                eye, lookat, up = self._getViewParameters_method()
+                eye, lookat, up, _ = self._getViewParameters_method()
 
                 b = up[:]
                 b = normalize(b)
