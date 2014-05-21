@@ -22,7 +22,7 @@ from PySide import QtGui, QtCore
 from opencmiss.zinc.field import Field
 from opencmiss.zinc.glyph import Glyph
 
-from mapclientplugins.segmentationstep.widgets.viewmodes import NormalMode, RotationMode, SegmentMode
+from mapclientplugins.segmentationstep.widgets.viewmodes import NormalMode, RotationMode, SegmentMode, SegmentMode2D
 from mapclientplugins.segmentationstep.widgets.ui_segmentationwidget import Ui_SegmentationWidget
 from mapclientplugins.segmentationstep.undoredo import CommandAddNode, CommandChangeViewMode, CommandSetScale, CommandSetSingleParameterMethod, CommandSetGraphicVisibility, CommandSetGlyphSize
 from mapclientplugins.segmentationstep.widgets.zincwidget import ProjectionMode
@@ -455,6 +455,11 @@ class SegmentationWidget(QtGui.QWidget):
         red_material = materialmodule.findMaterialByName('red')
 
         segment_mode = SegmentMode(plane, undo_redo_stack)
+        segment_mode_2d = SegmentMode2D(plane, undo_redo_stack)
+        segment_mode_2d.setGetViewParametersMethod(self._ui._sceneviewer2d.getViewParameters)
+        segment_mode_2d.setSetViewParametersMethod(self._ui._sceneviewer2d.setViewParameters)
+        segment_mode_2d.setProjectUnProjectMethods(self._ui._sceneviewer2d.project, self._ui._sceneviewer2d.unproject)
+        segment_mode_2d.setGetDimensionsMethod(image_model.getDimensions)
 
         normal_mode = NormalMode(plane, undo_redo_stack)
         normal_mode.setGlyphPickerMethod(self._ui._sceneviewer3d.getNearestGraphicsPoint)
@@ -476,6 +481,9 @@ class SegmentationWidget(QtGui.QWidget):
         self._ui._sceneviewer3d.addMode(normal_mode)
         self._ui._sceneviewer3d.addMode(rotation_mode)
 
+        self._ui._sceneviewer2d.addMode(segment_mode_2d)
+
         self._ui._sceneviewer3d.setActiveModeType(ViewMode.SEGMENT)
+        self._ui._sceneviewer2d.setActiveModeType(ViewMode.SEGMENT)
 
 

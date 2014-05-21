@@ -17,13 +17,13 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
     You should have received a copy of the GNU General Public License
     along with MAP Client.  If not, see <http://www.gnu.org/licenses/>..
 '''
-from math import cos, sin, sqrt, acos, pi
+from math import cos, sin, sqrt, acos, pi, copysign
 
 from opencmiss.zinc.field import Field
 from opencmiss.zinc.glyph import Glyph
 
 from mapclientplugins.segmentationstep.widgets.definitions import ViewMode, DEFAULT_GRAPHICS_SPHERE_SIZE, DEFAULT_NORMAL_ARROW_SIZE
-from mapclientplugins.segmentationstep.maths.vectorops import add, mult, cross, dot, sub, normalize
+from mapclientplugins.segmentationstep.maths.vectorops import add, mult, cross, dot, sub, normalize, magnitude
 from mapclientplugins.segmentationstep.maths.algorithms import calculateCentroid, boundCoordinatesToCuboid, calculateLinePlaneIntersection
 from mapclientplugins.segmentationstep.plane import PlaneAttitude
 from mapclientplugins.segmentationstep.undoredo import CommandMovePlane, CommandMoveGlyph
@@ -38,6 +38,16 @@ class AbstractViewMode(object):
         self._mode_type = None
         self._plane = plane
         self._undo_redo_stack = undo_redo_stack
+        self._project_method = None
+        self._unproject_method = None
+        self._get_dimension_method = None
+
+    def setProjectUnProjectMethods(self, project_method, unproject_method):
+        self._project_method = project_method
+        self._unproject_method = unproject_method
+
+    def setGetDimensionsMethod(self, get_dimensions_method):
+        self._get_dimension_method = get_dimensions_method
 
     def leave(self):
         pass
@@ -66,9 +76,6 @@ class GlyphMode(AbstractViewMode):
         super(GlyphMode, self).__init__(plane, undo_redo_stack)
         self._glyph = None
         self._glyph_picker_method = None
-        self._project_method = None
-        self._unproject_method = None
-        self._get_dimension_method = None
         self._plane_attitude_start = None
         self._plane_attitude_end = None
 
@@ -80,13 +87,6 @@ class GlyphMode(AbstractViewMode):
 
     def setGlyphPickerMethod(self, method):
         self._glyph_picker_method = method
-
-    def setProjectUnProjectMethods(self, project_method, unproject_method):
-        self._project_method = project_method
-        self._unproject_method = unproject_method
-
-    def setGetDimensionsMethod(self, get_dimensions_method):
-        self._get_dimension_method = get_dimensions_method
 
     def setDefaultMaterial(self, material):
         self._default_material = material
@@ -301,11 +301,18 @@ class NormalMode(GlyphMode):
 
 
 class SegmentMode(AbstractViewMode):
-    '''
-    '''
+
     def __init__(self, plane, undo_redo_stack):
         super(SegmentMode, self).__init__(plane, undo_redo_stack)
         self._mode_type = ViewMode.SEGMENT
+        self._getViewParameters_method = None
+        self._setViewParameters_method = None
+
+    def setGetViewParametersMethod(self, get_view_parameters_method):
+        self._getViewParameters_method = get_view_parameters_method
+
+    def setSetViewParametersMethod(self, set_view_parameters_method):
+        self._setViewParameters_method = set_view_parameters_method
 
     def mouseMoveEvent(self, event):
         event.ignore()
@@ -315,6 +322,60 @@ class SegmentMode(AbstractViewMode):
 
     def mouseReleaseEvent(self, event):
         event.ignore()
+
+
+class SegmentMode2D(SegmentMode):
+
+    def __init__(self, plane, undo_redo_stack):
+        super(SegmentMode2D, self).__init__(plane, undo_redo_stack)
+        self._start_position = None
+
+    def mouseMoveEvent(self, event):
+        if self._start_position is not None:
+            # v_rot = v*cos(theta)+(wxv)*sin(theta)+w*(w.v)*(1-cos(theta))
+            # v is our vector
+            # w is the unit vector to rotate around
+            # theta is the angle to rotate
+            if self._start_position[0] == event.x() and self._start_position[1] == event.y():
+                return
+            centre_point = calculateCentroid(self._plane.getRotationPoint(), self._plane.getNormal(), self._get_dimension_method())
+            centre_widget = self._project_method(centre_point[0], centre_point[1], centre_point[2])
+            a = sub(centre_widget, [event.x(), -event.y(), centre_widget[2]])
+            b = sub(centre_widget, [self._start_position[0], -self._start_position[1], centre_widget[2]])
+            c = dot(a, b)
+            d = magnitude(a) * magnitude(b)
+            theta = acos(min(c / d, 1.0))
+            if theta != 0.0:
+                g = cross(a, b)
+                lookat, eye, up, angle = self._getViewParameters_method()
+                w = normalize(sub(lookat, eye))
+                if copysign(1, dot(g, [0, 0, 1])) < 0:
+                    theta = -theta
+                v = up
+                p1 = mult(v, cos(theta))
+                p2 = mult(cross(w, v), sin(theta))
+                p3a = mult(w, dot(w, v))
+                p3 = mult(p3a, 1 - cos(theta))
+                v_rot = add(p1, add(p2, p3))
+                self._setViewParameters_method(lookat, eye, v_rot, angle)
+                self._start_position = [event.x(), event.y()]
+
+        else:
+            event.ignore()
+
+    def mousePressEvent(self, event):
+        self._start_position = None
+        if not event.modifiers():
+            self._start_position = [event.x(), event.y()]
+        else:
+            event.ignore()
+
+    def mouseReleaseEvent(self, event):
+        if self._start_position is not None:
+            # Do undo redo command
+            pass
+        else:
+            event.ignore()
 
 
 def _createPlaneManipulationSphere(region):
