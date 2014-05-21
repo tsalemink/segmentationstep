@@ -34,7 +34,7 @@ class AbstractViewMode(object):
     def __init__(self, plane, undo_redo_stack):
         self._default_material = None
         self._selected_material = None
-        self._mode = None
+        self._mode_type = None
         self._plane = plane
         self._undo_redo_stack = undo_redo_stack
 
@@ -47,8 +47,8 @@ class AbstractViewMode(object):
     def hasGlyph(self):
         return hasattr(self, '_glyph')
 
-    def getMode(self):
-        return self._mode
+    def getModeType(self):
+        return self._mode_type
 
     def mouseMoveEvent(self, event):
         pass
@@ -129,7 +129,7 @@ class RotationMode(GlyphMode):
     '''
     def __init__(self, plane, undo_redo_stack):
         super(RotationMode, self).__init__(plane, undo_redo_stack)
-        self._mode = ViewMode.PLANE_ROTATION
+        self._mode_type = ViewMode.PLANE_ROTATION
         self._glyph = _createPlaneManipulationSphere(plane.getRegion())
         self._width_method = None
         self._height_method = None
@@ -237,7 +237,7 @@ class NormalMode(GlyphMode):
     '''
     def __init__(self, plane, undo_redo_stack):
         super(NormalMode, self).__init__(plane, undo_redo_stack)
-        self._mode = ViewMode.PLANE_NORMAL
+        self._mode_type = ViewMode.PLANE_NORMAL
         self._glyph = _createPlaneNormalIndicator(plane.getRegion(), plane.getNormalField())
 
     def enter(self):
@@ -301,7 +301,7 @@ class SegmentMode(AbstractViewMode):
     '''
     def __init__(self, plane, undo_redo_stack):
         super(SegmentMode, self).__init__(plane, undo_redo_stack)
-        self._mode = ViewMode.SEGMENT
+        self._mode_type = ViewMode.SEGMENT
 
     def mouseMoveEvent(self, event):
         event.ignore()

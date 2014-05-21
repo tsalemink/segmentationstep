@@ -140,21 +140,21 @@ class CommandChangeViewMode(QtGui.QUndoCommand):
         super(CommandChangeViewMode, self).__init__()
         self._current = current
         self._new = new
-        self._set_view_mode_method = None
+        self._set_active_mode_type_method = None
         self._set_view_mode_ui_method = None
 
-    def setSetViewModeMethod(self, method):
-        self._set_view_mode_method = method
+    def setSetActiveModeTypeMethod(self, method):
+        self._set_active_mode_type_method = method
 
     def setSetViewModeUiMethod(self, method):
         self._set_view_mode_ui_method = method
 
     def redo(self):
-        self._set_view_mode_method(self._new)
+        self._set_active_mode_type_method(self._new)
         self._set_view_mode_ui_method(self._new)
 
     def undo(self):
-        self._set_view_mode_method(self._current)
+        self._set_active_mode_type_method(self._current)
         self._set_view_mode_ui_method(self._current)
 
 

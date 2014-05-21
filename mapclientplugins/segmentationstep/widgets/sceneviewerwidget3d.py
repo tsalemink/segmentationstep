@@ -31,10 +31,6 @@ class SceneviewerWidget3D(SceneviewerWidget):
     def initializeGL(self):
         super(SceneviewerWidget3D, self).initializeGL()
 
-        # Set the initial state for the view
-#         self._active_mode = self._modes[ViewMode.SEGMENT]
-#         self.setMode(ViewMode.SEGMENT)
-
     def _setupUi(self):
         print('Am I actually used')
         self._setGlyphsForGlyphModes(self._rotation_glyph, self._normal_glyph)
@@ -51,21 +47,29 @@ class SceneviewerWidget3D(SceneviewerWidget):
     def getPlaneRotationGlyph(self):
         return self._rotation_glyph
 
-    def getMode(self):
-        if not self._active_mode is None:
-            return self._active_mode.getMode()
+    def getActiveModeType(self):
+        return self._active_mode.getModeType()
 
-        return None
-
-    def setMode(self, mode):
-        if (self._active_mode is None or mode != self._active_mode.getMode()) and mode in self._modes:
+    def setActiveModeType(self, mode):
+        if (self._active_mode is None or mode != self._active_mode.getModeType()) and mode in self._modes:
             if not self._active_mode is None:
                 self._active_mode.leave()
             self._active_mode = self._modes[mode]
             self._active_mode.enter()
 
+    def getMode(self, mode_type='ACTIVE'):
+        '''
+        Returns the mode specified by mode_type.  If the
+        specified mode is not in the _modes dict then it
+        returns the currently active mode.
+        '''
+        if mode_type in self._modes:
+            return self._modes[mode_type]
+
+        return self._active_mode
+
     def addMode(self, mode):
-        self._modes[mode.getMode()] = mode
+        self._modes[mode.getModeType()] = mode
 
     def mousePressEvent(self, mouseevent):
         self._active_mode.mousePressEvent(mouseevent)

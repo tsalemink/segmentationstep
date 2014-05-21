@@ -144,7 +144,7 @@ class SegmentationWidget(QtGui.QWidget):
         self._viewstate.setViewParameters(eye, lookat, up)
 #         self._viewstate.setPointOnPlane(self._getPointOnPlane())
 #         self._viewstate.setPlaneNormal(self._getPlaneNormal())
-        self._viewstate.setPlaneRotationMode(self._ui._sceneviewer3d.getMode())
+        self._viewstate.setPlaneRotationMode(self._ui._sceneviewer3d.getActiveModeType())
         self._viewstate.setProjectionMode(self._ui._sceneviewer3d.getProjectionMode())
         self._viewstate.setPlaneNormalGlyphBaseSize(self._ui._doubleSpinBoxNormalArrow.value())
         self._viewstate.setPlaneRotationCentreGlyphBaseSize(self._ui._doubleSpinBoxRotationCentre.value())
@@ -153,7 +153,7 @@ class SegmentationWidget(QtGui.QWidget):
         eye, lookat, up = self._viewstate.getViewParameters()
         self._ui._sceneviewer3d.setViewParameters(eye, lookat, up)
 #         self._setPlaneEquation(self._viewstate.getPlaneNormal(), self._viewstate.getPointOnPlane())
-        self._ui._sceneviewer3d.setMode(self._viewstate.getPlaneRotationMode())
+        self._ui._sceneviewer3d.setActiveModeType(self._viewstate.getPlaneRotationMode())
         self._setProjectionMode(self._viewstate.getProjectionMode())
         base_size = self._viewstate.getPlaneNormalGlyphBaseSize()
         self._ui._doubleSpinBoxNormalArrow.setValue(base_size)
@@ -427,7 +427,7 @@ class SegmentationWidget(QtGui.QWidget):
             # Put tool into plane rotation mode
             # show sphere centre glyph
             reverse = keyevent.modifiers() & QtCore.Qt.SHIFT
-            cur_mode = self._ui._sceneviewer3d.getMode()
+            cur_mode = self._ui._sceneviewer3d.getMode().getModeType()
             new_mode = cur_mode
             if cur_mode == ViewMode.SEGMENT:
                 if reverse:
@@ -468,7 +468,7 @@ class SegmentationWidget(QtGui.QWidget):
 
     def _setMode(self, view_mode):
         c = CommandChangeViewMode(self._current_viewmode, view_mode)
-        c.setSetViewModeMethod(self._ui._sceneviewer3d.setMode)
+        c.setSetActiveModeTypeMethod(self._ui._sceneviewer3d.setActiveModeType)
         c.setSetViewModeUiMethod(self._setViewModeUi)
 
         self._model.getUndoRedoStack().push(c)
@@ -537,6 +537,6 @@ class SegmentationWidget(QtGui.QWidget):
         self._ui._sceneviewer3d.addMode(normal_mode)
         self._ui._sceneviewer3d.addMode(rotation_mode)
 
-        self._ui._sceneviewer3d.setMode(ViewMode.SEGMENT)
+        self._ui._sceneviewer3d.setActiveModeType(ViewMode.SEGMENT)
 
 
