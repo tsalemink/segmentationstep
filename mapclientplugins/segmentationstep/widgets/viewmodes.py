@@ -26,8 +26,9 @@ from mapclientplugins.segmentationstep.widgets.definitions import ViewMode, DEFA
 from mapclientplugins.segmentationstep.maths.vectorops import add, mult, cross, dot, sub, normalize, magnitude
 from mapclientplugins.segmentationstep.maths.algorithms import calculateCentroid, boundCoordinatesToCuboid, calculateLinePlaneIntersection
 from mapclientplugins.segmentationstep.plane import PlaneAttitude
-from mapclientplugins.segmentationstep.undoredo import CommandMovePlane, CommandMoveGlyph
+from mapclientplugins.segmentationstep.undoredo import CommandMovePlane, CommandMoveGlyph, CommandChangeView
 from mapclientplugins.segmentationstep.zincutils import getGlyphPosition, setGlyphPosition
+from mapclientplugins.segmentationstep.widgets.sceneviewerwidget import ViewportParameters
 
 class AbstractViewMode(object):
 
@@ -367,13 +368,19 @@ class SegmentMode2D(SegmentMode):
         self._start_position = None
         if not event.modifiers():
             self._start_position = [event.x(), event.y()]
+            p = self._getViewParameters_method()
+            self._start_view_parameters = ViewportParameters(p[0], p[1], p[2], p[3])
         else:
             event.ignore()
 
     def mouseReleaseEvent(self, event):
         if self._start_position is not None:
             # Do undo redo command
-            pass
+            p = self._getViewParameters_method()
+            end_view_parameters = ViewportParameters(p[0], p[1], p[2], p[3])
+            c = CommandChangeView(self._start_view_parameters, end_view_parameters)
+            c.setCallbackMethod(self._setViewParameters_method)
+            self._undo_redo_stack.push(c)
         else:
             event.ignore()
 
