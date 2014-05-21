@@ -19,15 +19,12 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
 '''
 from math import cos, sin, sqrt, acos, pi, copysign
 
-from opencmiss.zinc.field import Field
-from opencmiss.zinc.glyph import Glyph
-
-from mapclientplugins.segmentationstep.widgets.definitions import ViewMode, DEFAULT_GRAPHICS_SPHERE_SIZE, DEFAULT_NORMAL_ARROW_SIZE
+from mapclientplugins.segmentationstep.widgets.definitions import ViewMode
 from mapclientplugins.segmentationstep.maths.vectorops import add, mult, cross, dot, sub, normalize, magnitude
 from mapclientplugins.segmentationstep.maths.algorithms import calculateCentroid, boundCoordinatesToCuboid, calculateLinePlaneIntersection
 from mapclientplugins.segmentationstep.plane import PlaneAttitude
 from mapclientplugins.segmentationstep.undoredo import CommandMovePlane, CommandMoveGlyph, CommandChangeView
-from mapclientplugins.segmentationstep.zincutils import getGlyphPosition, setGlyphPosition
+from mapclientplugins.segmentationstep.zincutils import getGlyphPosition, setGlyphPosition, createPlaneManipulationSphere, createPlaneNormalIndicator
 from mapclientplugins.segmentationstep.widgets.sceneviewerwidget import ViewportParameters
 
 class AbstractViewMode(object):
@@ -135,7 +132,7 @@ class RotationMode(GlyphMode):
     def __init__(self, plane, undo_redo_stack):
         super(RotationMode, self).__init__(plane, undo_redo_stack)
         self._mode_type = ViewMode.PLANE_ROTATION
-        self._glyph = _createPlaneManipulationSphere(plane.getRegion())
+        self._glyph = createPlaneManipulationSphere(plane.getRegion())
         self._width_method = None
         self._height_method = None
         self._getViewParameters_method = None
@@ -243,7 +240,7 @@ class NormalMode(GlyphMode):
     def __init__(self, plane, undo_redo_stack):
         super(NormalMode, self).__init__(plane, undo_redo_stack)
         self._mode_type = ViewMode.PLANE_NORMAL
-        self._glyph = _createPlaneNormalIndicator(plane.getRegion(), plane.getNormalField())
+        self._glyph = createPlaneNormalIndicator(plane.getRegion(), plane.getNormalField())
 
     def enter(self):
         scene = self._glyph.getScene()
@@ -384,51 +381,5 @@ class SegmentMode2D(SegmentMode):
         else:
             event.ignore()
 
-
-def _createPlaneManipulationSphere(region):
-    scene = region.getScene()
-
-    scene.beginChange()
-
-    # Create transparent purple sphere
-    plane_rotation_sphere = scene.createGraphicsPoints()
-    plane_rotation_sphere.setFieldDomainType(Field.DOMAIN_TYPE_POINT)
-    plane_rotation_sphere.setVisibilityFlag(False)
-    fm = region.getFieldmodule()
-    zero_field = fm.createFieldConstant([0, 0, 0])
-    plane_rotation_sphere.setCoordinateField(zero_field)
-    tessellation = plane_rotation_sphere.getTessellation()
-    tessellation.setCircleDivisions(24)
-    plane_rotation_sphere.setTessellation(tessellation)
-    attributes = plane_rotation_sphere.getGraphicspointattributes()
-    attributes.setGlyphShapeType(Glyph.SHAPE_TYPE_SPHERE)
-    attributes.setBaseSize(DEFAULT_GRAPHICS_SPHERE_SIZE)
-
-    scene.endChange()
-
-    return plane_rotation_sphere
-
-def _createPlaneNormalIndicator(region, plane_normal_field):
-    scene = region.getScene()
-
-    scene.beginChange()
-    # Create transparent purple sphere
-    plane_normal_indicator = scene.createGraphicsPoints()
-    plane_normal_indicator.setFieldDomainType(Field.DOMAIN_TYPE_POINT)
-    plane_normal_indicator.setVisibilityFlag(False)
-
-    fm = region.getFieldmodule()
-    zero_field = fm.createFieldConstant([0, 0, 0])
-    plane_normal_indicator.setCoordinateField(zero_field)
-
-    attributes = plane_normal_indicator.getGraphicspointattributes()
-    attributes.setGlyphShapeType(Glyph.SHAPE_TYPE_ARROW_SOLID)
-    attributes.setBaseSize([DEFAULT_NORMAL_ARROW_SIZE, DEFAULT_NORMAL_ARROW_SIZE / 4, DEFAULT_NORMAL_ARROW_SIZE / 4])
-    attributes.setScaleFactors([0, 0, 0])
-    attributes.setOrientationScaleField(plane_normal_field)
-
-    scene.endChange()
-
-    return plane_normal_indicator
 
 

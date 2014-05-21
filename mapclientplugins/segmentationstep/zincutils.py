@@ -19,6 +19,10 @@ along with MAP Client.  If not, see <http://www.gnu.org/licenses/>..
 '''
 
 from opencmiss.zinc.element import Element, Elementbasis
+from opencmiss.zinc.field import Field
+from opencmiss.zinc.glyph import Glyph
+
+from mapclientplugins.segmentationstep.widgets.definitions import DEFAULT_GRAPHICS_SPHERE_SIZE, DEFAULT_NORMAL_ARROW_SIZE
 
 def createFiniteElementField(region):
     '''
@@ -127,4 +131,51 @@ def getGlyphSize(glyph):
 def setGlyphSize(glyph, size):
     attributes = glyph.getGraphicspointattributes()
     attributes.setBaseSize(size)
+
+def createPlaneManipulationSphere(region):
+    scene = region.getScene()
+
+    scene.beginChange()
+
+    # Create transparent purple sphere
+    plane_rotation_sphere = scene.createGraphicsPoints()
+    plane_rotation_sphere.setFieldDomainType(Field.DOMAIN_TYPE_POINT)
+    plane_rotation_sphere.setVisibilityFlag(False)
+    fm = region.getFieldmodule()
+    zero_field = fm.createFieldConstant([0, 0, 0])
+    plane_rotation_sphere.setCoordinateField(zero_field)
+    tessellation = plane_rotation_sphere.getTessellation()
+    tessellation.setCircleDivisions(24)
+    plane_rotation_sphere.setTessellation(tessellation)
+    attributes = plane_rotation_sphere.getGraphicspointattributes()
+    attributes.setGlyphShapeType(Glyph.SHAPE_TYPE_SPHERE)
+    attributes.setBaseSize(DEFAULT_GRAPHICS_SPHERE_SIZE)
+
+    scene.endChange()
+
+    return plane_rotation_sphere
+
+def createPlaneNormalIndicator(region, plane_normal_field):
+    scene = region.getScene()
+
+    scene.beginChange()
+    # Create transparent purple sphere
+    plane_normal_indicator = scene.createGraphicsPoints()
+    plane_normal_indicator.setFieldDomainType(Field.DOMAIN_TYPE_POINT)
+    plane_normal_indicator.setVisibilityFlag(False)
+
+    fm = region.getFieldmodule()
+    zero_field = fm.createFieldConstant([0, 0, 0])
+    plane_normal_indicator.setCoordinateField(zero_field)
+
+    attributes = plane_normal_indicator.getGraphicspointattributes()
+    attributes.setGlyphShapeType(Glyph.SHAPE_TYPE_ARROW_SOLID)
+    attributes.setBaseSize([DEFAULT_NORMAL_ARROW_SIZE, DEFAULT_NORMAL_ARROW_SIZE / 4, DEFAULT_NORMAL_ARROW_SIZE / 4])
+    attributes.setScaleFactors([0, 0, 0])
+    attributes.setOrientationScaleField(plane_normal_field)
+
+    scene.endChange()
+
+    return plane_normal_indicator
+
 
