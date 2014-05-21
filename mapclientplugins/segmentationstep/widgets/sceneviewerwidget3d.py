@@ -17,14 +17,7 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
     You should have received a copy of the GNU General Public License
     along with MAP Client.  If not, see <http://www.gnu.org/licenses/>..
 '''
-from opencmiss.zinc.field import Field
-from opencmiss.zinc.material import Material
-
 from mapclientplugins.segmentationstep.widgets.sceneviewerwidget import SceneviewerWidget
-from mapclientplugins.segmentationstep.widgets.definitions import ViewMode
-from mapclientplugins.segmentationstep.widgets.definitions import GRAPHIC_LABEL_NAME
-
-from mapclientplugins.segmentationstep.widgets.viewmodes import NormalMode, RotationMode, SegmentMode
 
 class SceneviewerWidget3D(SceneviewerWidget):
 
@@ -32,41 +25,15 @@ class SceneviewerWidget3D(SceneviewerWidget):
         super(SceneviewerWidget3D, self).__init__(parent, shared)
 
         self._active_mode = None
-        self._modes = None
+        self._modes = {}
         self._plane = None
 
     def initializeGL(self):
         super(SceneviewerWidget3D, self).initializeGL()
 
         # Set the initial state for the view
-        self._active_mode = self._modes[ViewMode.SEGMENT]
-
-    def _setupModes(self, model):
-        plane = model.getPlane()
-
-        purple_material, red_material, yellow_material, orange_material = self._createModeMaterials()
-
-        segment_mode = SegmentMode(plane, self._undoStack)
-
-        normal_mode = NormalMode(plane, self._undoStack)
-        normal_mode.setGlyphPickerMethod(self.getNearestGraphicsPoint)
-        normal_mode.setGetDimensionsMethod(model.getDimensions)
-        normal_mode.setProjectUnProjectMethods(self.project, self.unproject)
-        normal_mode.setDefaultMaterial(yellow_material)
-        normal_mode.setSelectedMaterial(orange_material)
-
-        rotation_mode = RotationMode(plane, self._undoStack)
-        rotation_mode.setGlyphPickerMethod(self.getNearestGraphicsPoint)
-        rotation_mode.setProjectUnProjectMethods(self.project, self.unproject)
-        rotation_mode.setGetDimensionsMethod(model.getDimensions)
-        rotation_mode.setWidthHeightMethods(self.width, self.height)
-        rotation_mode.setGetViewParametersMethod(self.getViewParameters)
-        rotation_mode.setDefaultMaterial(purple_material)
-        rotation_mode.setSelectedMaterial(red_material)
-
-        self._modes = {ViewMode.SEGMENT: segment_mode,
-                       ViewMode.PLANE_NORMAL: normal_mode,
-                       ViewMode.PLANE_ROTATION: rotation_mode}
+#         self._active_mode = self._modes[ViewMode.SEGMENT]
+#         self.setMode(ViewMode.SEGMENT)
 
     def _setupUi(self):
         print('Am I actually used')
@@ -91,56 +58,14 @@ class SceneviewerWidget3D(SceneviewerWidget):
         return None
 
     def setMode(self, mode):
-        if mode != self._active_mode.getMode():
+        if (self._active_mode is None or mode != self._active_mode.getMode()) and mode in self._modes:
             if not self._active_mode is None:
                 self._active_mode.leave()
             self._active_mode = self._modes[mode]
             self._active_mode.enter()
 
-    def _createModeMaterials(self):
-        materialmodule = self._context.getMaterialmodule()
-        yellow_material = materialmodule.findMaterialByName('yellow')
-        orange_material = materialmodule.findMaterialByName('orange')
-
-        purple_material = materialmodule.createMaterial()
-        purple_material.setName('purple')
-        purple_material.setAttributeReal3(Material.ATTRIBUTE_AMBIENT, [0.4, 0.0, 0.6])
-        purple_material.setAttributeReal3(Material.ATTRIBUTE_DIFFUSE, [0.4, 0.0, 0.6])
-        purple_material.setAttributeReal(Material.ATTRIBUTE_ALPHA, 0.4)
-
-        red_material = materialmodule.findMaterialByName('red')
-        red_material.setAttributeReal(Material.ATTRIBUTE_ALPHA, 0.4)
-
-        return purple_material, red_material, yellow_material, orange_material
-
-    def _setupSelectionScenefilters(self):
-        filtermodule = self._context.getScenefiltermodule()
-        visibility_filter = filtermodule.createScenefilterVisibilityFlags()
-        node_filter = filtermodule.createScenefilterFieldDomainType(Field.DOMAIN_TYPE_NODES)
-        glyph_filter = filtermodule.createScenefilterFieldDomainType(Field.DOMAIN_TYPE_POINT)
-        label_filter = filtermodule.createScenefilterGraphicsName(GRAPHIC_LABEL_NAME)
-        label_filter.setInverse(True)
-
-        segmentation_point_filter = filtermodule.createScenefilterOperatorAnd()
-        segmentation_point_filter.appendOperand(visibility_filter)
-        segmentation_point_filter.appendOperand(node_filter)
-        segmentation_point_filter.appendOperand(label_filter)
-
-        plane_glyph_filter = filtermodule.createScenefilterOperatorAnd()
-        plane_glyph_filter.appendOperand(visibility_filter)
-        plane_glyph_filter.appendOperand(glyph_filter)
-
-        segment_mode = self._modes[ViewMode.SEGMENT]
-        segment_mode.setSelectionFilter(segmentation_point_filter)
-        segment_mode.setSelectionFilterMethod(self._ui._sceneviewer3d.setSelectionfilter)
-
-        normal_mode = self._modes[ViewMode.PLANE_NORMAL]
-        normal_mode.setSelectionFilter(plane_glyph_filter)
-        normal_mode.setSelectionFilterMethod(self._ui._sceneviewer3d.setSelectionfilter)
-
-        rotation_mode = self._modes[ViewMode.PLANE_ROTATION]
-        rotation_mode.setSelectionFilter(plane_glyph_filter)
-        rotation_mode.setSelectionFilterMethod(self._ui._sceneviewer3d.setSelectionfilter)
+    def addMode(self, mode):
+        self._modes[mode.getMode()] = mode
 
     def mousePressEvent(self, mouseevent):
         self._active_mode.mousePressEvent(mouseevent)

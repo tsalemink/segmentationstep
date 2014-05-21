@@ -22,6 +22,7 @@ from PySide import QtGui, QtCore
 from opencmiss.zinc.field import Field
 from opencmiss.zinc.glyph import Glyph
 
+from mapclientplugins.segmentationstep.widgets.viewmodes import NormalMode, RotationMode, SegmentMode
 from mapclientplugins.segmentationstep.widgets.ui_segmentationwidget import Ui_SegmentationWidget
 from mapclientplugins.segmentationstep.undoredo import CommandAddNode, CommandChangeViewMode
 from mapclientplugins.segmentationstep.widgets.zincwidget import ProjectionMode
@@ -64,8 +65,10 @@ class SegmentationWidget(QtGui.QWidget):
         self._context = self._model.getContext()
         self._ui._sceneviewer2d.setContext(self._context)
         self._ui._sceneviewer3d.setContext(self._context)
-        self._ui._sceneviewer2d.setModel(self._model)
-        self._ui._sceneviewer3d.setModel(self._model)
+        self._ui._sceneviewer2d.setUndoRedoStack(model.getUndoRedoStack())
+        self._ui._sceneviewer3d.setUndoRedoStack(model.getUndoRedoStack())
+
+        self._setupModes()
 
         self._maxdim = 100
 
@@ -132,7 +135,7 @@ class SegmentationWidget(QtGui.QWidget):
 
     def _resetViewClicked(self):
         self._loadViewState()
-        self._undoStack.clear()
+        self._undoRedoStack.clear()
 
     def _saveViewState(self):
         eye, lookat, up = self._ui._sceneviewer3d.getViewParameters()
@@ -413,7 +416,7 @@ class SegmentationWidget(QtGui.QWidget):
             scale = self._getScale()
             unscaled_position = eldiv(position, scale)
             c = CommandAddNode(self._node_fieldmodule, unscaled_position)
-            self._undoStack.push(c)
+            self._undoRedoStack.push(c)
 
     def keyPressEvent(self, keyevent):
         if keyevent.key() == 68 and not self._debug_print:
@@ -470,3 +473,70 @@ class SegmentationWidget(QtGui.QWidget):
 
         self._model.getUndoRedoStack().push(c)
         self._current_viewmode = view_mode
+
+    def _setupSelectionScenefilters(self):
+        filtermodule = self._context.getScenefiltermodule()
+        visibility_filter = filtermodule.createScenefilterVisibilityFlags()
+        node_filter = filtermodule.createScenefilterFieldDomainType(Field.DOMAIN_TYPE_NODES)
+        glyph_filter = filtermodule.createScenefilterFieldDomainType(Field.DOMAIN_TYPE_POINT)
+        label_filter = filtermodule.createScenefilterGraphicsName(GRAPHIC_LABEL_NAME)
+        label_filter.setInverse(True)
+
+        segmentation_point_filter = filtermodule.createScenefilterOperatorAnd()
+        segmentation_point_filter.appendOperand(visibility_filter)
+        segmentation_point_filter.appendOperand(node_filter)
+        segmentation_point_filter.appendOperand(label_filter)
+
+        plane_glyph_filter = filtermodule.createScenefilterOperatorAnd()
+        plane_glyph_filter.appendOperand(visibility_filter)
+        plane_glyph_filter.appendOperand(glyph_filter)
+
+        segment_mode = self._modes[ViewMode.SEGMENT]
+        segment_mode.setSelectionFilter(segmentation_point_filter)
+        segment_mode.setSelectionFilterMethod(self._ui._sceneviewer3d.setSelectionfilter)
+
+        normal_mode = self._modes[ViewMode.PLANE_NORMAL]
+        normal_mode.setSelectionFilter(plane_glyph_filter)
+        normal_mode.setSelectionFilterMethod(self._ui._sceneviewer3d.setSelectionfilter)
+
+        rotation_mode = self._modes[ViewMode.PLANE_ROTATION]
+        rotation_mode.setSelectionFilter(plane_glyph_filter)
+        rotation_mode.setSelectionFilterMethod(self.setSelectionfilter)
+#         rotation_mode.setSelectionFilterMethod(self._ui._sceneviewer3d.setSelectionfilter)
+
+    def _setupModes(self):
+        image_model = self._model.getImageModel()
+        plane = image_model.getPlane()
+        undo_redo_stack = self._model.getUndoRedoStack()
+
+        materialmodule = self._context.getMaterialmodule()
+        yellow_material = materialmodule.findMaterialByName('yellow')
+        orange_material = materialmodule.findMaterialByName('orange')
+        purple_material = materialmodule.findMaterialByName('purple')
+        red_material = materialmodule.findMaterialByName('red')
+
+        segment_mode = SegmentMode(plane, undo_redo_stack)
+
+        normal_mode = NormalMode(plane, undo_redo_stack)
+        normal_mode.setGlyphPickerMethod(self._ui._sceneviewer3d.getNearestGraphicsPoint)
+        normal_mode.setGetDimensionsMethod(image_model.getDimensions)
+        normal_mode.setProjectUnProjectMethods(self._ui._sceneviewer3d.project, self._ui._sceneviewer3d.unproject)
+        normal_mode.setDefaultMaterial(yellow_material)
+        normal_mode.setSelectedMaterial(orange_material)
+
+        rotation_mode = RotationMode(plane, undo_redo_stack)
+        rotation_mode.setGlyphPickerMethod(self._ui._sceneviewer3d.getNearestGraphicsPoint)
+        rotation_mode.setProjectUnProjectMethods(self._ui._sceneviewer3d.project, self._ui._sceneviewer3d.unproject)
+        rotation_mode.setGetDimensionsMethod(image_model.getDimensions)
+        rotation_mode.setWidthHeightMethods(self._ui._sceneviewer3d.width, self._ui._sceneviewer3d.height)
+        rotation_mode.setGetViewParametersMethod(self._ui._sceneviewer3d.getViewParameters)
+        rotation_mode.setDefaultMaterial(purple_material)
+        rotation_mode.setSelectedMaterial(red_material)
+
+        self._ui._sceneviewer3d.addMode(segment_mode)
+        self._ui._sceneviewer3d.addMode(normal_mode)
+        self._ui._sceneviewer3d.addMode(rotation_mode)
+
+        self._ui._sceneviewer3d.setMode(ViewMode.SEGMENT)
+
+

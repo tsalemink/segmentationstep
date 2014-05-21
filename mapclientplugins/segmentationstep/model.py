@@ -22,6 +22,7 @@ import os
 from PySide import QtGui
 
 from opencmiss.zinc.context import Context
+from opencmiss.zinc.material import Material
 
 from mapclientplugins.segmentationstep.maths.algorithms import calculateCentroid
 from mapclientplugins.segmentationstep.maths.vectorops import elmult
@@ -271,9 +272,10 @@ class SegmentationModel(object):
 
     def __init__(self, dataIn):
         self._context = Context('Segmentation')
-        self._undoStack = QtGui.QUndoStack()
+        self._undoRedoStack = QtGui.QUndoStack()
 
         self.defineStandardMaterials()
+        self._createModeMaterials()
         self.defineStandardGlyphs()
 
         self._image_model = ImageModel(self._context, dataIn)
@@ -286,7 +288,7 @@ class SegmentationModel(object):
         return None
 
     def getUndoRedoStack(self):
-        return self._undoStack
+        return self._undoRedoStack
 
     def getImageModel(self):
         return self._image_model
@@ -304,6 +306,23 @@ class SegmentationModel(object):
         '''
         material_module = self._context.getMaterialmodule()
         material_module.defineStandardMaterials()
+
+    def _createModeMaterials(self):
+        '''
+        Create the extra mode materials required which are not
+        defined by defineStandardMaterials().
+        '''
+        materialmodule = self._context.getMaterialmodule()
+
+        purple_material = materialmodule.createMaterial()
+        purple_material.setName('purple')
+        purple_material.setAttributeReal3(Material.ATTRIBUTE_AMBIENT, [0.4, 0.0, 0.6])
+        purple_material.setAttributeReal3(Material.ATTRIBUTE_DIFFUSE, [0.4, 0.0, 0.6])
+        purple_material.setAttributeReal(Material.ATTRIBUTE_ALPHA, 0.4)
+        purple_material.setManaged(True)
+
+        red_material = materialmodule.findMaterialByName('red')
+        red_material.setAttributeReal(Material.ATTRIBUTE_ALPHA, 0.4)
 
     def getScale(self):
         '''

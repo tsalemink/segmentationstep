@@ -28,7 +28,7 @@ from mapclientplugins.segmentationstep.maths.algorithms import calculateCentroid
 from mapclientplugins.segmentationstep.plane import PlaneAttitude
 from mapclientplugins.segmentationstep.undoredo import CommandMovePlane, CommandMoveGlyph
 
-class ViewModeAbstract(object):
+class AbstractViewMode(object):
 
 
     def __init__(self, plane, undo_redo_stack):
@@ -59,7 +59,7 @@ class ViewModeAbstract(object):
     def mouseReleaseEvent(self, event):
         pass
 
-class GlyphMode(ViewModeAbstract):
+class GlyphMode(AbstractViewMode):
 
     def __init__(self, plane, undo_redo_stack):
         super(GlyphMode, self).__init__(plane, undo_redo_stack)
@@ -296,7 +296,7 @@ class NormalMode(GlyphMode):
             self.setUndoRedoCommand('plane normal')
 
 
-class SegmentMode(ViewModeAbstract):
+class SegmentMode(AbstractViewMode):
     '''
     '''
     def __init__(self, plane, undo_redo_stack):

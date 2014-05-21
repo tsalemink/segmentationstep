@@ -102,7 +102,7 @@ class SceneviewerWidget(QtOpenGL.QGLWidget):
         self._selectionGroup = None
         self._selectionBox = None
         self._ignore_mouse_events = False
-        self._undoStack = None
+        self._undoRedoStack = None
         # init end
 
     def setContext(self, context):
@@ -112,8 +112,8 @@ class SceneviewerWidget(QtOpenGL.QGLWidget):
         '''
         self._context = context
 
-    def setUndoStack(self, stack):
-        self._undoStack = stack
+    def setUndoRedoStack(self, stack):
+        self._undoRedoStack = stack
 
     def getSceneviewer(self):
         '''
@@ -458,7 +458,7 @@ class SceneviewerWidget(QtOpenGL.QGLWidget):
             end_view_parameters = ViewportParameters(p[0], p[1], p[2])
             c = CommandChangeView(self._start_view_parameters, end_view_parameters)
             c.setCallbackMethod(self.setViewParameters)
-            self._undoStack.push(c)
+            self._undoRedoStack.push(c)
         else:
             mouseevent.ignore()
 
