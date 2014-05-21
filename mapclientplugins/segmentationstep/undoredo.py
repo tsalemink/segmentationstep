@@ -158,3 +158,28 @@ class CommandChangeViewMode(QtGui.QUndoCommand):
         self._set_view_mode_ui_method(self._current)
 
 
+class CommandSetScale(QtGui.QUndoCommand):
+
+    def __init__(self, current, new, scale_index):
+        super(CommandSetScale, self).__init__()
+        self._current = current
+        self._new = new
+        self._scale_index = scale_index
+        self._set_scale_method = None
+        self._line_edit = None
+
+
+    def setLineEdit(self, line_edit):
+        self._line_edit = line_edit
+
+    def setSetScaleMethod(self, method):
+        self._set_scale_method = method
+
+    def redo(self):
+        self._set_scale_method(self._new)
+        self._line_edit.setText(str(self._new[self._scale_index]))
+
+    def undo(self):
+        self._set_scale_method(self._current)
+        self._line_edit.setText(str(self._current[self._scale_index]))
+

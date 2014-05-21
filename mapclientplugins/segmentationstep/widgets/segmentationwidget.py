@@ -24,7 +24,7 @@ from opencmiss.zinc.glyph import Glyph
 
 from mapclientplugins.segmentationstep.widgets.viewmodes import NormalMode, RotationMode, SegmentMode
 from mapclientplugins.segmentationstep.widgets.ui_segmentationwidget import Ui_SegmentationWidget
-from mapclientplugins.segmentationstep.undoredo import CommandAddNode, CommandChangeViewMode
+from mapclientplugins.segmentationstep.undoredo import CommandAddNode, CommandChangeViewMode, CommandSetScale
 from mapclientplugins.segmentationstep.widgets.zincwidget import ProjectionMode
 from mapclientplugins.segmentationstep.maths.vectorops import div, eldiv, mult
 from mapclientplugins.segmentationstep.widgets.definitions import DEFAULT_GRAPHICS_SPHERE_SIZE, DEFAULT_NORMAL_ARROW_SIZE, DEFAULT_SEGMENTATION_POINT_SIZE, GRAPHIC_LABEL_NAME
@@ -67,6 +67,7 @@ class SegmentationWidget(QtGui.QWidget):
         self._ui._sceneviewer3d.setContext(self._context)
         self._ui._sceneviewer2d.setUndoRedoStack(model.getUndoRedoStack())
         self._ui._sceneviewer3d.setUndoRedoStack(model.getUndoRedoStack())
+        self._ui._sceneviewer2d.setPlane(model.getImageModel().getPlane())
 
         self._setupModes()
 
@@ -197,26 +198,28 @@ class SegmentationWidget(QtGui.QWidget):
             self._setStreamingCreate(self._ui._checkBoxStreamingCreate.isChecked())
 
     def _scaleChanged(self):
-        current_scale = self._getScale()
+        current_scale = self._model.getScale()
         new_scale = current_scale[:]
-        if self.sender() == self._ui._lineEditWidthScale:
+        line_edit = self.sender()
+        if line_edit == self._ui._lineEditWidthScale:
+            change_scale_index = 0
             new_scale[0] = float(self._ui._lineEditWidthScale.text())
-        elif self.sender() == self._ui._lineEditHeightScale:
+        elif line_edit == self._ui._lineEditHeightScale:
+            change_scale_index = 1
             new_scale[1] = float(self._ui._lineEditHeightScale.text())
-        elif self.sender() == self._ui._lineEditDepthScale:
+        elif line_edit == self._ui._lineEditDepthScale:
+            change_scale_index = 2
             new_scale[2] = float(self._ui._lineEditDepthScale.text())
 
         if new_scale != current_scale:
-            self._setScale(new_scale)
+            c = CommandSetScale(current_scale, new_scale, change_scale_index)
+            c.setLineEdit(line_edit)
+            c.setSetScaleMethod(self._model.setScale)
+
+            self._model.getUndoRedoStack().push(c)
 
     def _setStreamingCreate(self, on=True):
         self._streaming_create = on
-
-    def _getScale(self):
-        return self._model.getScale()
-
-    def _setScale(self, scale):
-        self._model.setScale(scale)
 
     def _createImageOutline(self, region, finite_element_field):
         scene = region.getScene()
@@ -413,7 +416,7 @@ class SegmentationWidget(QtGui.QWidget):
     def _addNode(self, mouseevent):
         position = self._calcluatePlaneIntersection(mouseevent.x(), mouseevent.y())
         if self._coordinatesInElement(position):
-            scale = self._getScale()
+            scale = self._model.getScale()
             unscaled_position = eldiv(position, scale)
             c = CommandAddNode(self._node_fieldmodule, unscaled_position)
             self._undoRedoStack.push(c)
