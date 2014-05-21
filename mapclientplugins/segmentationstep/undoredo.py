@@ -172,7 +172,6 @@ class CommandSetScale(CommandCurrentNew):
         self._set_scale_method = None
         self._line_edit = None
 
-
     def setLineEdit(self, line_edit):
         self._line_edit = line_edit
 
@@ -224,5 +223,28 @@ class CommandSetGraphicVisibility(CommandCurrentNew):
     def undo(self):
         self._graphic.setVisibilityFlag(self._current)
         self._check_box.setChecked(self._current)
+
+
+class CommandSetGlyphSize(CommandCurrentNew):
+
+    def __init__(self, current, new, glyph):
+        super(CommandSetGlyphSize, self).__init__(current, new)
+        self._set_glyph_size_method = None
+        self._spin_box = None
+        self._glyph = glyph
+
+    def setSpinBox(self, spin_box):
+        self._spin_box = spin_box
+
+    def setSetGlyphSizeMethod(self, method):
+        self._set_glyph_size_method = method
+
+    def redo(self):
+        self._set_glyph_size_method(self._glyph, self._new)
+        self._spin_box.setValue(self._new[0])
+
+    def undo(self):
+        self._set_glyph_size_method(self._glyph, self._current)
+        self._spin_box.setValue(self._current[0])
 
 

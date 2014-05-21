@@ -24,12 +24,13 @@ from opencmiss.zinc.glyph import Glyph
 
 from mapclientplugins.segmentationstep.widgets.viewmodes import NormalMode, RotationMode, SegmentMode
 from mapclientplugins.segmentationstep.widgets.ui_segmentationwidget import Ui_SegmentationWidget
-from mapclientplugins.segmentationstep.undoredo import CommandAddNode, CommandChangeViewMode, CommandSetScale, CommandSetProjectionMode, CommandSetGraphicVisibility
+from mapclientplugins.segmentationstep.undoredo import CommandAddNode, CommandChangeViewMode, CommandSetScale, CommandSetProjectionMode, CommandSetGraphicVisibility, CommandSetGlyphSize
 from mapclientplugins.segmentationstep.widgets.zincwidget import ProjectionMode
 from mapclientplugins.segmentationstep.maths.vectorops import div, eldiv, mult
 from mapclientplugins.segmentationstep.widgets.definitions import DEFAULT_GRAPHICS_SPHERE_SIZE, DEFAULT_NORMAL_ARROW_SIZE, DEFAULT_SEGMENTATION_POINT_SIZE, GRAPHIC_LABEL_NAME
 from mapclientplugins.segmentationstep.widgets.definitions import ViewMode, IMAGE_PLANE_GRAPHIC_NAME
 from mapclientplugins.segmentationstep.widgets.segmentationstate import SegmentationState
+from mapclientplugins.segmentationstep.zincutils import getGlyphSize, setGlyphSize
 
 class FakeMouseEvent(object):
 
@@ -180,12 +181,32 @@ class SegmentationWidget(QtGui.QWidget):
         self._ui._sceneviewer3d.setProjectionMode(mode)
 
     def _iconSizeChanged(self):
-        if self.sender() == self._ui._doubleSpinBoxNormalArrow:
-            self._setPlaneNormalGlyphBaseSize(self._ui._doubleSpinBoxNormalArrow.value())
-        elif self.sender() == self._ui._doubleSpinBoxRotationCentre:
-            self._setPlaneRotationCentreGlyphBaseSize(self._ui._doubleSpinBoxRotationCentre.value())
-        elif self.sender() == self._ui._doubleSpinBoxSegmentationPoint:
-            self._setSegmentationPointBaseSize(self._ui._doubleSpinBoxSegmentationPoint.value())
+        current = 0.0
+        spin_box = self.sender()
+        if spin_box == self._ui._doubleSpinBoxNormalArrow:
+            mode = self._ui._sceneviewer3d.getMode(ViewMode.PLANE_NORMAL)
+            glyph = mode.getGlyph()
+            current = getGlyphSize(glyph)
+            base_size = self._ui._doubleSpinBoxNormalArrow.value()
+            new = [base_size, base_size / 4, base_size / 4]
+        elif spin_box == self._ui._doubleSpinBoxRotationCentre:
+            mode = self._ui._sceneviewer3d.getMode(ViewMode.PLANE_ROTATION)
+            glyph = mode.getGlyph()
+            current = getGlyphSize(glyph)
+            base_size = self._ui._doubleSpinBoxRotationCentre.value()
+            new = [base_size, base_size, base_size]
+        elif spin_box == self._ui._doubleSpinBoxSegmentationPoint:
+            glyph = self._segmentation_point_glyph
+            current = getGlyphSize(glyph)
+            base_size = self._ui._doubleSpinBoxSegmentationPoint.value()
+            new = [base_size, base_size, base_size]
+
+        if current != new:
+            c = CommandSetGlyphSize(current, new, glyph)
+            c.setSetGlyphSizeMethod(setGlyphSize)
+            c.setSpinBox(spin_box)
+
+            self._model.getUndoRedoStack().push(c)
 
     def _graphicVisibilityChanged(self):
         check_box = self.sender()

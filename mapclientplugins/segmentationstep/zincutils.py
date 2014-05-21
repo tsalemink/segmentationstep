@@ -105,3 +105,26 @@ def createFiniteElement(region, finite_element_field, dim):
     fieldmodule.defineAllFaces()
     fieldmodule.endChange()
 
+def setGlyphPosition(glyph, position):
+    position_field = glyph.getCoordinateField()
+    fieldmodule = position_field.getFieldmodule()
+    fieldcache = fieldmodule.createFieldcache()
+    position_field.assignReal(fieldcache, position)
+
+def getGlyphPosition(glyph):
+    position_field = glyph.getCoordinateField()
+    fieldmodule = position_field.getFieldmodule()
+    fieldcache = fieldmodule.createFieldcache()
+    _, position = position_field.evaluateReal(fieldcache, 3)
+
+    return position
+
+def getGlyphSize(glyph):
+    attributes = glyph.getGraphicspointattributes()
+    _, base_size = attributes.getBaseSize(3)
+    return base_size
+
+def setGlyphSize(glyph, size):
+    attributes = glyph.getGraphicspointattributes()
+    attributes.setBaseSize(size)
+
