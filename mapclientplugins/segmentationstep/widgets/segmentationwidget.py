@@ -24,7 +24,7 @@ from opencmiss.zinc.glyph import Glyph
 
 from mapclientplugins.segmentationstep.widgets.viewmodes import NormalMode, RotationMode, SegmentMode
 from mapclientplugins.segmentationstep.widgets.ui_segmentationwidget import Ui_SegmentationWidget
-from mapclientplugins.segmentationstep.undoredo import CommandAddNode, CommandChangeViewMode, CommandSetScale, CommandSetProjectionMode, CommandSetGraphicVisibility, CommandSetGlyphSize
+from mapclientplugins.segmentationstep.undoredo import CommandAddNode, CommandChangeViewMode, CommandSetScale, CommandSetSingleParameterMethod, CommandSetGraphicVisibility, CommandSetGlyphSize
 from mapclientplugins.segmentationstep.widgets.zincwidget import ProjectionMode
 from mapclientplugins.segmentationstep.maths.vectorops import div, eldiv, mult
 from mapclientplugins.segmentationstep.widgets.definitions import DEFAULT_GRAPHICS_SPHERE_SIZE, DEFAULT_NORMAL_ARROW_SIZE, DEFAULT_SEGMENTATION_POINT_SIZE, GRAPHIC_LABEL_NAME
@@ -170,8 +170,8 @@ class SegmentationWidget(QtGui.QWidget):
     def _projectionModeChanged(self):
         current_mode = ProjectionMode.PERSPECTIVE if self._ui._radioButtonParallel.isChecked() else ProjectionMode.PARALLEL
         new_mode = ProjectionMode.PARALLEL if self._ui._radioButtonParallel.isChecked() else ProjectionMode.PERSPECTIVE
-        c = CommandSetProjectionMode(current_mode, new_mode)
-        c.setSetProjectionModeMethod(self._setProjectionMode)
+        c = CommandSetSingleParameterMethod(current_mode, new_mode)
+        c.setSingleParameterMethod(self._setProjectionMode)
 
         self._model.getUndoRedoStack().push(c)
 
@@ -229,7 +229,14 @@ class SegmentationWidget(QtGui.QWidget):
 
     def _streamingCreateClicked(self):
         if self.sender() == self._ui._checkBoxStreamingCreate:
-            self._setStreamingCreate(self._ui._checkBoxStreamingCreate.isChecked())
+            new = self._ui._checkBoxStreamingCreate.isChecked()
+            current = not new
+
+        if current != new:
+            c = CommandSetSingleParameterMethod(current, new)
+            c.setSingleParameterMethod(self._setStreamingCreate)
+
+            self._model.getUndoRedoStack().push(c)
 
     def _scaleChanged(self):
         current_scale = self._model.getScale()
@@ -254,6 +261,7 @@ class SegmentationWidget(QtGui.QWidget):
 
     def _setStreamingCreate(self, on=True):
         self._streaming_create = on
+        self._ui._checkBoxStreamingCreate.setChecked(on)
 
     def _createImageOutline(self, region, finite_element_field):
         scene = region.getScene()

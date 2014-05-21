@@ -189,20 +189,20 @@ class CommandSetScale(CommandCurrentNew):
         self._line_edit.setText(str(self._current[self._scale_index]))
 
 
-class CommandSetProjectionMode(CommandCurrentNew):
+class CommandSetSingleParameterMethod(CommandCurrentNew):
 
     def __init__(self, current, new):
-        super(CommandSetProjectionMode, self).__init__(current, new)
-        self._set_projection_mode_method = None
+        super(CommandSetSingleParameterMethod, self).__init__(current, new)
+        self._set_single_parameter_method = None
 
-    def setSetProjectionModeMethod(self, method):
-        self._set_projection_mode_method = method
+    def setSingleParameterMethod(self, method):
+        self._set_single_parameter_method = method
 
     def redo(self):
-        self._set_projection_mode_method(self._new)
+        self._set_single_parameter_method(self._new)
 
     def undo(self):
-        self._set_projection_mode_method(self._current)
+        self._set_single_parameter_method(self._current)
 
 
 class CommandSetGraphicVisibility(CommandCurrentNew):
