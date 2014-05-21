@@ -26,7 +26,7 @@ from mapclientplugins.segmentationstep.widgets.viewmodes import NormalMode, Rota
 from mapclientplugins.segmentationstep.widgets.ui_segmentationwidget import Ui_SegmentationWidget
 from mapclientplugins.segmentationstep.undoredo import CommandAddNode, CommandChangeViewMode, CommandSetScale, CommandSetSingleParameterMethod, CommandSetGraphicVisibility, CommandSetGlyphSize
 from mapclientplugins.segmentationstep.widgets.zincwidget import ProjectionMode
-from mapclientplugins.segmentationstep.maths.vectorops import div, eldiv, mult
+from mapclientplugins.segmentationstep.maths.vectorops import eldiv
 from mapclientplugins.segmentationstep.widgets.definitions import DEFAULT_GRAPHICS_SPHERE_SIZE, DEFAULT_NORMAL_ARROW_SIZE, DEFAULT_SEGMENTATION_POINT_SIZE, GRAPHIC_LABEL_NAME
 from mapclientplugins.segmentationstep.widgets.definitions import ViewMode, IMAGE_PLANE_GRAPHIC_NAME
 from mapclientplugins.segmentationstep.widgets.segmentationstate import SegmentationState
@@ -224,9 +224,6 @@ class SegmentationWidget(QtGui.QWidget):
 
         self._model.getUndoRedoStack().push(c)
 
-    def _setGraphicVisibility(self, graphic, state):
-        graphic.setVisibilityFlag(state)
-
     def _streamingCreateClicked(self):
         if self.sender() == self._ui._checkBoxStreamingCreate:
             new = self._ui._checkBoxStreamingCreate.isChecked()
@@ -270,7 +267,6 @@ class SegmentationWidget(QtGui.QWidget):
         # Create a surface graphic and set it's coordinate field
         # to the finite element coordinate field.
         outline = scene.createGraphicsLines()
-#         finite_element_field = field_module.findFieldByName('coordinates')
         outline.setCoordinateField(finite_element_field)
         scene.endChange()
 
@@ -306,56 +302,11 @@ class SegmentationWidget(QtGui.QWidget):
         graphic.setName(GRAPHIC_LABEL_NAME)
         attributes = graphic.getGraphicspointattributes()
         attributes.setGlyphShapeType(Glyph.SHAPE_TYPE_NONE)
-#         attributes.setBaseSize(1)
-
-#         fieldmodule = region.getFieldmodule()
-#         field = fieldmodule.findFieldByName('cmiss_number')
         attributes.setLabelField(finite_element_field)
 
         scene.endChange()
 
         return graphic
-
-    def _createTestPoints(self):
-        region = self._context.getDefaultRegion()
-        materialmodule = self._context.getMaterialmodule()
-        green = materialmodule.findMaterialByName('green')
-        red = materialmodule.findMaterialByName('red')
-        scene = region.getScene()
-        scene.beginChange()
-        self._test_points = []
-        i = 0
-        while i < 2:
-            tp = scene.createGraphicsPoints()
-            tp.setFieldDomainType(Field.DOMAIN_TYPE_POINT)
-            if i == 0:
-                tp.setMaterial(green)
-            else:
-                tp.setMaterial(red)
-            attr = tp.getGraphicspointattributes()
-            attr.setGlyphShapeType(Glyph.SHAPE_TYPE_CUBE_SOLID)
-            attr.setBaseSize(1)
-            self._test_points.append(tp)
-            i += 1
-#         self._test_point_1 = scene.createGraphicsPoints()
-#         self._test_point_2 = scene.createGraphicsPoints()
-#         self._test_point_1.setFieldDomainType(Field.DOMAIN_TYPE_POINT)
-#         self._test_point_2.setFieldDomainType(Field.DOMAIN_TYPE_POINT)
-        scene.endChange()
-
-    def _createImageScaleField(self, fieldmodule):
-        return fieldmodule.createFieldConstant([1.0, 1.0, 1.0])
-
-    def showImages(self):
-        print('Am I used???')
-        # create a material with the images passed in
-        image_model = self._model.getImageModel()
-        material = image_model.getMaterial()
-        # Set the iso graphic to use the image field, that is set
-        # the material to the iso graphic
-        self._plane_image_graphic.setMaterial(material)
-        # update ui elements that use the image information
-        self._updateImageUI()
 
     def _setupImageVisualisation(self):
         image_model = self._model.getImageModel()
@@ -378,8 +329,6 @@ class SegmentationWidget(QtGui.QWidget):
         coordinate_field = node_model.getScaledCoordinateField()
         self._segmentation_point_glyph = self._createNodeGraphics(region, coordinate_field)
 
-#         self._createTestPoints()
-
     def _createNodeGraphics(self, region, finite_element_field):
         scene = region.getScene()
         scene.beginChange()
@@ -399,62 +348,6 @@ class SegmentationWidget(QtGui.QWidget):
     def sceneviewerReady(self):
         if self.sender() == self._ui._sceneviewer3d:
             self._saveViewState()
-
-    def _boundCoordinatesToElement(self, coords):
-        dim = self._model.getDimensions()
-        bounded_coords = [ max(min(coords[i], dim[i]), 0.0)  for i in range(len(coords)) ]
-        return bounded_coords
-
-    def _coordinatesInElement(self, coords):
-        dim = self._model.getDimensions()
-        for i in range(len(coords)):
-            if not self._checkRange(coords[i], 0.0, dim[i]):
-                return False
-
-        return True
-
-    def _setSegmentationPointBaseSize(self, base_size):
-        scene = self._segmentation_point_glyph.getScene()
-        scene.beginChange()
-        attributes = self._segmentation_point_glyph.getGraphicspointattributes()
-        _, cur_base_size = attributes.getBaseSize(1)
-        _, position = attributes.getGlyphOffset(3)
-        true_position = mult(position, cur_base_size)
-        attributes.setBaseSize(base_size)
-        attributes.setGlyphOffset(div(true_position, base_size))
-        scene.endChange()
-
-    def _setPlaneRotationCentreGlyphBaseSize(self, base_size):
-        scene = self._plane_rotation_glyph.getScene()
-        scene.beginChange()
-        attributes = self._plane_rotation_glyph.getGraphicspointattributes()
-        _, cur_base_size = attributes.getBaseSize(1)
-        _, position = attributes.getGlyphOffset(3)
-        true_position = mult(position, cur_base_size)
-        attributes.setBaseSize(base_size)
-        attributes.setGlyphOffset(div(true_position, base_size))
-        scene.endChange()
-
-    def _setPlaneRotationCentreGlyphPosition(self, position):
-        scene = self._plane_rotation_glyph.getScene()
-        scene.beginChange()
-        attributes = self._plane_rotation_glyph.getGraphicspointattributes()
-        _, base_size = attributes.getBaseSize(1)
-        attributes.setGlyphOffset(div(position, base_size))
-        scene.endChange()
-
-    def _getPlaneRotationCentreGlyphPosition(self):
-        attributes = self._plane_rotation_glyph.getGraphicspointattributes()
-        _, base_size = attributes.getBaseSize(1)
-        _, position = attributes.getGlyphOffset(3)
-
-        return mult(position, base_size)
-
-    def _setPlaneNormalGlyphBaseSize(self, base_size):
-#         scene = self._plane_normal_glyph.getScene()
-#         scene.beginChange()
-        attributes = self._plane_normal_glyph.getGraphicspointattributes()
-        attributes.setBaseSize([base_size, base_size / 4, base_size / 4])
 
     def _addNode(self, mouseevent):
         position = self._calcluatePlaneIntersection(mouseevent.x(), mouseevent.y())

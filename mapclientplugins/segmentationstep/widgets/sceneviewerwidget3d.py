@@ -31,22 +31,6 @@ class SceneviewerWidget3D(SceneviewerWidget):
     def initializeGL(self):
         super(SceneviewerWidget3D, self).initializeGL()
 
-    def _setupUi(self):
-        print('Am I actually used')
-        self._setGlyphsForGlyphModes(self._rotation_glyph, self._normal_glyph)
-        self._setMaterialsForGlyphModes()
-
-    def setModel(self, model):
-        self._model = model
-        self.setUndoStack(model.getUndoRedoStack())
-        self._setupModes(self._model.getImageModel())
-
-    def getPlaneNormalGlyph(self):
-        return self._normal_glyph
-
-    def getPlaneRotationGlyph(self):
-        return self._rotation_glyph
-
     def getActiveModeType(self):
         return self._active_mode.getModeType()
 
