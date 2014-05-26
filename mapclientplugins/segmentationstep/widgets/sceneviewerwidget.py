@@ -164,12 +164,13 @@ class SceneviewerWidget(QtOpenGL.QGLWidget):
         self._sceneviewer.setScene(scene)
 
         self._selectionGroup = fieldmodule.createFieldGroup()
-        scene.setSelectionField(self._selectionGroup)
+#         scene.setSelectionField(self._selectionGroup)
 
         self._scenepicker = scene.createScenepicker()
         self._scenepicker.setScenefilter(graphics_filter)
 
-        self.defineStandardGlyphs()
+        # If the standard glyphs haven't been defined then the
+        # selection box will not be visible
         self._selectionBox = scene.createGraphicsPoints()
         self._selectionBox.setScenecoordinatesystem(SCENECOORDINATESYSTEM_WINDOW_PIXEL_TOP_LEFT)
         attributes = self._selectionBox.getGraphicspointattributes()
@@ -279,25 +280,22 @@ class SceneviewerWidget(QtOpenGL.QGLWidget):
 
         return None
 
-    def defineStandardGlyphs(self):
-        '''
-        Helper method to define the standard glyphs.
-        '''
-        glyph_module = self._context.getGlyphmodule()
-        glyph_module.defineStandardGlyphs()
-
-    def defineStandardMaterials(self):
-        '''
-        Helper method to define the standard materials.
-        '''
-        material_module = self._context.getMaterialmodule()
-        material_module.defineStandardMaterials()
-
     def mapToWidget(self, parent_x, parent_y):
         local_pt = self.mapFromParent(QtCore.QPoint(parent_x, parent_y))
         x = local_pt.x() - 5
         y = local_pt.y() - 5
         return x, y
+
+    def _getNearestGraphic(self, x, y, domain_type):
+        self._scenepicker.setSceneviewerRectangle(self._sceneviewer, SCENECOORDINATESYSTEM_LOCAL, x - 0.5, y - 0.5, x + 0.5, y + 0.5)
+        nearest_graphics = self._scenepicker.getNearestGraphics()
+        if nearest_graphics.isValid() and nearest_graphics.getFieldDomainType() == domain_type:
+            return nearest_graphics
+
+        return None
+
+    def getNearestGraphicsNode(self, x, y):
+        return self._getNearestGraphic(x, y, Field.DOMAIN_TYPE_NODES)
 
     def getNearestGraphicsPoint(self, x, y):
         '''
@@ -305,13 +303,13 @@ class SceneviewerWidget(QtOpenGL.QGLWidget):
         which is a parent of this widget.  For example the values given 
         directly from the mouseevent in the parent widget.
         '''
-#         x, y = self.mapToWidget(parent_x, parent_y)
-        self._scenepicker.setSceneviewerRectangle(self._sceneviewer, SCENECOORDINATESYSTEM_LOCAL, x - 0.5, y - 0.5, x + 0.5, y + 0.5)
-        nearest_graphics = self._scenepicker.getNearestGraphics()
-        if nearest_graphics.isValid() and nearest_graphics.getFieldDomainType() == Field.DOMAIN_TYPE_POINT:
-            return nearest_graphics
+        return self._getNearestGraphic(x, y, Field.DOMAIN_TYPE_POINT)
 
-        return None
+    def getNearestNode(self, x, y):
+        self._scenepicker.setSceneviewerRectangle(self._sceneviewer, SCENECOORDINATESYSTEM_LOCAL, x - 0.5, y - 0.5, x + 0.5, y + 0.5)
+        node = self._scenepicker.getNearestNode()
+
+        return node
 
     def setIgnoreMouseEvents(self, value):
         self._ignore_mouse_events = value

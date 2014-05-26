@@ -23,6 +23,7 @@ from PySide import QtGui
 
 from opencmiss.zinc.context import Context
 from opencmiss.zinc.material import Material
+from opencmiss.zinc.status import OK
 
 from mapclientplugins.segmentationstep.maths.algorithms import calculateCentroid
 from mapclientplugins.segmentationstep.maths.vectorops import elmult
@@ -246,15 +247,19 @@ class NodeModel(AbstractModel):
     def __init__(self, context):
         super(NodeModel, self).__init__(context)
         self._setupNodeRegion()
+        self._plane_attitudes = {}
+        self._nodes = {}
 
 
     def _setupNodeRegion(self):
         self._region = self._context.getDefaultRegion().createChild('point_cloud')
+#         scene = self._region.getScene()
         self._coordinate_field = createFiniteElementField(self._region)
         fieldmodule = self._region.getFieldmodule()
         fieldmodule.beginChange()
         self._scale_field = fieldmodule.createFieldConstant([1.0, 1.0, 1.0])
         self._scaled_coordinate_field = self._coordinate_field * self._scale_field
+        self._group = None
         fieldmodule.endChange()
 
     def setScale(self, scale):
@@ -267,6 +272,138 @@ class NodeModel(AbstractModel):
         fieldcache = fieldmodule.createFieldcache()
         self._scale_field.assignReal(fieldcache, scale)
 
+    def getSelectionFieldGroup(self):
+        return self._selectionGroup
+
+    def getSelectionGroup(self):
+        return self._group
+
+    def isSelected(self, node):
+        return self._group.containsNode(node)
+
+    def getNodeByIdentifier(self, node_id):
+        fieldmodule = self._region.getFieldmodule()
+        nodeset = fieldmodule.findNodesetByName('nodes')
+        node = nodeset.findNodeByIdentifier(node_id)
+        return node
+
+    def getNodePlaneAttitude(self, node_id):
+        return self._nodes[node_id]
+
+    def _addId(self, plane_attitude, node_id):
+        if plane_attitude in self._plane_attitudes:
+            self._plane_attitudes[plane_attitude].append(node_id)
+        else:
+            self._plane_attitudes[plane_attitude] = [node_id]
+
+    def _removeId(self, plane_attitude, node_id):
+        index = self._plane_attitudes[plane_attitude].index(node_id)
+        del self._plane_attitudes[plane_attitude][index]
+        if len(self._plane_attitudes[plane_attitude]) == 0:
+            del self._plane_attitudes[plane_attitude]
+
+    def addNode(self, node_id, location, plane_attitude):
+        if node_id is -1:
+            node = self._createNodeAtLocation(location)
+            node_id = node.getIdentifier()
+        self._addId(plane_attitude, node_id)
+        self._nodes[node_id] = plane_attitude
+
+        return node_id
+
+    def modifyNode(self, node_id, location, plane_attitude):
+#         node_id = node.getIdentifier()
+        current_plane_attitude = self._nodes[node_id]
+        node = self.getNodeByIdentifier(node_id)
+        self.setNodeLocation(node, location)
+        if current_plane_attitude != plane_attitude:
+            self._removeId(current_plane_attitude, node_id)
+            self._addId(plane_attitude, node_id)
+            self._nodes[node_id] = plane_attitude
+
+    def removeNode(self, node_id):
+        plane_attitude = self._nodes[node_id]
+        self._removeId(plane_attitude, node_id)
+        del self._nodes[node_id]
+        node = self.getNodeByIdentifier(node_id)
+        nodeset = node.getNodeset()
+        nodeset.destroyNode(node)
+
+
+    def setNodeLocation(self, node, location):
+        fieldmodule = self._region.getFieldmodule()
+        fieldcache = fieldmodule.createFieldcache()
+        fieldmodule.beginChange()
+        fieldcache.setNode(node)
+        self._coordinate_field.assignReal(fieldcache, location)
+        fieldmodule.endChange()
+
+    def getNodeLocation(self, node):
+        fieldmodule = self._region.getFieldmodule()
+        fieldcache = fieldmodule.createFieldcache()
+        fieldmodule.beginChange()
+        fieldcache.setNode(node)
+        result, location = self._coordinate_field.evaluateReal(fieldcache, 3)
+        fieldmodule.endChange()
+
+        if result == OK:
+            return location
+
+        return None
+
+    def createNode(self):
+        '''
+        Create a node with the models coordinate field.
+        '''
+        fieldmodule = self._region.getFieldmodule()
+        fieldmodule.beginChange()
+
+        nodeset = fieldmodule.findNodesetByName('nodes')
+        template = nodeset.createNodetemplate()
+        template.defineField(self._coordinate_field)
+
+        scene = self._region.getScene()
+        selection_field = scene.getSelectionField()
+        if selection_field.isValid():
+            selection_group_field = selection_field.castGroup()
+        else:
+            selection_group_field = fieldmodule.createFieldGroup()
+            scene.setSelectionField(selection_group_field)
+
+        nodegroup = selection_group_field.getFieldNodeGroup(nodeset)
+        if not nodegroup.isValid():
+            nodegroup = selection_group_field.createFieldNodeGroup(nodeset)
+
+        selection_group_field.clear()
+
+        node = nodeset.createNode(-1, template)
+        nodegroup = selection_group_field.getFieldNodeGroup(nodeset)
+        if not nodegroup.isValid():
+            nodegroup = selection_group_field.createFieldNodeGroup(nodeset)
+
+        self._group = nodegroup.getNodesetGroup()
+        self._group.addNode(node)
+
+        fieldmodule.endChange()
+
+        return node
+
+    def _createNodeAtLocation(self, location):
+        '''
+        Creates a node at the given location without
+        adding it to the current selection.
+        '''
+        fieldmodule = self._region.getFieldmodule()
+        fieldmodule.beginChange()
+
+        nodeset = fieldmodule.findNodesetByName('nodes')
+        template = nodeset.createNodetemplate()
+        template.defineField(self._coordinate_field)
+        node = nodeset.createNode(-1, template)
+        self.setNodeLocation(node, location)
+        fieldmodule.endChange()
+
+        return node
 
 class SegmentationModel(object):
 

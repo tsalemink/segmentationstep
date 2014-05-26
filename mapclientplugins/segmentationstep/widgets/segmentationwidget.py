@@ -27,7 +27,7 @@ from mapclientplugins.segmentationstep.widgets.ui_segmentationwidget import Ui_S
 from mapclientplugins.segmentationstep.undoredo import CommandAddNode, CommandChangeViewMode, CommandSetScale, CommandSetSingleParameterMethod, CommandSetGraphicVisibility, CommandSetGlyphSize
 from mapclientplugins.segmentationstep.widgets.zincwidget import ProjectionMode
 from mapclientplugins.segmentationstep.maths.vectorops import eldiv
-from mapclientplugins.segmentationstep.widgets.definitions import DEFAULT_GRAPHICS_SPHERE_SIZE, DEFAULT_NORMAL_ARROW_SIZE, DEFAULT_SEGMENTATION_POINT_SIZE, GRAPHIC_LABEL_NAME
+from mapclientplugins.segmentationstep.widgets.definitions import DEFAULT_GRAPHICS_SPHERE_SIZE, DEFAULT_NORMAL_ARROW_SIZE, DEFAULT_SEGMENTATION_POINT_SIZE, GRAPHIC_LABEL_NAME, POINT_CLOUD_GRAPHIC_NAME
 from mapclientplugins.segmentationstep.widgets.definitions import ViewMode, IMAGE_PLANE_GRAPHIC_NAME
 from mapclientplugins.segmentationstep.widgets.segmentationstate import SegmentationState
 from mapclientplugins.segmentationstep.zincutils import getGlyphSize, setGlyphSize
@@ -333,9 +333,14 @@ class SegmentationWidget(QtGui.QWidget):
         scene = region.getScene()
         scene.beginChange()
 
+        materialmodule = self._context.getMaterialmodule()
+        green_material = materialmodule.findMaterialByName('green')
+
         graphic = scene.createGraphicsPoints()
         graphic.setFieldDomainType(Field.DOMAIN_TYPE_NODES)
         graphic.setCoordinateField(finite_element_field)
+        graphic.setName(POINT_CLOUD_GRAPHIC_NAME)
+        graphic.setSelectedMaterial(green_material)
         attributes = graphic.getGraphicspointattributes()
         attributes.setGlyphShapeType(Glyph.SHAPE_TYPE_SPHERE)
         attributes.setBaseSize(DEFAULT_SEGMENTATION_POINT_SIZE)
@@ -445,6 +450,7 @@ class SegmentationWidget(QtGui.QWidget):
 
     def _setupModes(self):
         image_model = self._model.getImageModel()
+        node_model = self._model.getNodeModel()
         plane = image_model.getPlane()
         undo_redo_stack = self._model.getUndoRedoStack()
 
@@ -460,6 +466,8 @@ class SegmentationWidget(QtGui.QWidget):
         segment_mode_2d.setSetViewParametersMethod(self._ui._sceneviewer2d.setViewParameters)
         segment_mode_2d.setProjectUnProjectMethods(self._ui._sceneviewer2d.project, self._ui._sceneviewer2d.unproject)
         segment_mode_2d.setGetDimensionsMethod(image_model.getDimensions)
+        segment_mode_2d.setNodePickerMethod(self._ui._sceneviewer2d.getNearestNode)
+        segment_mode_2d.setModel(node_model)
 
         normal_mode = NormalMode(plane, undo_redo_stack)
         normal_mode.setGlyphPickerMethod(self._ui._sceneviewer3d.getNearestGraphicsPoint)

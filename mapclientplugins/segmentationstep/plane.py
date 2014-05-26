@@ -89,6 +89,10 @@ class Plane(object):
         fieldmodule.endChange()
         self.notifyChange()
 
+    def getAttitude(self):
+        pa = PlaneAttitude(self.getRotationPoint(), self.getNormal())
+        return pa
+
 
 class PlaneAttitude(object):
 

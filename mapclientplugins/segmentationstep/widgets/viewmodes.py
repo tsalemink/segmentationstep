@@ -19,11 +19,13 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
 '''
 from math import cos, sin, sqrt, acos, pi, copysign
 
+from PySide import QtCore
+
 from mapclientplugins.segmentationstep.widgets.definitions import ViewMode
 from mapclientplugins.segmentationstep.maths.vectorops import add, mult, cross, dot, sub, normalize, magnitude
 from mapclientplugins.segmentationstep.maths.algorithms import calculateCentroid, boundCoordinatesToCuboid, calculateLinePlaneIntersection
 from mapclientplugins.segmentationstep.plane import PlaneAttitude
-from mapclientplugins.segmentationstep.undoredo import CommandMovePlane, CommandMoveGlyph, CommandChangeView
+from mapclientplugins.segmentationstep.undoredo import CommandMovePlane, CommandMoveGlyph, CommandChangeView, CommandNode
 from mapclientplugins.segmentationstep.zincutils import getGlyphPosition, setGlyphPosition, createPlaneManipulationSphere, createPlaneNormalIndicator
 from mapclientplugins.segmentationstep.widgets.sceneviewerwidget import ViewportParameters
 
@@ -31,8 +33,6 @@ class AbstractViewMode(object):
 
 
     def __init__(self, plane, undo_redo_stack):
-        self._default_material = None
-        self._selected_material = None
         self._mode_type = None
         self._plane = plane
         self._undo_redo_stack = undo_redo_stack
@@ -76,6 +76,8 @@ class GlyphMode(AbstractViewMode):
         self._glyph_picker_method = None
         self._plane_attitude_start = None
         self._plane_attitude_end = None
+        self._default_material = None
+        self._selected_material = None
 
     def setGlyph(self, glyph):
         self._glyph = glyph
@@ -83,14 +85,14 @@ class GlyphMode(AbstractViewMode):
     def getGlyph(self):
         return self._glyph
 
-    def setGlyphPickerMethod(self, method):
-        self._glyph_picker_method = method
-
     def setDefaultMaterial(self, material):
         self._default_material = material
 
     def setSelectedMaterial(self, material):
         self._selected_material = material
+
+    def setGlyphPickerMethod(self, method):
+        self._glyph_picker_method = method
 
     def enter(self):
         self._glyph.setVisibilityFlag(True)
@@ -305,12 +307,16 @@ class SegmentMode(AbstractViewMode):
         self._mode_type = ViewMode.SEGMENT
         self._getViewParameters_method = None
         self._setViewParameters_method = None
+        self._node_picker_method = None
 
     def setGetViewParametersMethod(self, get_view_parameters_method):
         self._getViewParameters_method = get_view_parameters_method
 
     def setSetViewParametersMethod(self, set_view_parameters_method):
         self._setViewParameters_method = set_view_parameters_method
+
+    def setNodePickerMethod(self, method):
+        self._node_picker_method = method
 
     def mouseMoveEvent(self, event):
         event.ignore()
@@ -327,6 +333,10 @@ class SegmentMode2D(SegmentMode):
     def __init__(self, plane, undo_redo_stack):
         super(SegmentMode2D, self).__init__(plane, undo_redo_stack)
         self._start_position = None
+        self._model = None
+
+    def setModel(self, model):
+        self._model = model
 
     def mouseMoveEvent(self, event):
         if self._start_position is not None:
@@ -357,16 +367,43 @@ class SegmentMode2D(SegmentMode):
                 v_rot = add(p1, add(p2, p3))
                 self._setViewParameters_method(lookat, eye, v_rot, angle)
                 self._start_position = [event.x(), event.y()]
-
+        elif self._node_status is not None:
+            node = self._model.getNodeByIdentifier(self._node_status.getNodeIdentifier())
+            point_on_plane = self._calculatePointOnPlane(event.x(), event.y())
+            self._model.setNodeLocation(node, point_on_plane)
         else:
             event.ignore()
 
     def mousePressEvent(self, event):
+        self._node = None
         self._start_position = None
-        if not event.modifiers():
+        self._node_status = None
+        if not event.modifiers() and event.button() == QtCore.Qt.LeftButton:
             self._start_position = [event.x(), event.y()]
             p = self._getViewParameters_method()
             self._start_view_parameters = ViewportParameters(p[0], p[1], p[2], p[3])
+        elif (event.modifiers() & QtCore.Qt.CTRL) and event.button() == QtCore.Qt.LeftButton:
+            node = self._node_picker_method(event.x(), event.y())
+            if node and node.isValid():
+                # node exists at this location so select it
+                group = self._model.getSelectionGroup()
+                group.removeAllNodes()
+#                 node = None
+                group.addNode(node)
+                node_location = self._model.getNodeLocation(node)
+                plane_attitude = self._model.getNodePlaneAttitude(node.getIdentifier())
+            else:
+                node_location = None
+                plane_attitude = None
+                point_on_plane = self._calculatePointOnPlane(event.x(), event.y())
+                region = self._model.getRegion()
+                fieldmodule = region.getFieldmodule()
+                fieldmodule.beginChange()
+                node = self._model.createNode()
+                self._model.setNodeLocation(node, point_on_plane)
+                fieldmodule.endChange()
+
+            self._node_status = NodeStatus(node.getIdentifier(), node_location, plane_attitude)
         else:
             event.ignore()
 
@@ -378,8 +415,46 @@ class SegmentMode2D(SegmentMode):
             c = CommandChangeView(self._start_view_parameters, end_view_parameters)
             c.setCallbackMethod(self._setViewParameters_method)
             self._undo_redo_stack.push(c)
+        elif self._node_status is not None:
+            # do undo redo command for adding a node or moving a node
+            node_id = self._node_status.getNodeIdentifier()
+            node = self._model.getNodeByIdentifier(node_id)
+            group = self._model.getSelectionGroup()
+            group.removeNode(node)
+            node_location = self._model.getNodeLocation(node)
+            plane_attitude = self._plane.getAttitude()
+            node_status = NodeStatus(node_id, node_location, plane_attitude)
+            c = CommandNode(self._model, self._node_status, node_status)
+            self._undo_redo_stack.push(c)
         else:
             event.ignore()
+
+    def _calculatePointOnPlane(self, x, y):
+        far_plane_point = self._unproject_method(x, -y, -1.0)
+        near_plane_point = self._unproject_method(x, -y, 1.0)
+        point_on_plane = calculateLinePlaneIntersection(near_plane_point, far_plane_point, self._plane.getRotationPoint(), self._plane.getNormal())
+        return point_on_plane
+
+
+class NodeStatus(object):
+
+    def __init__(self, node_id, location, plane_attitude):
+        self._node_identifier = node_id
+        self._location = location
+        self._plane_attitude = plane_attitude
+
+    def getNodeIdentifier(self):
+        return self._node_identifier
+
+    def setNodeIdentifier(self, identifier):
+        self._node_identifier = identifier
+
+    def getLocation(self):
+        return self._location
+
+    def getPlaneAttitude(self):
+        return self._plane_attitude
+
 
 
 

@@ -45,15 +45,15 @@
           </sizepolicy>
          </property>
          <property name="currentIndex">
-          <number>0</number>
+          <number>1</number>
          </property>
          <widget class="QWidget" name="file">
           <property name="geometry">
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>646</width>
-            <height>718</height>
+            <width>459</width>
+            <height>691</height>
            </rect>
           </property>
           <property name="minimumSize">
@@ -65,35 +65,73 @@
           <attribute name="label">
            <string>File</string>
           </attribute>
-          <layout class="QGridLayout" name="gridLayout">
-           <item row="0" column="0">
-            <widget class="QPushButton" name="_pushButtonSave">
-             <property name="text">
-              <string>Save</string>
+          <layout class="QVBoxLayout" name="verticalLayout_16">
+           <item>
+            <widget class="QGroupBox" name="groupBox_12">
+             <property name="title">
+              <string/>
              </property>
+             <layout class="QGridLayout" name="gridLayout">
+              <item row="0" column="0">
+               <widget class="QPushButton" name="_pushButtonSave">
+                <property name="toolTip">
+                 <string>Serialize the current state</string>
+                </property>
+                <property name="text">
+                 <string>Save</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <spacer name="horizontalSpacer_2">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>20</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item row="1" column="0">
+               <widget class="QPushButton" name="_pushButtonLoad">
+                <property name="toolTip">
+                 <string>Reinstate a previous state </string>
+                </property>
+                <property name="text">
+                 <string>Load</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="0">
+               <spacer name="verticalSpacer_6">
+                <property name="orientation">
+                 <enum>Qt::Vertical</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>20</width>
+                  <height>31</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item row="3" column="0">
+               <widget class="QPushButton" name="doneButton">
+                <property name="toolTip">
+                 <string>Signal the end of this step to the workflow manager</string>
+                </property>
+                <property name="text">
+                 <string>&amp;Done</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
             </widget>
            </item>
-           <item row="0" column="1">
-            <spacer name="horizontalSpacer_2">
-             <property name="orientation">
-              <enum>Qt::Horizontal</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>20</width>
-               <height>20</height>
-              </size>
-             </property>
-            </spacer>
-           </item>
-           <item row="1" column="0">
-            <widget class="QPushButton" name="_pushButtonLoad">
-             <property name="text">
-              <string>Load</string>
-             </property>
-            </widget>
-           </item>
-           <item row="2" column="0">
+           <item>
             <spacer name="verticalSpacer_4">
              <property name="orientation">
               <enum>Qt::Vertical</enum>
@@ -106,13 +144,6 @@
              </property>
             </spacer>
            </item>
-           <item row="3" column="0">
-            <widget class="QPushButton" name="doneButton">
-             <property name="text">
-              <string>&amp;Done</string>
-             </property>
-            </widget>
-           </item>
           </layout>
          </widget>
          <widget class="QWidget" name="view">
@@ -120,8 +151,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>646</width>
-            <height>718</height>
+            <width>459</width>
+            <height>691</height>
            </rect>
           </property>
           <attribute name="label">
@@ -135,6 +166,9 @@
                <horstretch>0</horstretch>
                <verstretch>0</verstretch>
               </sizepolicy>
+             </property>
+             <property name="toolTip">
+              <string>Set the view mode to projection or parallel</string>
              </property>
              <property name="title">
               <string>Projection Mode</string>
@@ -162,6 +196,9 @@
            </item>
            <item>
             <widget class="QGroupBox" name="groupBox_6">
+             <property name="toolTip">
+              <string>Set the icon sizes for the graphics</string>
+             </property>
              <property name="title">
               <string>Icon Sizes</string>
              </property>
@@ -270,7 +307,7 @@
                  <string>Coordinate labels</string>
                 </property>
                 <property name="checked">
-                 <bool>true</bool>
+                 <bool>false</bool>
                 </property>
                </widget>
               </item>
@@ -278,52 +315,61 @@
             </widget>
            </item>
            <item>
-            <layout class="QHBoxLayout" name="horizontalLayout_3">
-             <item>
-              <widget class="QPushButton" name="_pushButtonViewAll">
-               <property name="text">
-                <string>View All</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <spacer name="horizontalSpacer">
-               <property name="orientation">
-                <enum>Qt::Horizontal</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>40</width>
-                 <height>20</height>
-                </size>
-               </property>
-              </spacer>
-             </item>
-            </layout>
-           </item>
-           <item>
-            <layout class="QHBoxLayout" name="horizontalLayout_4">
-             <item>
-              <widget class="QPushButton" name="_pushButtonReset">
-               <property name="text">
-                <string>Reset</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <spacer name="horizontalSpacer_3">
-               <property name="orientation">
-                <enum>Qt::Horizontal</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>40</width>
-                 <height>20</height>
-                </size>
-               </property>
-              </spacer>
-             </item>
-            </layout>
+            <widget class="QGroupBox" name="groupBox_9">
+             <property name="title">
+              <string/>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_5">
+              <item>
+               <layout class="QHBoxLayout" name="horizontalLayout_3">
+                <item>
+                 <widget class="QPushButton" name="_pushButtonViewAll">
+                  <property name="text">
+                   <string>View All</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <spacer name="horizontalSpacer">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>40</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+               </layout>
+              </item>
+              <item>
+               <layout class="QHBoxLayout" name="horizontalLayout_4">
+                <item>
+                 <widget class="QPushButton" name="_pushButtonReset">
+                  <property name="text">
+                   <string>Reset</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <spacer name="horizontalSpacer_3">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>40</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+               </layout>
+              </item>
+             </layout>
+            </widget>
            </item>
            <item>
             <spacer name="verticalSpacer_2">
@@ -345,8 +391,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>646</width>
-            <height>718</height>
+            <width>459</width>
+            <height>691</height>
            </rect>
           </property>
           <attribute name="label">
@@ -355,8 +401,11 @@
           <layout class="QVBoxLayout" name="verticalLayout_4">
            <item>
             <widget class="QGroupBox" name="groupBox_2">
+             <property name="toolTip">
+              <string>Set the mode for the 3D view</string>
+             </property>
              <property name="title">
-              <string>View Mode</string>
+              <string>View Mode 3D</string>
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_2">
               <item>
@@ -400,6 +449,9 @@
              <layout class="QVBoxLayout" name="verticalLayout_11">
               <item>
                <widget class="QCheckBox" name="_checkBoxStreamingCreate">
+                <property name="toolTip">
+                 <string>Add nodes in streaming mode </string>
+                </property>
                 <property name="text">
                  <string>Streaming</string>
                 </property>
@@ -428,8 +480,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>646</width>
-            <height>718</height>
+            <width>459</width>
+            <height>691</height>
            </rect>
           </property>
           <attribute name="label">
@@ -517,6 +569,9 @@
                   <verstretch>0</verstretch>
                  </sizepolicy>
                 </property>
+                <property name="toolTip">
+                 <string>Set the width scale</string>
+                </property>
                 <property name="text">
                  <string>1.0</string>
                 </property>
@@ -545,6 +600,9 @@
                   <horstretch>0</horstretch>
                   <verstretch>0</verstretch>
                  </sizepolicy>
+                </property>
+                <property name="toolTip">
+                 <string>Set the height scale</string>
                 </property>
                 <property name="text">
                  <string>1.0</string>
@@ -575,6 +633,9 @@
                   <verstretch>0</verstretch>
                  </sizepolicy>
                 </property>
+                <property name="toolTip">
+                 <string>Set the depth scale</string>
+                </property>
                 <property name="text">
                  <string>1.0</string>
                 </property>
@@ -588,6 +649,115 @@
            </item>
            <item>
             <spacer name="verticalSpacer_3">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>40</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
+         </widget>
+         <widget class="QWidget" name="points">
+          <attribute name="label">
+           <string>Points</string>
+          </attribute>
+          <layout class="QVBoxLayout" name="verticalLayout_15">
+           <item>
+            <widget class="QGroupBox" name="groupBox_10">
+             <property name="title">
+              <string>Push/Pull</string>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_7">
+              <item>
+               <layout class="QHBoxLayout" name="horizontalLayout_2">
+                <item>
+                 <widget class="QLabel" name="label_10">
+                  <property name="text">
+                   <string>Depth:</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QDoubleSpinBox" name="doubleSpinBox">
+                  <property name="toolTip">
+                   <string>Set the depth for pushing/pulling segmentation points down/up a layer</string>
+                  </property>
+                  <property name="value">
+                   <double>1.000000000000000</double>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item>
+               <widget class="QRadioButton" name="radioButton">
+                <property name="toolTip">
+                 <string>Set the direction of the push/pull tool to down</string>
+                </property>
+                <property name="text">
+                 <string>Push down</string>
+                </property>
+                <property name="checked">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QRadioButton" name="radioButton_2">
+                <property name="toolTip">
+                 <string>Set the direction of the push/pull tool to up</string>
+                </property>
+                <property name="text">
+                 <string>Pull up</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QGroupBox" name="groupBox_11">
+             <property name="title">
+              <string>Edit</string>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_14">
+              <item>
+               <layout class="QHBoxLayout" name="horizontalLayout_5">
+                <item>
+                 <widget class="QPushButton" name="_pushButtonDelete">
+                  <property name="toolTip">
+                   <string>Remove selected segmentation points</string>
+                  </property>
+                  <property name="text">
+                   <string>Delete</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <spacer name="horizontalSpacer_4">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>40</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+               </layout>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <spacer name="verticalSpacer_5">
              <property name="orientation">
               <enum>Qt::Vertical</enum>
              </property>
@@ -620,7 +790,7 @@
         <string notr="true">border-right: 10 px blue</string>
        </property>
        <property name="currentIndex">
-        <number>0</number>
+        <number>1</number>
        </property>
        <property name="movable">
         <bool>false</bool>
@@ -636,6 +806,9 @@
          <string>3D View</string>
         </attribute>
         <layout class="QVBoxLayout" name="verticalLayoutTab3d">
+         <item>
+          <widget class="QWidget" name="_toolbarwidget3d" native="true"/>
+         </item>
          <item>
           <widget class="QWidget" name="widget_1" native="true">
            <property name="sizePolicy">
@@ -665,7 +838,7 @@
               <property name="sizePolicy">
                <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                 <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
+                <verstretch>1</verstretch>
                </sizepolicy>
               </property>
               <property name="minimumSize">
@@ -692,6 +865,9 @@
          <string>2D View</string>
         </attribute>
         <layout class="QVBoxLayout" name="verticalLayout_13">
+         <item>
+          <widget class="QWidget" name="_toolbarwidget2d" native="true"/>
+         </item>
          <item>
           <widget class="QWidget" name="widget_2" native="true">
            <layout class="QVBoxLayout" name="verticalLayout_12">

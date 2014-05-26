@@ -250,3 +250,48 @@ class CommandSetGlyphSize(CommandCurrentNew):
         self._spin_box.setValue(self._current[0])
 
 
+class CommandNode(QtGui.QUndoCommand):
+
+    def __init__(self, node_model, node_status_start, node_status_end):
+        super(CommandNode, self).__init__()
+        self._model = node_model
+        self._status_start = node_status_start
+        self._status_end = node_status_end
+
+    def _setNodeIdentifier(self, node_id):
+        self._status_start.setNodeIdentifier(node_id)
+        self._status_end.setNodeIdentifier(node_id)
+
+    def redo(self):
+        node_id = self._status_end.getNodeIdentifier()
+        location = self._status_end.getLocation()
+        plane_attitude = self._status_end.getPlaneAttitude()
+        if location is None:
+            self._model.removeNode(node_id)
+            self._setNodeIdentifier(-1)
+        else:
+            previous_location = self._status_start.getLocation()
+            if previous_location is None:
+                node_id = self._model.addNode(node_id, location, plane_attitude)
+                self._setNodeIdentifier(node_id)
+                self._status_end.setNodeIdentifier(node_id)
+            else:
+                self._model.modifyNode(node_id, location, plane_attitude)
+
+    def undo(self):
+        node_id = self._status_start.getNodeIdentifier()
+        location = self._status_start.getLocation()
+        plane_attitude = self._status_start.getPlaneAttitude()
+        if location is None:
+            self._model.removeNode(node_id)
+            self._setNodeIdentifier(-1)
+        else:
+            next_location = self._status_end.getLocation()
+            if next_location is None:
+                node_id = self._model.addNode(node_id, location, plane_attitude)
+#                 self._status_start.setNodeIdentifier(node_id)
+                self._setNodeIdentifier(node_id)
+            else:
+                self._model.modifyNode(node_id, location, plane_attitude)
+
+
