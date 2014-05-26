@@ -22,7 +22,7 @@ from PySide import QtGui, QtCore
 from opencmiss.zinc.field import Field
 from opencmiss.zinc.glyph import Glyph
 
-from mapclientplugins.segmentationstep.widgets.viewmodes import NormalMode, RotationMode, SegmentMode, SegmentMode2D
+from mapclientplugins.segmentationstep.viewmodes import normalmode, rotationmode, segment2dmode, segmentmode
 from mapclientplugins.segmentationstep.widgets.ui_segmentationwidget import Ui_SegmentationWidget
 from mapclientplugins.segmentationstep.undoredo import CommandAddNode, CommandChangeViewMode, CommandSetScale, CommandSetSingleParameterMethod, CommandSetGraphicVisibility, CommandSetGlyphSize
 from mapclientplugins.segmentationstep.widgets.zincwidget import ProjectionMode
@@ -460,8 +460,8 @@ class SegmentationWidget(QtGui.QWidget):
         purple_material = materialmodule.findMaterialByName('purple')
         red_material = materialmodule.findMaterialByName('red')
 
-        segment_mode = SegmentMode(plane, undo_redo_stack)
-        segment_mode_2d = SegmentMode2D(plane, undo_redo_stack)
+        segment_mode = segmentmode.SegmentMode(plane, undo_redo_stack)
+        segment_mode_2d = segment2dmode.SegmentMode2D(plane, undo_redo_stack)
         segment_mode_2d.setGetViewParametersMethod(self._ui._sceneviewer2d.getViewParameters)
         segment_mode_2d.setSetViewParametersMethod(self._ui._sceneviewer2d.setViewParameters)
         segment_mode_2d.setProjectUnProjectMethods(self._ui._sceneviewer2d.project, self._ui._sceneviewer2d.unproject)
@@ -469,14 +469,14 @@ class SegmentationWidget(QtGui.QWidget):
         segment_mode_2d.setNodePickerMethod(self._ui._sceneviewer2d.getNearestNode)
         segment_mode_2d.setModel(node_model)
 
-        normal_mode = NormalMode(plane, undo_redo_stack)
+        normal_mode = normalmode.NormalMode(plane, undo_redo_stack)
         normal_mode.setGlyphPickerMethod(self._ui._sceneviewer3d.getNearestGraphicsPoint)
         normal_mode.setGetDimensionsMethod(image_model.getDimensions)
         normal_mode.setProjectUnProjectMethods(self._ui._sceneviewer3d.project, self._ui._sceneviewer3d.unproject)
         normal_mode.setDefaultMaterial(yellow_material)
         normal_mode.setSelectedMaterial(orange_material)
 
-        rotation_mode = RotationMode(plane, undo_redo_stack)
+        rotation_mode = rotationmode.RotationMode(plane, undo_redo_stack)
         rotation_mode.setGlyphPickerMethod(self._ui._sceneviewer3d.getNearestGraphicsPoint)
         rotation_mode.setProjectUnProjectMethods(self._ui._sceneviewer3d.project, self._ui._sceneviewer3d.unproject)
         rotation_mode.setGetDimensionsMethod(image_model.getDimensions)

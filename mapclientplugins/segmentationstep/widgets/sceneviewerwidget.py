@@ -45,6 +45,8 @@ def modifier_map(qt_modifiers):
     return modifiers
 # mapping from qt to zinc end
 
+SELCTION_RUBBERBAND_NAME = 'selection_rubberband'
+
 # projectionMode start
 class ProjectionMode(object):
 
@@ -142,68 +144,70 @@ class SceneviewerWidget(QtOpenGL.QGLWidget):
         '''
         Initialise the Zinc scene for drawing the axis glyph at a point.  
         '''
-        # Get the scene viewer module.
-        scene_viewer_module = self._context.getSceneviewermodule()
+        if self._sceneviewer is None:
+            # Get the scene viewer module.
+            scene_viewer_module = self._context.getSceneviewermodule()
 
-        # From the scene viewer module we can create a scene viewer, we set up the
-        # scene viewer to have the same OpenGL properties as the QGLWidget.
-        self._sceneviewer = scene_viewer_module.createSceneviewer(Sceneviewer.BUFFERING_MODE_DOUBLE, Sceneviewer.STEREO_MODE_DEFAULT)
-        self._sceneviewer.setProjectionMode(Sceneviewer.PROJECTION_MODE_PERSPECTIVE)
+            # From the scene viewer module we can create a scene viewer, we set up the
+            # scene viewer to have the same OpenGL properties as the QGLWidget.
+            self._sceneviewer = scene_viewer_module.createSceneviewer(Sceneviewer.BUFFERING_MODE_DOUBLE, Sceneviewer.STEREO_MODE_DEFAULT)
+            self._sceneviewer.setProjectionMode(Sceneviewer.PROJECTION_MODE_PERSPECTIVE)
 
-        # Create a filter for visibility flags which will allow us to see our graphic.
-        filter_module = self._context.getScenefiltermodule()
-        # By default graphics are created with their visibility flags set to on (or true).
-        graphics_filter = filter_module.createScenefilterVisibilityFlags()
+            # Create a filter for visibility flags which will allow us to see our graphic.
+            filter_module = self._context.getScenefiltermodule()
+            # By default graphics are created with their visibility flags set to on (or true).
+            graphics_filter = filter_module.createScenefilterVisibilityFlags()
 
-        # Set the graphics filter for the scene viewer otherwise nothing will be visible.
-        self._sceneviewer.setScenefilter(graphics_filter)
-        region = self._context.getDefaultRegion()
-        scene = region.getScene()
-        fieldmodule = region.getFieldmodule()
+            # Set the graphics filter for the scene viewer otherwise nothing will be visible.
+            self._sceneviewer.setScenefilter(graphics_filter)
+            region = self._context.getDefaultRegion()
+            scene = region.getScene()
+            fieldmodule = region.getFieldmodule()
 
-        self._sceneviewer.setScene(scene)
+            self._sceneviewer.setScene(scene)
 
-        self._selectionGroup = fieldmodule.createFieldGroup()
-#         scene.setSelectionField(self._selectionGroup)
+            self._selectionGroup = fieldmodule.createFieldGroup()
+    #         scene.setSelectionField(self._selectionGroup)
 
-        self._scenepicker = scene.createScenepicker()
-        self._scenepicker.setScenefilter(graphics_filter)
+            self._scenepicker = scene.createScenepicker()
+            self._scenepicker.setScenefilter(graphics_filter)
 
-        # If the standard glyphs haven't been defined then the
-        # selection box will not be visible
-        self._selectionBox = scene.createGraphicsPoints()
-        self._selectionBox.setScenecoordinatesystem(SCENECOORDINATESYSTEM_WINDOW_PIXEL_TOP_LEFT)
-        attributes = self._selectionBox.getGraphicspointattributes()
-        attributes.setGlyphShapeType(Glyph.SHAPE_TYPE_CUBE_WIREFRAME)
-        attributes.setBaseSize([10, 10, 0.9999])
-        attributes.setGlyphOffset([1, -1, 0])
-        self._selectionBox_setBaseSize = attributes.setBaseSize
-        self._selectionBox_setGlyphOffset = attributes.setGlyphOffset
+            # If the standard glyphs haven't been defined then the
+            # selection box will not be visible
+            self._selectionBox = scene.createGraphicsPoints()
+            self._selectionBox.setName(SELCTION_RUBBERBAND_NAME)
+            self._selectionBox.setScenecoordinatesystem(SCENECOORDINATESYSTEM_WINDOW_PIXEL_TOP_LEFT)
+            attributes = self._selectionBox.getGraphicspointattributes()
+            attributes.setGlyphShapeType(Glyph.SHAPE_TYPE_CUBE_WIREFRAME)
+            attributes.setBaseSize([10, 10, 0.9999])
+            attributes.setGlyphOffset([1, -1, 0])
+            self._selectionBox_setBaseSize = attributes.setBaseSize
+            self._selectionBox_setGlyphOffset = attributes.setGlyphOffset
 
-        self._selectionBox.setVisibilityFlag(False)
+            self._selectionBox.setVisibilityFlag(False)
 
-        # Set up unproject pipeline
-        self._window_coords_from = fieldmodule.createFieldConstant([0, 0, 0])
-        self._global_coords_from = fieldmodule.createFieldConstant([0, 0, 0])
-        unproject = fieldmodule.createFieldSceneviewerProjection(self._sceneviewer, SCENECOORDINATESYSTEM_WINDOW_PIXEL_TOP_LEFT, SCENECOORDINATESYSTEM_WORLD)
-        project = fieldmodule.createFieldSceneviewerProjection(self._sceneviewer, SCENECOORDINATESYSTEM_WORLD, SCENECOORDINATESYSTEM_WINDOW_PIXEL_TOP_LEFT)
+            # Set up unproject pipeline
+            self._window_coords_from = fieldmodule.createFieldConstant([0, 0, 0])
+            self._global_coords_from = fieldmodule.createFieldConstant([0, 0, 0])
+            unproject = fieldmodule.createFieldSceneviewerProjection(self._sceneviewer, SCENECOORDINATESYSTEM_WINDOW_PIXEL_TOP_LEFT, SCENECOORDINATESYSTEM_WORLD)
+            project = fieldmodule.createFieldSceneviewerProjection(self._sceneviewer, SCENECOORDINATESYSTEM_WORLD, SCENECOORDINATESYSTEM_WINDOW_PIXEL_TOP_LEFT)
 
-#         unproject_t = fieldmodule.createFieldTranspose(4, unproject)
-        self._global_coords_to = fieldmodule.createFieldProjection(self._window_coords_from, unproject)
-        self._window_coords_to = fieldmodule.createFieldProjection(self._global_coords_from, project)
+    #         unproject_t = fieldmodule.createFieldTranspose(4, unproject)
+            self._global_coords_to = fieldmodule.createFieldProjection(self._window_coords_from, unproject)
+            self._window_coords_to = fieldmodule.createFieldProjection(self._global_coords_from, project)
 
 
-        self._sceneviewer.viewAll()
+            self._sceneviewer.viewAll()
 
-#  Not really applicable to us yet.
-#         self._selection_notifier = scene.createSelectionnotifier()
-#         self._selection_notifier.setCallback(self._zincSelectionEvent)
+    #  Not really applicable to us yet.
+    #         self._selection_notifier = scene.createSelectionnotifier()
+    #         self._selection_notifier.setCallback(self._zincSelectionEvent)
 
-        self._scene_viewer_notifier = self._sceneviewer.createSceneviewernotifier()
-        self._scene_viewer_notifier.setCallback(self._zincSceneviewerEvent)
+            self._scene_viewer_notifier = self._sceneviewer.createSceneviewernotifier()
+            self._scene_viewer_notifier.setCallback(self._zincSceneviewerEvent)
 
-        self.graphicsInitialized.emit()
-        # initializeGL end
+            self.graphicsInitialized.emit()
+            # initializeGL end
 
     def setProjectionMode(self, mode):
         if mode == ProjectionMode.PARALLEL:

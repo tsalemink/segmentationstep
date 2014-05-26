@@ -28,7 +28,7 @@
       </property>
       <property name="minimumSize">
        <size>
-        <width>0</width>
+        <width>250</width>
         <height>0</height>
        </size>
       </property>
@@ -45,15 +45,15 @@
           </sizepolicy>
          </property>
          <property name="currentIndex">
-          <number>1</number>
+          <number>0</number>
          </property>
          <widget class="QWidget" name="file">
           <property name="geometry">
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>459</width>
-            <height>691</height>
+            <width>572</width>
+            <height>630</height>
            </rect>
           </property>
           <property name="minimumSize">
@@ -105,7 +105,7 @@
                 </property>
                </widget>
               </item>
-              <item row="2" column="0">
+              <item row="3" column="0">
                <spacer name="verticalSpacer_6">
                 <property name="orientation">
                  <enum>Qt::Vertical</enum>
@@ -118,7 +118,7 @@
                 </property>
                </spacer>
               </item>
-              <item row="3" column="0">
+              <item row="4" column="0">
                <widget class="QPushButton" name="doneButton">
                 <property name="toolTip">
                  <string>Signal the end of this step to the workflow manager</string>
@@ -127,6 +127,19 @@
                  <string>&amp;Done</string>
                 </property>
                </widget>
+              </item>
+              <item row="2" column="0">
+               <spacer name="verticalSpacer_7">
+                <property name="orientation">
+                 <enum>Qt::Vertical</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>20</width>
+                  <height>40</height>
+                 </size>
+                </property>
+               </spacer>
               </item>
              </layout>
             </widget>
@@ -151,8 +164,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>459</width>
-            <height>691</height>
+            <width>558</width>
+            <height>664</height>
            </rect>
           </property>
           <attribute name="label">
@@ -391,8 +404,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>459</width>
-            <height>691</height>
+            <width>572</width>
+            <height>630</height>
            </rect>
           </property>
           <attribute name="label">
@@ -480,8 +493,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>459</width>
-            <height>691</height>
+            <width>572</width>
+            <height>630</height>
            </rect>
           </property>
           <attribute name="label">
@@ -663,6 +676,14 @@
           </layout>
          </widget>
          <widget class="QWidget" name="points">
+          <property name="geometry">
+           <rect>
+            <x>0</x>
+            <y>0</y>
+            <width>572</width>
+            <height>630</height>
+           </rect>
+          </property>
           <attribute name="label">
            <string>Points</string>
           </attribute>
@@ -695,27 +716,47 @@
                </layout>
               </item>
               <item>
-               <widget class="QRadioButton" name="radioButton">
-                <property name="toolTip">
-                 <string>Set the direction of the push/pull tool to down</string>
-                </property>
-                <property name="text">
-                 <string>Push down</string>
-                </property>
-                <property name="checked">
-                 <bool>true</bool>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QRadioButton" name="radioButton_2">
-                <property name="toolTip">
-                 <string>Set the direction of the push/pull tool to up</string>
-                </property>
-                <property name="text">
-                 <string>Pull up</string>
-                </property>
-               </widget>
+               <layout class="QHBoxLayout" name="horizontalLayout_6">
+                <item>
+                 <widget class="QPushButton" name="_pushButtonPushDown">
+                  <property name="minimumSize">
+                   <size>
+                    <width>99</width>
+                    <height>0</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>Push Down</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <spacer name="horizontalSpacer_5">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>40</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="_pushButtonPullUp">
+                  <property name="minimumSize">
+                   <size>
+                    <width>99</width>
+                    <height>0</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>Pull Up</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
               </item>
              </layout>
             </widget>
@@ -790,7 +831,7 @@
         <string notr="true">border-right: 10 px blue</string>
        </property>
        <property name="currentIndex">
-        <number>1</number>
+        <number>0</number>
        </property>
        <property name="movable">
         <bool>false</bool>
@@ -807,7 +848,14 @@
         </attribute>
         <layout class="QVBoxLayout" name="verticalLayoutTab3d">
          <item>
-          <widget class="QWidget" name="_toolbarwidget3d" native="true"/>
+          <widget class="QWidget" name="_toolbarwidget3d" native="true">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>15</height>
+            </size>
+           </property>
+          </widget>
          </item>
          <item>
           <widget class="QWidget" name="widget_1" native="true">
@@ -836,9 +884,9 @@
             <item>
              <widget class="SceneviewerWidget3D" name="_sceneviewer3d" native="true">
               <property name="sizePolicy">
-               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+               <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
                 <horstretch>0</horstretch>
-                <verstretch>1</verstretch>
+                <verstretch>10</verstretch>
                </sizepolicy>
               </property>
               <property name="minimumSize">
@@ -866,7 +914,14 @@
         </attribute>
         <layout class="QVBoxLayout" name="verticalLayout_13">
          <item>
-          <widget class="QWidget" name="_toolbarwidget2d" native="true"/>
+          <widget class="QWidget" name="_toolbarwidget2d" native="true">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>15</height>
+            </size>
+           </property>
+          </widget>
          </item>
          <item>
           <widget class="QWidget" name="widget_2" native="true">
@@ -889,9 +944,9 @@
             <item>
              <widget class="SceneviewerWidget2D" name="_sceneviewer2d" native="true">
               <property name="sizePolicy">
-               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+               <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
                 <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
+                <verstretch>10</verstretch>
                </sizepolicy>
               </property>
               <property name="minimumSize">
@@ -937,19 +992,19 @@
   <customwidget>
    <class>SceneviewerWidget2D</class>
    <extends>QWidget</extends>
-   <header>segmentationstep/widgets/sceneviewerwidget2d.h</header>
+   <header>mapclientplugins/segmentationstep/widgets/sceneviewerwidget2d.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
    <class>SegmentationTabWidget</class>
    <extends>QTabWidget</extends>
-   <header>segmentationstep/widgets/segmentationtabwidget.h</header>
+   <header>mapclientplugins/segmentationstep/widgets/segmentationtabwidget.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
    <class>SceneviewerWidget3D</class>
    <extends>QWidget</extends>
-   <header>segmentationstep/widgets/sceneviewerwidget3d.h</header>
+   <header>mapclientplugins/segmentationstep/widgets/sceneviewerwidget3d.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>
