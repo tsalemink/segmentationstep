@@ -32,8 +32,8 @@ class RotationMode(GlyphMode):
     The rotation mode allows the user to re-orient the image
     plane and set the plane point of rotation.
     '''
-    def __init__(self, plane, undo_redo_stack):
-        super(RotationMode, self).__init__(plane, undo_redo_stack)
+    def __init__(self, sceneviewer, plane, undo_redo_stack):
+        super(RotationMode, self).__init__(sceneviewer, plane, undo_redo_stack)
         self._mode_type = ViewMode.PLANE_ROTATION
         self._glyph = createPlaneManipulationSphere(plane.getRegion())
         self._width_method = None
@@ -47,18 +47,15 @@ class RotationMode(GlyphMode):
     def setGetViewParametersMethod(self, get_view_parameters_method):
         self._getViewParameters_method = get_view_parameters_method
 
-    def mousePressEvent(self, mouseevent):
-        super(RotationMode, self).mousePressEvent(mouseevent)
-
-    def mouseMoveEvent(self, mouseevent):
+    def mouseMoveEvent(self, event):
         scene = self._glyph.getScene()
         scene.beginChange()
-        super(RotationMode, self).mouseMoveEvent(mouseevent)
+#         super(RotationMode, self).mouseMoveEvent(event)
         if self._glyph.getMaterial().getName() == self._selected_material.getName():
-            x = mouseevent.x()
-            y = mouseevent.y()
-            far_plane_point = self._unproject_method(x, -y, -1.0)
-            near_plane_point = self._unproject_method(x, -y, 1.0)
+            x = event.x()
+            y = event.y()
+            far_plane_point = self._view.unproject(x, -y, -1.0)
+            near_plane_point = self._view.unproject(x, -y, 1.0)
             point_on_plane = calculateLinePlaneIntersection(near_plane_point, far_plane_point, self._plane.getRotationPoint(), self._plane.getNormal())
             if point_on_plane is not None:
                 dimensions = self._get_dimension_method()
@@ -66,24 +63,24 @@ class RotationMode(GlyphMode):
                 point_on_plane = boundCoordinatesToCuboid(point_on_plane, centroid, dimensions)
                 setGlyphPosition(self._glyph, point_on_plane)
         else:
-            width = self._width_method()
-            height = self._height_method()
+            width = self._view.width()
+            height = self._view.height()
             radius = min([width, height]) / 2.0
-            delta_x = float(mouseevent.x() - self._previous_mouse_position[0])
-            delta_y = float(mouseevent.y() - self._previous_mouse_position[1])
+            delta_x = float(event.x() - self._previous_mouse_position[0])
+            delta_y = float(event.y() - self._previous_mouse_position[1])
             tangent_dist = sqrt((delta_x * delta_x + delta_y * delta_y))
             if tangent_dist > 0.0:
                 dx = -delta_y / tangent_dist;
                 dy = delta_x / tangent_dist;
 
-                d = dx * (mouseevent.x() - 0.5 * (width - 1)) + dy * ((mouseevent.y() - 0.5 * (height - 1)))
+                d = dx * (event.x() - 0.5 * (width - 1)) + dy * ((event.y() - 0.5 * (height - 1)))
                 if d > radius: d = radius
                 if d < -radius: d = -radius
 
                 phi = acos(d / radius) - 0.5 * pi
                 angle = 1.0 * tangent_dist / radius
 
-                eye, lookat, up, _ = self._getViewParameters_method()
+                eye, lookat, up, _ = self._view.getViewParameters()
 
                 b = up[:]
                 b = normalize(b)
@@ -110,17 +107,17 @@ class RotationMode(GlyphMode):
 
                 self._plane.setPlaneEquation(plane_normal_prime, point_on_plane)
 
-                self._previous_mouse_position = [mouseevent.x(), mouseevent.y()]
+                self._previous_mouse_position = [event.x(), event.y()]
         scene.endChange()
 
-    def mouseReleaseEvent(self, mouseevent):
+    def mouseReleaseEvent(self, event):
         scene = self._glyph.getScene()
         scene.beginChange()
         if self._glyph.getMaterial().getName() == self._selected_material.getName():
             point_on_plane = getGlyphPosition(self._glyph)
             self._plane.setRotationPoint(point_on_plane)
 
-        super(RotationMode, self).mouseReleaseEvent(mouseevent)
+        super(RotationMode, self).mouseReleaseEvent(event)
         scene.endChange()
 
         self.setUndoRedoCommand('plane rotation')

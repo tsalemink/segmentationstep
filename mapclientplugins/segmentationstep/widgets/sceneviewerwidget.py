@@ -27,8 +27,6 @@ from opencmiss.zinc.field import Field
 from opencmiss.zinc.glyph import Glyph
 from opencmiss.zinc.status import OK
 
-from mapclientplugins.segmentationstep.undoredo import CommandChangeView
-
 # mapping from qt to zinc start
 # Create a button map of Qt mouse buttons to Zinc input buttons
 button_map = {QtCore.Qt.LeftButton: Sceneviewerinput.BUTTON_TYPE_LEFT, QtCore.Qt.MidButton: Sceneviewerinput.BUTTON_TYPE_MIDDLE, QtCore.Qt.RightButton: Sceneviewerinput.BUTTON_TYPE_RIGHT}
@@ -305,7 +303,7 @@ class SceneviewerWidget(QtOpenGL.QGLWidget):
         '''
         Assuming given x and y is in the sending widgets coordinates 
         which is a parent of this widget.  For example the values given 
-        directly from the mouseevent in the parent widget.
+        directly from the event in the parent widget.
         '''
         return self._getNearestGraphic(x, y, Field.DOMAIN_TYPE_POINT)
 
@@ -323,14 +321,7 @@ class SceneviewerWidget(QtOpenGL.QGLWidget):
         Helper method to set the current scene viewer to view everything
         visible in the current scene.
         '''
-        p1 = self.getViewParameters()
         self._sceneviewer.viewAll()
-        p2 = self.getViewParameters()
-        start_view_parameters = ViewportParameters(p1[0], p1[1], p1[2], p1[3])
-        end_view_parameters = ViewportParameters(p2[0], p2[1], p2[2], p2[3])
-        c = CommandChangeView(start_view_parameters, end_view_parameters)
-        c.setCallbackMethod(self.setViewParameters)
-        self._undoRedoStack.push(c)
 
     # paintGL start
     def paintGL(self):
@@ -364,40 +355,38 @@ class SceneviewerWidget(QtOpenGL.QGLWidget):
         self._sceneviewer.setViewportSize(width, height)
         # resizeGL end
 
-    def mousePressEvent(self, mouseevent):
+    def mousePressEvent(self, event):
         '''
         Inform the scene viewer of a mouse press event.
         '''
-        mouseevent.accept()
+        event.accept()
         self._handle_mouse_events = False  # Track when the zinc should be handling mouse events
-        if not self._ignore_mouse_events and (mouseevent.modifiers() & QtCore.Qt.SHIFT) and (self._nodeSelectMode or self._elemSelectMode) and button_map[mouseevent.button()] == Sceneviewerinput.BUTTON_TYPE_LEFT:
-            self._selectionPositionStart = (mouseevent.x(), mouseevent.y())
+        if not self._ignore_mouse_events and (event.modifiers() & QtCore.Qt.SHIFT) and (self._nodeSelectMode or self._elemSelectMode) and button_map[event.button()] == Sceneviewerinput.BUTTON_TYPE_LEFT:
+            self._selectionPositionStart = (event.x(), event.y())
             self._selectionMode = SelectionMode.EXCULSIVE
-            if mouseevent.modifiers() & QtCore.Qt.ALT:
+            if event.modifiers() & QtCore.Qt.ALT:
                 self._selectionMode = SelectionMode.ADDITIVE
-        elif not self._ignore_mouse_events and not mouseevent.modifiers() or (mouseevent.modifiers() & QtCore.Qt.SHIFT and button_map[mouseevent.button()] == Sceneviewerinput.BUTTON_TYPE_RIGHT):
+        elif not self._ignore_mouse_events and not event.modifiers() or (event.modifiers() & QtCore.Qt.SHIFT and button_map[event.button()] == Sceneviewerinput.BUTTON_TYPE_RIGHT):
             scene_input = self._sceneviewer.createSceneviewerinput()
-            scene_input.setPosition(mouseevent.x(), mouseevent.y())
+            scene_input.setPosition(event.x(), event.y())
             scene_input.setEventType(Sceneviewerinput.EVENT_TYPE_BUTTON_PRESS)
-            scene_input.setButtonType(button_map[mouseevent.button()])
-            scene_input.setModifierFlags(modifier_map(mouseevent.modifiers()))
+            scene_input.setButtonType(button_map[event.button()])
+            scene_input.setModifierFlags(modifier_map(event.modifiers()))
 
             self._sceneviewer.processSceneviewerinput(scene_input)
-            p = self.getViewParameters()
-            self._start_view_parameters = ViewportParameters(p[0], p[1], p[2], p[3])
 
             self._handle_mouse_events = True
         else:
-            mouseevent.ignore()
+            event.ignore()
 
-    def mouseReleaseEvent(self, mouseevent):
+    def mouseReleaseEvent(self, event):
         '''
         Inform the scene viewer of a mouse release event.
         '''
-        mouseevent.accept()
+        event.accept()
         if not self._ignore_mouse_events and self._selectionMode != SelectionMode.NONE:
-            x = mouseevent.x()
-            y = mouseevent.y()
+            x = event.x()
+            y = event.y()
             # Construct a small frustrum to look for nodes in.
             root_region = self._context.getDefaultRegion()
             root_region.beginHierarchicalChange()
@@ -465,30 +454,26 @@ class SceneviewerWidget(QtOpenGL.QGLWidget):
             root_region.endHierarchicalChange()
             self._selectionMode = SelectionMode.NONE
         elif not self._ignore_mouse_events and self._handle_mouse_events:
+            print('dont come here.')
             scene_input = self._sceneviewer.createSceneviewerinput()
-            scene_input.setPosition(mouseevent.x(), mouseevent.y())
+            scene_input.setPosition(event.x(), event.y())
             scene_input.setEventType(Sceneviewerinput.EVENT_TYPE_BUTTON_RELEASE)
-            scene_input.setButtonType(button_map[mouseevent.button()])
+            scene_input.setButtonType(button_map[event.button()])
 
             self._sceneviewer.processSceneviewerinput(scene_input)
-            p = self.getViewParameters()
-            end_view_parameters = ViewportParameters(p[0], p[1], p[2], p[3])
-            c = CommandChangeView(self._start_view_parameters, end_view_parameters)
-            c.setCallbackMethod(self.setViewParameters)
-            self._undoRedoStack.push(c)
         else:
-            mouseevent.ignore()
+            event.ignore()
 
-    def mouseMoveEvent(self, mouseevent):
+    def mouseMoveEvent(self, event):
         '''
         Inform the scene viewer of a mouse move event and update the OpenGL scene to reflect this
         change to the viewport.
         '''
 
-        mouseevent.accept()
+        event.accept()
         if not self._ignore_mouse_events and self._selectionMode != SelectionMode.NONE:
-            x = mouseevent.x()
-            y = mouseevent.y()
+            x = event.x()
+            y = event.y()
             xdiff = float(x - self._selectionPositionStart[0])
             ydiff = float(y - self._selectionPositionStart[1])
             if abs(xdiff) < 0.0001:
@@ -505,13 +490,13 @@ class SceneviewerWidget(QtOpenGL.QGLWidget):
             scene.endChange()
         elif not self._ignore_mouse_events and self._handle_mouse_events:
             scene_input = self._sceneviewer.createSceneviewerinput()
-            scene_input.setPosition(mouseevent.x(), mouseevent.y())
+            scene_input.setPosition(event.x(), event.y())
             scene_input.setEventType(Sceneviewerinput.EVENT_TYPE_MOTION_NOTIFY)
-            if mouseevent.type() == QtCore.QEvent.Leave:
+            if event.type() == QtCore.QEvent.Leave:
                 scene_input.setPosition(-1, -1)
 
             self._sceneviewer.processSceneviewerinput(scene_input)
         else:
-            mouseevent.ignore()
+            event.ignore()
 
 

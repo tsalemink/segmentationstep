@@ -51,19 +51,22 @@ class SceneviewerWidgetSegmentation(SceneviewerWidget):
     def addMode(self, mode):
         self._modes[mode.getModeType()] = mode
 
-    def mousePressEvent(self, mouseevent):
-        self._active_mode.mousePressEvent(mouseevent)
-        if not mouseevent.isAccepted():
-            super(SceneviewerWidgetSegmentation, self).mousePressEvent(mouseevent)
+    def viewAll(self):
+        self._active_mode.viewAll()
 
-    def mouseMoveEvent(self, mouseevent):
-        self._active_mode.mouseMoveEvent(mouseevent)
-        if not mouseevent.isAccepted():
-            super(SceneviewerWidgetSegmentation, self).mouseMoveEvent(mouseevent)
+    def mousePressEvent(self, event):
+        self._active_mode.mousePressEvent(event)
+#         if not event.isAccepted():
+#             super(SceneviewerWidgetSegmentation, self).mousePressEvent(event)
 
-    def mouseReleaseEvent(self, mouseevent):
-        self._active_mode.mouseReleaseEvent(mouseevent)
-        if not mouseevent.isAccepted():
-            super(SceneviewerWidgetSegmentation, self).mouseReleaseEvent(mouseevent)
+    def mouseMoveEvent(self, event):
+        self._active_mode.mouseMoveEvent(event)
+#         if not event.isAccepted():
+#             super(SceneviewerWidgetSegmentation, self).mouseMoveEvent(event)
+
+    def mouseReleaseEvent(self, event):
+        self._active_mode.mouseReleaseEvent(event)
+#         if not event.isAccepted():
+#             super(SceneviewerWidgetSegmentation, self).mouseReleaseEvent(event)
 
 

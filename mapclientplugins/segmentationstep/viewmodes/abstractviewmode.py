@@ -17,20 +17,20 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
     You should have received a copy of the GNU General Public License
     along with MAP Client.  If not, see <http://www.gnu.org/licenses/>..
 '''
+from PySide import QtCore
+
+from mapclientplugins.segmentationstep.zincutils import button_map, modifier_map, Sceneviewerinput
+from mapclientplugins.segmentationstep.undoredo import CommandChangeView
+
 class AbstractViewMode(object):
 
 
-    def __init__(self, plane, undo_redo_stack):
+    def __init__(self, view, plane, undo_redo_stack):
         self._mode_type = None
+        self._view = view
         self._plane = plane
         self._undo_redo_stack = undo_redo_stack
-        self._project_method = None
-        self._unproject_method = None
         self._get_dimension_method = None
-
-    def setProjectUnProjectMethods(self, project_method, unproject_method):
-        self._project_method = project_method
-        self._unproject_method = unproject_method
 
     def setGetDimensionsMethod(self, get_dimensions_method):
         self._get_dimension_method = get_dimensions_method
@@ -47,12 +47,45 @@ class AbstractViewMode(object):
     def getModeType(self):
         return self._mode_type
 
-    def mouseMoveEvent(self, event):
-        pass
+    def viewAll(self):
+        p1 = self._view.getViewParameters()
+        self._view.getSceneviewer().viewAll()
+        p2 = self._view.getViewParameters()
+        c = CommandChangeView(p1, p2)
+        c.setCallbackMethod(self._view.setViewParameters)
+        self._undo_redo_stack.push(c)
 
     def mousePressEvent(self, event):
-        pass
+        sceneviewer = self._view.getSceneviewer()
+        scene_input = sceneviewer.createSceneviewerinput()
+        scene_input.setPosition(event.x(), event.y())
+        scene_input.setEventType(Sceneviewerinput.EVENT_TYPE_BUTTON_PRESS)
+        scene_input.setButtonType(button_map[event.button()])
+        scene_input.setModifierFlags(modifier_map(event.modifiers()))
+
+        sceneviewer.processSceneviewerinput(scene_input)
+        self._start_view_parameters = self._view.getViewParameters()
+
+    def mouseMoveEvent(self, event):
+        sceneviewer = self._view.getSceneviewer()
+        scene_input = sceneviewer.createSceneviewerinput()
+        scene_input.setPosition(event.x(), event.y())
+        scene_input.setEventType(Sceneviewerinput.EVENT_TYPE_MOTION_NOTIFY)
+        if event.type() == QtCore.QEvent.Leave:
+            scene_input.setPosition(-1, -1)
+
+        sceneviewer.processSceneviewerinput(scene_input)
 
     def mouseReleaseEvent(self, event):
-        pass
+        sceneviewer = self._view.getSceneviewer()
+        scene_input = sceneviewer.createSceneviewerinput()
+        scene_input.setPosition(event.x(), event.y())
+        scene_input.setEventType(Sceneviewerinput.EVENT_TYPE_BUTTON_RELEASE)
+        scene_input.setButtonType(button_map[event.button()])
+
+        sceneviewer.processSceneviewerinput(scene_input)
+        end_view_parameters = self._view.getViewParameters()
+        c = CommandChangeView(self._start_view_parameters, end_view_parameters)
+        c.setCallbackMethod(self._view.setViewParameters)
+        self._undo_redo_stack.push(c)
 

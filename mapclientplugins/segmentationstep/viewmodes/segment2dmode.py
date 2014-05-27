@@ -26,13 +26,12 @@ from mapclientplugins.segmentationstep.viewmodes.segmentmode import SegmentMode
 from mapclientplugins.segmentationstep.maths.vectorops import add, mult, cross, dot, sub, normalize, magnitude
 from mapclientplugins.segmentationstep.maths.algorithms import calculateCentroid, calculateLinePlaneIntersection
 from mapclientplugins.segmentationstep.undoredo import CommandChangeView, CommandNode
-from mapclientplugins.segmentationstep.widgets.sceneviewerwidget import ViewportParameters
 from mapclientplugins.segmentationstep.segmentpoint import SegmentPointStatus
 
 class SegmentMode2D(SegmentMode):
 
-    def __init__(self, plane, undo_redo_stack):
-        super(SegmentMode2D, self).__init__(plane, undo_redo_stack)
+    def __init__(self, sceneviewer, plane, undo_redo_stack):
+        super(SegmentMode2D, self).__init__(sceneviewer, plane, undo_redo_stack)
         self._start_position = None
         self._model = None
 
@@ -45,10 +44,9 @@ class SegmentMode2D(SegmentMode):
         self._node_status = None
         if not event.modifiers() and event.button() == QtCore.Qt.LeftButton:
             self._start_position = [event.x(), event.y()]
-            p = self._getViewParameters_method()
-            self._start_view_parameters = ViewportParameters(p[0], p[1], p[2], p[3])
+            self._start_view_parameters = self._view.getViewParameters()
         elif (event.modifiers() & QtCore.Qt.CTRL) and event.button() == QtCore.Qt.LeftButton:
-            node = self._node_picker_method(event.x(), event.y())
+            node = self._view.getNearestNode(event.x(), event.y())
             if node and node.isValid():
                 # node exists at this location so select it
                 group = self._model.getSelectionGroup()
@@ -70,7 +68,7 @@ class SegmentMode2D(SegmentMode):
 
             self._node_status = SegmentPointStatus(node.getIdentifier(), node_location, plane_attitude)
         else:
-            event.ignore()
+            super(SegmentMode2D, self).mousePressEvent(event)
 
     def mouseMoveEvent(self, event):
         if self._start_position is not None:
@@ -81,7 +79,7 @@ class SegmentMode2D(SegmentMode):
             if self._start_position[0] == event.x() and self._start_position[1] == event.y():
                 return
             centre_point = calculateCentroid(self._plane.getRotationPoint(), self._plane.getNormal(), self._get_dimension_method())
-            centre_widget = self._project_method(centre_point[0], centre_point[1], centre_point[2])
+            centre_widget = self._view.project(centre_point[0], centre_point[1], centre_point[2])
             a = sub(centre_widget, [event.x(), -event.y(), centre_widget[2]])
             b = sub(centre_widget, [self._start_position[0], -self._start_position[1], centre_widget[2]])
             c = dot(a, b)
@@ -89,7 +87,7 @@ class SegmentMode2D(SegmentMode):
             theta = acos(min(c / d, 1.0))
             if theta != 0.0:
                 g = cross(a, b)
-                lookat, eye, up, angle = self._getViewParameters_method()
+                lookat, eye, up, angle = self._view.getViewParameters()
                 w = normalize(sub(lookat, eye))
                 if copysign(1, dot(g, [0, 0, 1])) < 0:
                     theta = -theta
@@ -99,22 +97,21 @@ class SegmentMode2D(SegmentMode):
                 p3a = mult(w, dot(w, v))
                 p3 = mult(p3a, 1 - cos(theta))
                 v_rot = add(p1, add(p2, p3))
-                self._setViewParameters_method(lookat, eye, v_rot, angle)
+                self._view.setViewParameters(lookat, eye, v_rot, angle)
                 self._start_position = [event.x(), event.y()]
         elif self._node_status is not None:
             node = self._model.getNodeByIdentifier(self._node_status.getNodeIdentifier())
             point_on_plane = self._calculatePointOnPlane(event.x(), event.y())
             self._model.setNodeLocation(node, point_on_plane)
         else:
-            event.ignore()
+            super(SegmentMode2D, self).mouseMoveEvent(event)
 
     def mouseReleaseEvent(self, event):
         if self._start_position is not None:
             # Do undo redo command
-            p = self._getViewParameters_method()
-            end_view_parameters = ViewportParameters(p[0], p[1], p[2], p[3])
+            end_view_parameters = self._view.getViewParameters()
             c = CommandChangeView(self._start_view_parameters, end_view_parameters)
-            c.setCallbackMethod(self._setViewParameters_method)
+            c.setCallbackMethod(self._view.setViewParameters)
             self._undo_redo_stack.push(c)
         elif self._node_status is not None:
             # do undo redo command for adding a node or moving a node
@@ -128,11 +125,11 @@ class SegmentMode2D(SegmentMode):
             c = CommandNode(self._model, self._node_status, node_status)
             self._undo_redo_stack.push(c)
         else:
-            event.ignore()
+            super(SegmentMode2D, self).mouseReleaseEvent(event)
 
     def _calculatePointOnPlane(self, x, y):
-        far_plane_point = self._unproject_method(x, -y, -1.0)
-        near_plane_point = self._unproject_method(x, -y, 1.0)
+        far_plane_point = self._view.unproject(x, -y, -1.0)
+        near_plane_point = self._view.unproject(x, -y, 1.0)
         point_on_plane = calculateLinePlaneIntersection(near_plane_point, far_plane_point, self._plane.getRotationPoint(), self._plane.getNormal())
         return point_on_plane
 

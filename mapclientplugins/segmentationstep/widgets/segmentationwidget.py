@@ -165,7 +165,11 @@ class SegmentationWidget(QtGui.QWidget):
         self._setPlaneRotationCentreGlyphBaseSize(base_size)
 
     def _viewAllClicked(self):
+        stack = self._model.getUndoRedoStack()
+        stack.beginMacro('view all')
         self._ui._sceneviewer3d.viewAll()
+        self._ui._sceneviewer2d.viewAll()
+        stack.endMacro()
 
     def _projectionModeChanged(self):
         current_mode = ProjectionMode.PERSPECTIVE if self._ui._radioButtonParallel.isChecked() else ProjectionMode.PARALLEL
@@ -354,8 +358,8 @@ class SegmentationWidget(QtGui.QWidget):
         if self.sender() == self._ui._sceneviewer3d:
             self._saveViewState()
 
-    def _addNode(self, mouseevent):
-        position = self._calcluatePlaneIntersection(mouseevent.x(), mouseevent.y())
+    def _addNode(self, event):
+        position = self._calcluatePlaneIntersection(event.x(), event.y())
         if self._coordinatesInElement(position):
             scale = self._model.getScale()
             unscaled_position = eldiv(position, scale)
@@ -460,28 +464,18 @@ class SegmentationWidget(QtGui.QWidget):
         purple_material = materialmodule.findMaterialByName('purple')
         red_material = materialmodule.findMaterialByName('red')
 
-        segment_mode = segmentmode.SegmentMode(plane, undo_redo_stack)
-        segment_mode_2d = segment2dmode.SegmentMode2D(plane, undo_redo_stack)
-        segment_mode_2d.setGetViewParametersMethod(self._ui._sceneviewer2d.getViewParameters)
-        segment_mode_2d.setSetViewParametersMethod(self._ui._sceneviewer2d.setViewParameters)
-        segment_mode_2d.setProjectUnProjectMethods(self._ui._sceneviewer2d.project, self._ui._sceneviewer2d.unproject)
+        segment_mode = segmentmode.SegmentMode(self._ui._sceneviewer3d, plane, undo_redo_stack)
+        segment_mode_2d = segment2dmode.SegmentMode2D(self._ui._sceneviewer2d, plane, undo_redo_stack)
         segment_mode_2d.setGetDimensionsMethod(image_model.getDimensions)
-        segment_mode_2d.setNodePickerMethod(self._ui._sceneviewer2d.getNearestNode)
         segment_mode_2d.setModel(node_model)
 
-        normal_mode = normalmode.NormalMode(plane, undo_redo_stack)
-        normal_mode.setGlyphPickerMethod(self._ui._sceneviewer3d.getNearestGraphicsPoint)
+        normal_mode = normalmode.NormalMode(self._ui._sceneviewer3d, plane, undo_redo_stack)
         normal_mode.setGetDimensionsMethod(image_model.getDimensions)
-        normal_mode.setProjectUnProjectMethods(self._ui._sceneviewer3d.project, self._ui._sceneviewer3d.unproject)
         normal_mode.setDefaultMaterial(yellow_material)
         normal_mode.setSelectedMaterial(orange_material)
 
-        rotation_mode = rotationmode.RotationMode(plane, undo_redo_stack)
-        rotation_mode.setGlyphPickerMethod(self._ui._sceneviewer3d.getNearestGraphicsPoint)
-        rotation_mode.setProjectUnProjectMethods(self._ui._sceneviewer3d.project, self._ui._sceneviewer3d.unproject)
+        rotation_mode = rotationmode.RotationMode(self._ui._sceneviewer3d, plane, undo_redo_stack)
         rotation_mode.setGetDimensionsMethod(image_model.getDimensions)
-        rotation_mode.setWidthHeightMethods(self._ui._sceneviewer3d.width, self._ui._sceneviewer3d.height)
-        rotation_mode.setGetViewParametersMethod(self._ui._sceneviewer3d.getViewParameters)
         rotation_mode.setDefaultMaterial(purple_material)
         rotation_mode.setSelectedMaterial(red_material)
 

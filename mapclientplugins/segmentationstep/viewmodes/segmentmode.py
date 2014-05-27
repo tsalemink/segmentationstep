@@ -22,8 +22,8 @@ from mapclientplugins.segmentationstep.widgets.definitions import ViewMode
 
 class SegmentMode(AbstractViewMode):
 
-    def __init__(self, plane, undo_redo_stack):
-        super(SegmentMode, self).__init__(plane, undo_redo_stack)
+    def __init__(self, sceneviewer, plane, undo_redo_stack):
+        super(SegmentMode, self).__init__(sceneviewer, plane, undo_redo_stack)
         self._mode_type = ViewMode.SEGMENT
         self._getViewParameters_method = None
         self._setViewParameters_method = None
@@ -38,13 +38,13 @@ class SegmentMode(AbstractViewMode):
     def setNodePickerMethod(self, method):
         self._node_picker_method = method
 
-    def mouseMoveEvent(self, event):
-        event.ignore()
-
     def mousePressEvent(self, event):
-        event.ignore()
+        super(SegmentMode, self).mousePressEvent(event)
+
+    def mouseMoveEvent(self, event):
+        super(SegmentMode, self).mouseMoveEvent(event)
 
     def mouseReleaseEvent(self, event):
-        event.ignore()
+        super(SegmentMode, self).mouseReleaseEvent(event)
 
 
