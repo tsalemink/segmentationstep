@@ -27,16 +27,53 @@ from mapclientplugins.segmentationstep.maths.vectorops import add, mult, cross, 
 from mapclientplugins.segmentationstep.maths.algorithms import calculateCentroid, calculateLinePlaneIntersection
 from mapclientplugins.segmentationstep.undoredo import CommandChangeView, CommandNode
 from mapclientplugins.segmentationstep.segmentpoint import SegmentPointStatus
+from mapclientplugins.segmentationstep.widgets.definitions import IMAGE_PLANE_GRAPHIC_NAME, POINT_CLOUD_GRAPHIC_NAME
+
+SELECTION_BOX_GRAPHIC_NAME = 'selection_box_2d'
 
 class SegmentMode2D(SegmentMode):
 
     def __init__(self, sceneviewer, plane, undo_redo_stack):
         super(SegmentMode2D, self).__init__(sceneviewer, plane, undo_redo_stack)
         self._start_position = None
-        self._model = None
+        self._scenviewer_filter = None
+        self._sceneviewer_filter_orignal = None
 
-    def setModel(self, model):
-        self._model = model
+    def _createSceneviewerFilter(self):
+        sceneviewer = self._view.getSceneviewer()
+        scene = sceneviewer.getScene()
+        filtermodule = scene.getScenefiltermodule()
+# #         node_filter = filtermodule.createScenefilterFieldDomainType(Field.DOMAIN_TYPE_NODES)
+        visibility_filter = filtermodule.createScenefilterVisibilityFlags()
+        label_filter1 = filtermodule.createScenefilterGraphicsName(IMAGE_PLANE_GRAPHIC_NAME)
+        label_filter2 = filtermodule.createScenefilterGraphicsName(POINT_CLOUD_GRAPHIC_NAME)
+        label_filter3 = filtermodule.createScenefilterGraphicsName(SELECTION_BOX_GRAPHIC_NAME)
+# #         label_filter1.setInverse(True)
+#
+        label_filter = filtermodule.createScenefilterOperatorOr()
+        label_filter.appendOperand(label_filter1)
+        label_filter.appendOperand(label_filter2)
+        label_filter.appendOperand(label_filter3)
+#
+        master_filter = filtermodule.createScenefilterOperatorAnd()
+# #         master_filter.appendOperand(node_filter)
+        master_filter.appendOperand(visibility_filter)
+        master_filter.appendOperand(label_filter)
+
+        return master_filter
+
+    def enter(self):
+        super(SegmentMode2D, self).enter()
+        sceneviewer = self._view.getSceneviewer()
+        self._sceneviewer_filter_orignal = sceneviewer.getScenefilter()
+        if self._scenviewer_filter is None:
+            self._scenviewer_filter = self._createSceneviewerFilter()
+        sceneviewer.setScenefilter(self._scenviewer_filter)
+
+    def leave(self):
+        super(SegmentMode2D, self).leave()
+        sceneviewer = self._view.getSceneviewer()
+        sceneviewer.setScenefilter(self._sceneviewer_filter_orignal)
 
     def mousePressEvent(self, event):
         self._node = None

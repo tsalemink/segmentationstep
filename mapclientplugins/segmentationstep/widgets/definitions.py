@@ -23,6 +23,7 @@ DEFAULT_SEGMENTATION_POINT_SIZE = 2.0
 GRAPHIC_LABEL_NAME = 'label_only'
 IMAGE_PLANE_GRAPHIC_NAME = 'image_plane'
 POINT_CLOUD_GRAPHIC_NAME = 'point_cloud'
+SELECTION_BOX_GRAPHIC_NAME = 'selection_box'
 
 class ViewMode(object):
 

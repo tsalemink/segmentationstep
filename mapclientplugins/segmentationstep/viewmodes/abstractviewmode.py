@@ -41,9 +41,6 @@ class AbstractViewMode(object):
     def enter(self):
         pass
 
-    def hasGlyph(self):
-        return hasattr(self, '_glyph')
-
     def getModeType(self):
         return self._mode_type
 

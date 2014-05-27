@@ -43,7 +43,7 @@ def modifier_map(qt_modifiers):
     return modifiers
 # mapping from qt to zinc end
 
-SELCTION_RUBBERBAND_NAME = 'selection_rubberband'
+SELECTION_RUBBERBAND_NAME = 'selection_rubberband'
 
 # projectionMode start
 class ProjectionMode(object):
@@ -104,7 +104,7 @@ class SceneviewerWidget(QtOpenGL.QGLWidget):
         self._elemSelectMode = True
         self._selectionMode = SelectionMode.NONE
         self._selectionGroup = None
-        self._selectionBox = None
+        self._selection_box = None
         self._ignore_mouse_events = False
         self._undoRedoStack = None
         # init end
@@ -172,17 +172,17 @@ class SceneviewerWidget(QtOpenGL.QGLWidget):
 
             # If the standard glyphs haven't been defined then the
             # selection box will not be visible
-            self._selectionBox = scene.createGraphicsPoints()
-            self._selectionBox.setName(SELCTION_RUBBERBAND_NAME)
-            self._selectionBox.setScenecoordinatesystem(SCENECOORDINATESYSTEM_WINDOW_PIXEL_TOP_LEFT)
-            attributes = self._selectionBox.getGraphicspointattributes()
+            self._selection_box = scene.createGraphicsPoints()
+            self._selection_box.setName(SELECTION_RUBBERBAND_NAME)
+            self._selection_box.setScenecoordinatesystem(SCENECOORDINATESYSTEM_WINDOW_PIXEL_TOP_LEFT)
+            attributes = self._selection_box.getGraphicspointattributes()
             attributes.setGlyphShapeType(Glyph.SHAPE_TYPE_CUBE_WIREFRAME)
             attributes.setBaseSize([10, 10, 0.9999])
             attributes.setGlyphOffset([1, -1, 0])
             self._selectionBox_setBaseSize = attributes.setBaseSize
             self._selectionBox_setGlyphOffset = attributes.setGlyphOffset
 
-            self._selectionBox.setVisibilityFlag(False)
+            self._selection_box.setVisibilityFlag(False)
 
             # Set up unproject pipeline
             self._window_coords_from = fieldmodule.createFieldConstant([0, 0, 0])
@@ -242,6 +242,9 @@ class SceneviewerWidget(QtOpenGL.QGLWidget):
             return scenefilter
 
         return None
+
+    def getScenepicker(self):
+        return self._scenepicker
 
     def setSelectionfilter(self, scenefilter):
         self._scenepicker.setScenefilter(scenefilter)
@@ -390,7 +393,7 @@ class SceneviewerWidget(QtOpenGL.QGLWidget):
             # Construct a small frustrum to look for nodes in.
             root_region = self._context.getDefaultRegion()
             root_region.beginHierarchicalChange()
-            self._selectionBox.setVisibilityFlag(False)
+            self._selection_box.setVisibilityFlag(False)
 
             if (x != self._selectionPositionStart[0] and y != self._selectionPositionStart[1]):
                 left = min(x, self._selectionPositionStart[0])
@@ -482,11 +485,11 @@ class SceneviewerWidget(QtOpenGL.QGLWidget):
                 ydiff = 1
             xoff = float(self._selectionPositionStart[0]) / xdiff + 0.5
             yoff = float(self._selectionPositionStart[1]) / ydiff + 0.5
-            scene = self._selectionBox.getScene()
+            scene = self._selection_box.getScene()
             scene.beginChange()
             self._selectionBox_setBaseSize([xdiff, ydiff, 0.999])
             self._selectionBox_setGlyphOffset([xoff, -yoff, 0])
-            self._selectionBox.setVisibilityFlag(True)
+            self._selection_box.setVisibilityFlag(True)
             scene.endChange()
         elif not self._ignore_mouse_events and self._handle_mouse_events:
             scene_input = self._sceneviewer.createSceneviewerinput()

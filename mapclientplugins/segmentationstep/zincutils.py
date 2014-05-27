@@ -23,6 +23,10 @@ from opencmiss.zinc.sceneviewerinput import Sceneviewerinput
 from opencmiss.zinc.element import Element, Elementbasis
 from opencmiss.zinc.field import Field
 from opencmiss.zinc.glyph import Glyph
+from opencmiss.zinc.scenecoordinatesystem import SCENECOORDINATESYSTEM_LOCAL, SCENECOORDINATESYSTEM_WINDOW_PIXEL_TOP_LEFT
+
+COORDINATE_SYSTEM_LOCAL = SCENECOORDINATESYSTEM_LOCAL
+COORDINATE_SYSTEM_WINDOW_PIXEL_TOP_LEFT = SCENECOORDINATESYSTEM_WINDOW_PIXEL_TOP_LEFT
 
 from mapclientplugins.segmentationstep.widgets.definitions import DEFAULT_GRAPHICS_SPHERE_SIZE, DEFAULT_NORMAL_ARROW_SIZE
 

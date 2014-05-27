@@ -356,7 +356,11 @@ class SegmentationWidget(QtGui.QWidget):
 
     def sceneviewerReady(self):
         if self.sender() == self._ui._sceneviewer3d:
+            self._ui._sceneviewer3d.setActiveModeType(ViewMode.SEGMENT)
             self._saveViewState()
+        elif self.sender() == self._ui._sceneviewer2d:
+            self._ui._sceneviewer2d.setActiveModeType(ViewMode.SEGMENT)
+
 
     def _addNode(self, event):
         position = self._calcluatePlaneIntersection(event.x(), event.y())
@@ -423,6 +427,7 @@ class SegmentationWidget(QtGui.QWidget):
         self._current_viewmode = view_mode
 
     def _setupSelectionScenefilters(self):
+        print('setup selection scene filters')
         filtermodule = self._context.getScenefiltermodule()
         visibility_filter = filtermodule.createScenefilterVisibilityFlags()
         node_filter = filtermodule.createScenefilterFieldDomainType(Field.DOMAIN_TYPE_NODES)
@@ -465,6 +470,8 @@ class SegmentationWidget(QtGui.QWidget):
         red_material = materialmodule.findMaterialByName('red')
 
         segment_mode = segmentmode.SegmentMode(self._ui._sceneviewer3d, plane, undo_redo_stack)
+        segment_mode.setModel(node_model)
+
         segment_mode_2d = segment2dmode.SegmentMode2D(self._ui._sceneviewer2d, plane, undo_redo_stack)
         segment_mode_2d.setGetDimensionsMethod(image_model.getDimensions)
         segment_mode_2d.setModel(node_model)
@@ -485,7 +492,7 @@ class SegmentationWidget(QtGui.QWidget):
 
         self._ui._sceneviewer2d.addMode(segment_mode_2d)
 
-        self._ui._sceneviewer3d.setActiveModeType(ViewMode.SEGMENT)
-        self._ui._sceneviewer2d.setActiveModeType(ViewMode.SEGMENT)
+#         self._ui._sceneviewer3d.setActiveModeType(ViewMode.SEGMENT)
+#         self._ui._sceneviewer2d.setActiveModeType(ViewMode.SEGMENT)
 
 

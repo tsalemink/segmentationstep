@@ -19,7 +19,7 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
 '''
 from mapclientplugins.segmentationstep.widgets.sceneviewerwidgetsegmentation import SceneviewerWidgetSegmentation
 from mapclientplugins.segmentationstep.maths.vectorops import add
-from mapclientplugins.segmentationstep.widgets.definitions import IMAGE_PLANE_GRAPHIC_NAME, POINT_CLOUD_GRAPHIC_NAME
+# from mapclientplugins.segmentationstep.widgets.definitions import IMAGE_PLANE_GRAPHIC_NAME, POINT_CLOUD_GRAPHIC_NAME
 
 class SceneviewerWidget2D(SceneviewerWidgetSegmentation):
 
@@ -41,24 +41,24 @@ class SceneviewerWidget2D(SceneviewerWidgetSegmentation):
             self.viewAll()
             self._sceneviewer.endChange()
 
-    def _setSceneviewerFilters(self):
-        filtermodule = self._context.getScenefiltermodule()
-#         node_filter = filtermodule.createScenefilterFieldDomainType(Field.DOMAIN_TYPE_NODES)
-        visibility_filter = filtermodule.createScenefilterVisibilityFlags()
-        label_filter1 = filtermodule.createScenefilterGraphicsName(IMAGE_PLANE_GRAPHIC_NAME)
-        label_filter2 = filtermodule.createScenefilterGraphicsName(POINT_CLOUD_GRAPHIC_NAME)
-#         label_filter1.setInverse(True)
-
-        label_filter = filtermodule.createScenefilterOperatorOr()
-        label_filter.appendOperand(label_filter1)
-        label_filter.appendOperand(label_filter2)
-
-        master_filter = filtermodule.createScenefilterOperatorAnd()
-#         master_filter.appendOperand(node_filter)
-        master_filter.appendOperand(visibility_filter)
-        master_filter.appendOperand(label_filter)
-
-        self._sceneviewer.setScenefilter(master_filter)
+#     def _setSceneviewerFilters(self):
+#         filtermodule = self._context.getScenefiltermodule()
+# #         node_filter = filtermodule.createScenefilterFieldDomainType(Field.DOMAIN_TYPE_NODES)
+#         visibility_filter = filtermodule.createScenefilterVisibilityFlags()
+#         label_filter1 = filtermodule.createScenefilterGraphicsName(IMAGE_PLANE_GRAPHIC_NAME)
+#         label_filter2 = filtermodule.createScenefilterGraphicsName(POINT_CLOUD_GRAPHIC_NAME)
+# #         label_filter1.setInverse(True)
+#
+#         label_filter = filtermodule.createScenefilterOperatorOr()
+#         label_filter.appendOperand(label_filter1)
+#         label_filter.appendOperand(label_filter2)
+#
+#         master_filter = filtermodule.createScenefilterOperatorAnd()
+# #         master_filter.appendOperand(node_filter)
+#         master_filter.appendOperand(visibility_filter)
+#         master_filter.appendOperand(label_filter)
+#
+#         self._sceneviewer.setScenefilter(master_filter)
 
     def initializeGL(self):
         super(SceneviewerWidget2D, self).initializeGL()
@@ -66,7 +66,7 @@ class SceneviewerWidget2D(SceneviewerWidgetSegmentation):
         self._sceneviewer.setTumbleRate(0.0)
 #         self._sceneviewer.setTranslationRate(0.0)
         self._setViewParameters()
-        self._setSceneviewerFilters()
+#         self._setSceneviewerFilters()
         self.viewAll()
 
 
