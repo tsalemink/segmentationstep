@@ -22,7 +22,7 @@ from PySide import QtGui, QtCore
 from opencmiss.zinc.field import Field
 from opencmiss.zinc.glyph import Glyph
 
-from mapclientplugins.segmentationstep.viewmodes import normalmode, rotationmode, segmentmode2d, segmentmode
+from mapclientplugins.segmentationstep.viewmodes import normalmode, rotationmode, segmentmode2d, segmentmode3d
 from mapclientplugins.segmentationstep.widgets.ui_segmentationwidget import Ui_SegmentationWidget
 from mapclientplugins.segmentationstep.undoredo import CommandAddNode, CommandChangeViewMode, CommandSetScale, CommandSetSingleParameterMethod, CommandSetGraphicVisibility, CommandSetGlyphSize
 from mapclientplugins.segmentationstep.widgets.zincwidget import ProjectionMode
@@ -469,7 +469,7 @@ class SegmentationWidget(QtGui.QWidget):
         purple_material = materialmodule.findMaterialByName('purple')
         red_material = materialmodule.findMaterialByName('red')
 
-        segment_mode = segmentmode.SegmentMode(self._ui._sceneviewer3d, plane, undo_redo_stack)
+        segment_mode = segmentmode3d.SegmentMode3D(self._ui._sceneviewer3d, plane, undo_redo_stack)
         segment_mode.setModel(node_model)
 
         segment_mode_2d = segmentmode2d.SegmentMode2D(self._ui._sceneviewer2d, plane, undo_redo_stack)

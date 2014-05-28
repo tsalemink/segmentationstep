@@ -102,7 +102,7 @@ class SceneviewerWidget(QtOpenGL.QGLWidget):
         # Selection attributes
         self._nodeSelectMode = True
         self._elemSelectMode = True
-        self._selectionMode = SelectionMode.NONE
+        self._selection_mode = SelectionMode.NONE
         self._selectionGroup = None
         self._selection_box = None
         self._ignore_mouse_events = False
@@ -246,6 +246,9 @@ class SceneviewerWidget(QtOpenGL.QGLWidget):
     def getScenepicker(self):
         return self._scenepicker
 
+    def setPickingRectangle(self, coordinate_system, left, bottom, right, top):
+        self._scenepicker.setSceneviewerRectangle(self._sceneviewer, coordinate_system, left, bottom, right, top);
+
     def setSelectionfilter(self, scenefilter):
         self._scenepicker.setScenefilter(scenefilter)
 
@@ -299,6 +302,9 @@ class SceneviewerWidget(QtOpenGL.QGLWidget):
 
         return None
 
+    def getNeareshGraphics(self):
+        return self._scenepicker.getNearestGraphics()
+
     def getNearestGraphicsNode(self, x, y):
         return self._getNearestGraphic(x, y, Field.DOMAIN_TYPE_NODES)
 
@@ -315,6 +321,9 @@ class SceneviewerWidget(QtOpenGL.QGLWidget):
         node = self._scenepicker.getNearestNode()
 
         return node
+
+    def addPickedNodesToFieldGroup(self, selection_group):
+        self._scenepicker.addPickedNodesToFieldGroup(selection_group)
 
     def setIgnoreMouseEvents(self, value):
         self._ignore_mouse_events = value
@@ -365,10 +374,10 @@ class SceneviewerWidget(QtOpenGL.QGLWidget):
         event.accept()
         self._handle_mouse_events = False  # Track when the zinc should be handling mouse events
         if not self._ignore_mouse_events and (event.modifiers() & QtCore.Qt.SHIFT) and (self._nodeSelectMode or self._elemSelectMode) and button_map[event.button()] == Sceneviewerinput.BUTTON_TYPE_LEFT:
-            self._selectionPositionStart = (event.x(), event.y())
-            self._selectionMode = SelectionMode.EXCULSIVE
+            self._selection_position_start = (event.x(), event.y())
+            self._selection_mode = SelectionMode.EXCULSIVE
             if event.modifiers() & QtCore.Qt.ALT:
-                self._selectionMode = SelectionMode.ADDITIVE
+                self._selection_mode = SelectionMode.ADDITIVE
         elif not self._ignore_mouse_events and not event.modifiers() or (event.modifiers() & QtCore.Qt.SHIFT and button_map[event.button()] == Sceneviewerinput.BUTTON_TYPE_RIGHT):
             scene_input = self._sceneviewer.createSceneviewerinput()
             scene_input.setPosition(event.x(), event.y())
@@ -387,7 +396,7 @@ class SceneviewerWidget(QtOpenGL.QGLWidget):
         Inform the scene viewer of a mouse release event.
         '''
         event.accept()
-        if not self._ignore_mouse_events and self._selectionMode != SelectionMode.NONE:
+        if not self._ignore_mouse_events and self._selection_mode != SelectionMode.NONE:
             x = event.x()
             y = event.y()
             # Construct a small frustrum to look for nodes in.
@@ -395,13 +404,13 @@ class SceneviewerWidget(QtOpenGL.QGLWidget):
             root_region.beginHierarchicalChange()
             self._selection_box.setVisibilityFlag(False)
 
-            if (x != self._selectionPositionStart[0] and y != self._selectionPositionStart[1]):
-                left = min(x, self._selectionPositionStart[0])
-                right = max(x, self._selectionPositionStart[0])
-                bottom = min(y, self._selectionPositionStart[1])
-                top = max(y, self._selectionPositionStart[1])
+            if (x != self._selection_position_start[0] and y != self._selection_position_start[1]):
+                left = min(x, self._selection_position_start[0])
+                right = max(x, self._selection_position_start[0])
+                bottom = min(y, self._selection_position_start[1])
+                top = max(y, self._selection_position_start[1])
                 self._scenepicker.setSceneviewerRectangle(self._sceneviewer, SCENECOORDINATESYSTEM_LOCAL, left, bottom, right, top);
-                if self._selectionMode == SelectionMode.EXCULSIVE:
+                if self._selection_mode == SelectionMode.EXCULSIVE:
                     self._selectionGroup.clear()
                 if self._nodeSelectMode:
                     self._scenepicker.addPickedNodesToFieldGroup(self._selectionGroup)
@@ -410,7 +419,7 @@ class SceneviewerWidget(QtOpenGL.QGLWidget):
             else:
 
                 self._scenepicker.setSceneviewerRectangle(self._sceneviewer, SCENECOORDINATESYSTEM_LOCAL, x - 0.5, y - 0.5, x + 0.5, y + 0.5)
-                if self._nodeSelectMode and self._elemSelectMode and self._selectionMode == SelectionMode.EXCULSIVE and not self._scenepicker.getNearestGraphics().isValid():
+                if self._nodeSelectMode and self._elemSelectMode and self._selection_mode == SelectionMode.EXCULSIVE and not self._scenepicker.getNearestGraphics().isValid():
                     self._selectionGroup.clear()
 
                 if self._nodeSelectMode and (self._scenepicker.getNearestGraphics().getFieldDomainType() == Field.DOMAIN_TYPE_NODES):
@@ -422,12 +431,12 @@ class SceneviewerWidget(QtOpenGL.QGLWidget):
                         nodegroup = self._selectionGroup.createFieldNodeGroup(nodeset)
 
                     group = nodegroup.getNodesetGroup()
-                    if self._selectionMode == SelectionMode.EXCULSIVE:
+                    if self._selection_mode == SelectionMode.EXCULSIVE:
                         remove_current = group.getSize() == 1 and group.containsNode(node)
                         self._selectionGroup.clear()
                         if not remove_current:
                             group.addNode(node)
-                    elif self._selectionMode == SelectionMode.ADDITIVE:
+                    elif self._selection_mode == SelectionMode.ADDITIVE:
                         if group.containsNode(node):
                             group.removeNode(node)
                         else:
@@ -442,12 +451,12 @@ class SceneviewerWidget(QtOpenGL.QGLWidget):
                         elementgroup = self._selectionGroup.createFieldElementGroup(mesh)
 
                     group = elementgroup.getMeshGroup()
-                    if self._selectionMode == SelectionMode.EXCULSIVE:
+                    if self._selection_mode == SelectionMode.EXCULSIVE:
                         remove_current = group.getSize() == 1 and group.containsElement(elem)
                         self._selectionGroup.clear()
                         if not remove_current:
                             group.addElement(elem)
-                    elif self._selectionMode == SelectionMode.ADDITIVE:
+                    elif self._selection_mode == SelectionMode.ADDITIVE:
                         if group.containsElement(elem):
                             group.removeElement(elem)
                         else:
@@ -455,7 +464,7 @@ class SceneviewerWidget(QtOpenGL.QGLWidget):
 
 
             root_region.endHierarchicalChange()
-            self._selectionMode = SelectionMode.NONE
+            self._selection_mode = SelectionMode.NONE
         elif not self._ignore_mouse_events and self._handle_mouse_events:
             print('dont come here.')
             scene_input = self._sceneviewer.createSceneviewerinput()
@@ -474,17 +483,17 @@ class SceneviewerWidget(QtOpenGL.QGLWidget):
         '''
 
         event.accept()
-        if not self._ignore_mouse_events and self._selectionMode != SelectionMode.NONE:
+        if not self._ignore_mouse_events and self._selection_mode != SelectionMode.NONE:
             x = event.x()
             y = event.y()
-            xdiff = float(x - self._selectionPositionStart[0])
-            ydiff = float(y - self._selectionPositionStart[1])
+            xdiff = float(x - self._selection_position_start[0])
+            ydiff = float(y - self._selection_position_start[1])
             if abs(xdiff) < 0.0001:
                 xdiff = 1
             if abs(ydiff) < 0.0001:
                 ydiff = 1
-            xoff = float(self._selectionPositionStart[0]) / xdiff + 0.5
-            yoff = float(self._selectionPositionStart[1]) / ydiff + 0.5
+            xoff = float(self._selection_position_start[0]) / xdiff + 0.5
+            yoff = float(self._selection_position_start[1]) / ydiff + 0.5
             scene = self._selection_box.getScene()
             scene.beginChange()
             self._selectionBox_setBaseSize([xdiff, ydiff, 0.999])

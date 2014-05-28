@@ -259,7 +259,12 @@ class NodeModel(AbstractModel):
         fieldmodule.beginChange()
         self._scale_field = fieldmodule.createFieldConstant([1.0, 1.0, 1.0])
         self._scaled_coordinate_field = self._coordinate_field * self._scale_field
-        self._group = None
+
+        # Setup the selection fields
+        self._selection_group_field = fieldmodule.createFieldGroup()
+        nodeset = fieldmodule.findNodesetByName('nodes')
+        nodegroup = self._selection_group_field.createFieldNodeGroup(nodeset)
+        self._group = nodegroup.getNodesetGroup()
         fieldmodule.endChange()
 
     def setScale(self, scale):
@@ -272,8 +277,8 @@ class NodeModel(AbstractModel):
         fieldcache = fieldmodule.createFieldcache()
         self._scale_field.assignReal(fieldcache, scale)
 
-    def getSelectionFieldGroup(self):
-        return self._selectionGroup
+    def getSelectionGroupField(self):
+        return self._selection_group_field
 
     def getSelectionGroup(self):
         return self._group
@@ -364,24 +369,12 @@ class NodeModel(AbstractModel):
 
         scene = self._region.getScene()
         selection_field = scene.getSelectionField()
-        if selection_field.isValid():
-            selection_group_field = selection_field.castGroup()
-        else:
-            selection_group_field = fieldmodule.createFieldGroup()
-            scene.setSelectionField(selection_group_field)
+        if not selection_field.isValid():
+            scene.setSelectionField(self._selection_group_field)
 
-        nodegroup = selection_group_field.getFieldNodeGroup(nodeset)
-        if not nodegroup.isValid():
-            nodegroup = selection_group_field.createFieldNodeGroup(nodeset)
-
-        selection_group_field.clear()
+        self._selection_group_field.clear()
 
         node = nodeset.createNode(-1, template)
-        nodegroup = selection_group_field.getFieldNodeGroup(nodeset)
-        if not nodegroup.isValid():
-            nodegroup = selection_group_field.createFieldNodeGroup(nodeset)
-
-        self._group = nodegroup.getNodesetGroup()
         self._group.addNode(node)
 
         fieldmodule.endChange()

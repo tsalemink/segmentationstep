@@ -151,6 +151,29 @@ def setGlyphSize(glyph, size):
     attributes = glyph.getGraphicspointattributes()
     attributes.setBaseSize(size)
 
+def setGlyphOffset(glyph, offset):
+    attributes = glyph.getGraphicspointattributes()
+    attributes.setGlyphOffset(offset)
+
+def createSelectionBox(region, name):
+    scene = region.getScene()
+    fm = region.getFieldmodule()
+    zero_field = fm.createFieldConstant([0, 0, 0])
+
+    scene.beginChange()
+    selection_box = scene.createGraphicsPoints()
+    selection_box.setName(name)
+    selection_box.setCoordinateField(zero_field)
+    selection_box.setScenecoordinatesystem(SCENECOORDINATESYSTEM_WINDOW_PIXEL_TOP_LEFT)
+    attributes = selection_box.getGraphicspointattributes()
+    attributes.setGlyphShapeType(Glyph.SHAPE_TYPE_CUBE_WIREFRAME)
+    attributes.setBaseSize([10, 10, 0.9999])
+
+    selection_box.setVisibilityFlag(False)
+    scene.endChange()
+
+    return selection_box
+
 def createPlaneManipulationSphere(region):
     scene = region.getScene()
 

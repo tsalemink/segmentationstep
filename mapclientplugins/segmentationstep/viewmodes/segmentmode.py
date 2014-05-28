@@ -21,6 +21,10 @@ from PySide import QtCore
 
 from mapclientplugins.segmentationstep.viewmodes.abstractviewmode import AbstractViewMode
 from mapclientplugins.segmentationstep.widgets.definitions import ViewMode
+from mapclientplugins.segmentationstep.zincutils import setGlyphSize, setGlyphOffset, COORDINATE_SYSTEM_LOCAL
+from mapclientplugins.segmentationstep.undoredo import CommandNode
+from mapclientplugins.segmentationstep.segmentpoint import SegmentPointStatus
+from mapclientplugins.segmentationstep.maths.algorithms import calculateLinePlaneIntersection
 
 class SelectionMode(object):
 
@@ -28,133 +32,139 @@ class SelectionMode(object):
     EXCULSIVE = 0
     ADDITIVE = 1
 
+SELECTION_BOX_GRAPHIC_NAME_3D = 'selection_box_3d'
+SELECTION_BOX_GRAPHIC_NAME_2D = 'selection_box_2d'
+
 class SegmentMode(AbstractViewMode):
 
     def __init__(self, sceneviewer, plane, undo_redo_stack):
         super(SegmentMode, self).__init__(sceneviewer, plane, undo_redo_stack)
         self._mode_type = ViewMode.SEGMENT
         self._model = None
+        self._selection_box = None
+        self._selection_mode = SelectionMode.NONE
+        self._selection_position_start = None
 
-#     def _setSceneviewerFilters(self):
-#         filtermodule = self._context.getScenefiltermodule()
-# #         node_filter = filtermodule.createScenefilterFieldDomainType(Field.DOMAIN_TYPE_NODES)
-#         visibility_filter = filtermodule.createScenefilterVisibilityFlags()
-#         label_filter1 = filtermodule.createScenefilterGraphicsName(IMAGE_PLANE_GRAPHIC_NAME)
-#         label_filter2 = filtermodule.createScenefilterGraphicsName(POINT_CLOUD_GRAPHIC_NAME)
-# #         label_filter1.setInverse(True)
-#
-#         label_filter = filtermodule.createScenefilterOperatorOr()
-#         label_filter.appendOperand(label_filter1)
-#         label_filter.appendOperand(label_filter2)
-#
-#         master_filter = filtermodule.createScenefilterOperatorAnd()
-# #         master_filter.appendOperand(node_filter)
-#         master_filter.appendOperand(visibility_filter)
-#         master_filter.appendOperand(label_filter)
-#
-#         self._sceneviewer.setScenefilter(master_filter)
     def setModel(self, model):
         self._model = model
 
     def mousePressEvent(self, event):
-        super(SegmentMode, self).mousePressEvent(event)
-        self._selectionMode = SelectionMode.NONE
+        self._selection_mode = SelectionMode.NONE
+        self._node_status = None
         if event.modifiers() & QtCore.Qt.SHIFT and event.button() == QtCore.Qt.LeftButton:
-            self._selectionPositionStart = [event.x(), event.y()]
-            self._selectionMode = SelectionMode.EXCULSIVE
+            self._selection_position_start = [event.x(), event.y()]
+            self._selection_mode = SelectionMode.EXCULSIVE
             if event.modifiers() & QtCore.Qt.ALT:
-                self._selectionMode = SelectionMode.ADDITIVE
+                self._selection_mode = SelectionMode.ADDITIVE
+        elif (event.modifiers() & QtCore.Qt.CTRL) and event.button() == QtCore.Qt.LeftButton:
+            node = self._view.getNearestNode(event.x(), event.y())
+            if node and node.isValid():
+                # node exists at this location so select it
+                group = self._model.getSelectionGroup()
+                group.removeAllNodes()
+#                 node = None
+                group.addNode(node)
+                node_location = self._model.getNodeLocation(node)
+                plane_attitude = self._model.getNodePlaneAttitude(node.getIdentifier())
+            else:
+                node_location = None
+                plane_attitude = None
+                point_on_plane = self._calculatePointOnPlane(event.x(), event.y())
+                region = self._model.getRegion()
+                fieldmodule = region.getFieldmodule()
+                fieldmodule.beginChange()
+                node = self._model.createNode()
+                self._model.setNodeLocation(node, point_on_plane)
+                fieldmodule.endChange()
+
+            self._node_status = SegmentPointStatus(node.getIdentifier(), node_location, plane_attitude)
+        else:
+            super(SegmentMode, self).mousePressEvent(event)
+
 
     def mouseMoveEvent(self, event):
-        super(SegmentMode, self).mouseMoveEvent(event)
-        if self._selectionMode != SelectionMode.NONE:
+        if self._selection_mode != SelectionMode.NONE:
             x = event.x()
             y = event.y()
-            xdiff = float(x - self._selectionPositionStart[0])
-            ydiff = float(y - self._selectionPositionStart[1])
+            xdiff = float(x - self._selection_position_start[0])
+            ydiff = float(y - self._selection_position_start[1])
             if abs(xdiff) < 0.0001:
                 xdiff = 1
             if abs(ydiff) < 0.0001:
                 ydiff = 1
-            xoff = float(self._selectionPositionStart[0]) / xdiff + 0.5
-            yoff = float(self._selectionPositionStart[1]) / ydiff + 0.5
+            xoff = float(self._selection_position_start[0]) / xdiff + 0.5
+            yoff = float(self._selection_position_start[1]) / ydiff + 0.5
             scene = self._selection_box.getScene()
             scene.beginChange()
-            self._selectionBox_setBaseSize([xdiff, ydiff, 0.999])
-            self._selectionBox_setGlyphOffset([xoff, -yoff, 0])
+            setGlyphSize(self._selection_box, [xdiff, -ydiff, 0.999])
+            setGlyphOffset(self._selection_box, [xoff, yoff, 0])
             self._selection_box.setVisibilityFlag(True)
             scene.endChange()
+        elif self._node_status is not None:
+            node = self._model.getNodeByIdentifier(self._node_status.getNodeIdentifier())
+            point_on_plane = self._calculatePointOnPlane(event.x(), event.y())
+            self._model.setNodeLocation(node, point_on_plane)
+        else:
+            super(SegmentMode, self).mouseMoveEvent(event)
 
     def mouseReleaseEvent(self, event):
-        super(SegmentMode, self).mouseReleaseEvent(event)
-        if self._selectionMode != SelectionMode.NONE:
+        if self._selection_mode != SelectionMode.NONE:
             x = event.x()
             y = event.y()
             # Construct a small frustrum to look for nodes in.
-            root_region = self._view._context.getDefaultRegion()
-            root_region.beginHierarchicalChange()
+            region = self._model.getRegion()  # self._view._context.getDefaultRegion()
+            region.beginHierarchicalChange()
             self._selection_box.setVisibilityFlag(False)
+            selection_group = self._model.getSelectionGroupField()
 
-            if (x != self._selectionPositionStart[0] and y != self._selectionPositionStart[1]):
-                left = min(x, self._selectionPositionStart[0])
-                right = max(x, self._selectionPositionStart[0])
-                bottom = min(y, self._selectionPositionStart[1])
-                top = max(y, self._selectionPositionStart[1])
-                self._scenepicker.setSceneviewerRectangle(self._sceneviewer, SCENECOORDINATESYSTEM_LOCAL, left, bottom, right, top);
-                if self._selectionMode == SelectionMode.EXCULSIVE:
-                    self._selectionGroup.clear()
-                if self._nodeSelectMode:
-                    self._scenepicker.addPickedNodesToFieldGroup(self._selectionGroup)
-                if self._elemSelectMode:
-                    self._scenepicker.addPickedElementsToFieldGroup(self._selectionGroup)
+            if (x != self._selection_position_start[0] and y != self._selection_position_start[1]):
+                left = min(x, self._selection_position_start[0])
+                right = max(x, self._selection_position_start[0])
+                bottom = min(y, self._selection_position_start[1])
+                top = max(y, self._selection_position_start[1])
+                self._view.setPickingRectangle(COORDINATE_SYSTEM_LOCAL, left, bottom, right, top)
+                if self._selection_mode == SelectionMode.EXCULSIVE:
+                    selection_group.clear()
+                self._view.addPickedNodesToFieldGroup(selection_group)
             else:
+                node = self._view.getNearestNode()
+                if self._selection_mode == SelectionMode.EXCULSIVE and not node.isValid():
+                    selection_group.clear()
 
-                self._scenepicker.setSceneviewerRectangle(self._sceneviewer, SCENECOORDINATESYSTEM_LOCAL, x - 0.5, y - 0.5, x + 0.5, y + 0.5)
-                if self._nodeSelectMode and self._elemSelectMode and self._selectionMode == SelectionMode.EXCULSIVE and not self._scenepicker.getNearestGraphics().isValid():
-                    self._selectionGroup.clear()
-
-                if self._nodeSelectMode and (self._scenepicker.getNearestGraphics().getFieldDomainType() == Field.DOMAIN_TYPE_NODES):
-                    node = self._scenepicker.getNearestNode()
-                    nodeset = node.getNodeset()
-
-                    nodegroup = self._selectionGroup.getFieldNodeGroup(nodeset)
-                    if not nodegroup.isValid():
-                        nodegroup = self._selectionGroup.createFieldNodeGroup(nodeset)
-
-                    group = nodegroup.getNodesetGroup()
-                    if self._selectionMode == SelectionMode.EXCULSIVE:
+                if node.isValid():
+#                     nodeset = node.getNodeset()
+                    group = self._model.getSelectionGroup()
+                    if self._selection_mode == SelectionMode.EXCULSIVE:
                         remove_current = group.getSize() == 1 and group.containsNode(node)
                         self._selectionGroup.clear()
                         if not remove_current:
                             group.addNode(node)
-                    elif self._selectionMode == SelectionMode.ADDITIVE:
+                    elif self._selection_mode == SelectionMode.ADDITIVE:
                         if group.containsNode(node):
                             group.removeNode(node)
                         else:
                             group.addNode(node)
 
-                if self._elemSelectMode and (self._scenepicker.getNearestGraphics().getFieldDomainType() in [Field.DOMAIN_TYPE_MESH1D, Field.DOMAIN_TYPE_MESH2D, Field.DOMAIN_TYPE_MESH3D, Field.DOMAIN_TYPE_MESH_HIGHEST_DIMENSION]):
-                    elem = self._scenepicker.getNearestElement()
-                    mesh = elem.getMesh()
+            region.endHierarchicalChange()
+            self._selection_mode = SelectionMode.NONE
+        elif self._node_status is not None:
+            # do undo redo command for adding a node or moving a node
+            node_id = self._node_status.getNodeIdentifier()
+            node = self._model.getNodeByIdentifier(node_id)
+            group = self._model.getSelectionGroup()
+            group.removeNode(node)
+            node_location = self._model.getNodeLocation(node)
+            plane_attitude = self._plane.getAttitude()
+            node_status = SegmentPointStatus(node_id, node_location, plane_attitude)
+            c = CommandNode(self._model, self._node_status, node_status)
+            self._undo_redo_stack.push(c)
+        else:
+            super(SegmentMode, self).mouseReleaseEvent(event)
 
-                    elementgroup = self._selectionGroup.getFieldElementGroup(mesh)
-                    if not elementgroup.isValid():
-                        elementgroup = self._selectionGroup.createFieldElementGroup(mesh)
-
-                    group = elementgroup.getMeshGroup()
-                    if self._selectionMode == SelectionMode.EXCULSIVE:
-                        remove_current = group.getSize() == 1 and group.containsElement(elem)
-                        self._selectionGroup.clear()
-                        if not remove_current:
-                            group.addElement(elem)
-                    elif self._selectionMode == SelectionMode.ADDITIVE:
-                        if group.containsElement(elem):
-                            group.removeElement(elem)
-                        else:
-                            group.addElement(elem)
-
-
-            root_region.endHierarchicalChange()
-            self._selectionMode = SelectionMode.NONE
+    def _calculatePointOnPlane(self, x, y):
+        far_plane_point = self._view.unproject(x, -y, -1.0)
+        near_plane_point = self._view.unproject(x, -y, 1.0)
+        point_on_plane = calculateLinePlaneIntersection(near_plane_point, far_plane_point, self._plane.getRotationPoint(), self._plane.getNormal())
+        return point_on_plane
 
 

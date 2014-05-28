@@ -22,14 +22,12 @@ from math import cos, sin, acos, copysign
 
 from PySide import QtCore
 
-from mapclientplugins.segmentationstep.viewmodes.segmentmode import SegmentMode
+from mapclientplugins.segmentationstep.viewmodes.segmentmode import SegmentMode, SELECTION_BOX_GRAPHIC_NAME_2D
 from mapclientplugins.segmentationstep.maths.vectorops import add, mult, cross, dot, sub, normalize, magnitude
-from mapclientplugins.segmentationstep.maths.algorithms import calculateCentroid, calculateLinePlaneIntersection
-from mapclientplugins.segmentationstep.undoredo import CommandChangeView, CommandNode
-from mapclientplugins.segmentationstep.segmentpoint import SegmentPointStatus
+from mapclientplugins.segmentationstep.maths.algorithms import calculateCentroid
+from mapclientplugins.segmentationstep.undoredo import CommandChangeView
 from mapclientplugins.segmentationstep.widgets.definitions import IMAGE_PLANE_GRAPHIC_NAME, POINT_CLOUD_GRAPHIC_NAME
-
-SELECTION_BOX_GRAPHIC_NAME = 'selection_box_2d'
+from mapclientplugins.segmentationstep.zincutils import createSelectionBox
 
 class SegmentMode2D(SegmentMode):
 
@@ -38,6 +36,8 @@ class SegmentMode2D(SegmentMode):
         self._start_position = None
         self._scenviewer_filter = None
         self._sceneviewer_filter_orignal = None
+        self._selection_box = createSelectionBox(plane.getRegion(), SELECTION_BOX_GRAPHIC_NAME_2D)
+
 
     def _createSceneviewerFilter(self):
         sceneviewer = self._view.getSceneviewer()
@@ -47,8 +47,8 @@ class SegmentMode2D(SegmentMode):
         visibility_filter = filtermodule.createScenefilterVisibilityFlags()
         label_filter1 = filtermodule.createScenefilterGraphicsName(IMAGE_PLANE_GRAPHIC_NAME)
         label_filter2 = filtermodule.createScenefilterGraphicsName(POINT_CLOUD_GRAPHIC_NAME)
-        label_filter3 = filtermodule.createScenefilterGraphicsName(SELECTION_BOX_GRAPHIC_NAME)
-# #         label_filter1.setInverse(True)
+        label_filter3 = filtermodule.createScenefilterGraphicsName(SELECTION_BOX_GRAPHIC_NAME_2D)
+#         label_filter3.setInverse(True)
 #
         label_filter = filtermodule.createScenefilterOperatorOr()
         label_filter.appendOperand(label_filter1)
@@ -78,32 +78,9 @@ class SegmentMode2D(SegmentMode):
     def mousePressEvent(self, event):
         self._node = None
         self._start_position = None
-        self._node_status = None
         if not event.modifiers() and event.button() == QtCore.Qt.LeftButton:
             self._start_position = [event.x(), event.y()]
             self._start_view_parameters = self._view.getViewParameters()
-        elif (event.modifiers() & QtCore.Qt.CTRL) and event.button() == QtCore.Qt.LeftButton:
-            node = self._view.getNearestNode(event.x(), event.y())
-            if node and node.isValid():
-                # node exists at this location so select it
-                group = self._model.getSelectionGroup()
-                group.removeAllNodes()
-#                 node = None
-                group.addNode(node)
-                node_location = self._model.getNodeLocation(node)
-                plane_attitude = self._model.getNodePlaneAttitude(node.getIdentifier())
-            else:
-                node_location = None
-                plane_attitude = None
-                point_on_plane = self._calculatePointOnPlane(event.x(), event.y())
-                region = self._model.getRegion()
-                fieldmodule = region.getFieldmodule()
-                fieldmodule.beginChange()
-                node = self._model.createNode()
-                self._model.setNodeLocation(node, point_on_plane)
-                fieldmodule.endChange()
-
-            self._node_status = SegmentPointStatus(node.getIdentifier(), node_location, plane_attitude)
         else:
             super(SegmentMode2D, self).mousePressEvent(event)
 
@@ -136,10 +113,6 @@ class SegmentMode2D(SegmentMode):
                 v_rot = add(p1, add(p2, p3))
                 self._view.setViewParameters(lookat, eye, v_rot, angle)
                 self._start_position = [event.x(), event.y()]
-        elif self._node_status is not None:
-            node = self._model.getNodeByIdentifier(self._node_status.getNodeIdentifier())
-            point_on_plane = self._calculatePointOnPlane(event.x(), event.y())
-            self._model.setNodeLocation(node, point_on_plane)
         else:
             super(SegmentMode2D, self).mouseMoveEvent(event)
 
@@ -150,24 +123,7 @@ class SegmentMode2D(SegmentMode):
             c = CommandChangeView(self._start_view_parameters, end_view_parameters)
             c.setCallbackMethod(self._view.setViewParameters)
             self._undo_redo_stack.push(c)
-        elif self._node_status is not None:
-            # do undo redo command for adding a node or moving a node
-            node_id = self._node_status.getNodeIdentifier()
-            node = self._model.getNodeByIdentifier(node_id)
-            group = self._model.getSelectionGroup()
-            group.removeNode(node)
-            node_location = self._model.getNodeLocation(node)
-            plane_attitude = self._plane.getAttitude()
-            node_status = SegmentPointStatus(node_id, node_location, plane_attitude)
-            c = CommandNode(self._model, self._node_status, node_status)
-            self._undo_redo_stack.push(c)
         else:
             super(SegmentMode2D, self).mouseReleaseEvent(event)
-
-    def _calculatePointOnPlane(self, x, y):
-        far_plane_point = self._view.unproject(x, -y, -1.0)
-        near_plane_point = self._view.unproject(x, -y, 1.0)
-        point_on_plane = calculateLinePlaneIntersection(near_plane_point, far_plane_point, self._plane.getRotationPoint(), self._plane.getNormal())
-        return point_on_plane
 
 
