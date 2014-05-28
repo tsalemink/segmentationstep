@@ -108,34 +108,6 @@ class CommandChangeView(QtGui.QUndoCommand):
         self._set_viewport_parameters_method = viewport_parameters
 
 
-class CommandAddNode(QtGui.QUndoCommand):
-
-    def __init__(self, fieldmodule, position):
-        super(CommandAddNode, self).__init__()
-        self._fieldmodule = fieldmodule
-        self._nodeset = self._fieldmodule.findNodesetByName('nodes')
-        self._coordinate_field = self._fieldmodule.findFieldByName('coordinates')
-        self._position = position
-        self._id = -1
-        self._node = None
-
-    def redo(self):
-        self._fieldmodule.beginChange()
-        field_cache = self._fieldmodule.createFieldcache()
-        template = self._nodeset.createNodetemplate()
-        template.defineField(self._coordinate_field)
-
-        self._node = self._nodeset.createNode(self._id, template)
-        self._id = self._node.getIdentifier()
-        field_cache.setNode(self._node)
-        self._coordinate_field.assignReal(field_cache, self._position)
-
-        self._fieldmodule.endChange()
-
-    def undo(self):
-        self._nodeset.destroyNode(self._node)
-
-
 class CommandCurrentNew(QtGui.QUndoCommand):
 
     def __init__(self, current, new):

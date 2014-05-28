@@ -24,9 +24,8 @@ from opencmiss.zinc.glyph import Glyph
 
 from mapclientplugins.segmentationstep.viewmodes import normalmode, rotationmode, segmentmode2d, segmentmode3d
 from mapclientplugins.segmentationstep.widgets.ui_segmentationwidget import Ui_SegmentationWidget
-from mapclientplugins.segmentationstep.undoredo import CommandAddNode, CommandChangeViewMode, CommandSetScale, CommandSetSingleParameterMethod, CommandSetGraphicVisibility, CommandSetGlyphSize
+from mapclientplugins.segmentationstep.undoredo import CommandChangeViewMode, CommandSetScale, CommandSetSingleParameterMethod, CommandSetGraphicVisibility, CommandSetGlyphSize
 from mapclientplugins.segmentationstep.widgets.zincwidget import ProjectionMode
-from mapclientplugins.segmentationstep.maths.vectorops import eldiv
 from mapclientplugins.segmentationstep.widgets.definitions import DEFAULT_GRAPHICS_SPHERE_SIZE, DEFAULT_NORMAL_ARROW_SIZE, DEFAULT_SEGMENTATION_POINT_SIZE, GRAPHIC_LABEL_NAME, POINT_CLOUD_GRAPHIC_NAME
 from mapclientplugins.segmentationstep.widgets.definitions import ViewMode, IMAGE_PLANE_GRAPHIC_NAME
 from mapclientplugins.segmentationstep.widgets.segmentationstate import SegmentationState
@@ -360,15 +359,6 @@ class SegmentationWidget(QtGui.QWidget):
             self._saveViewState()
         elif self.sender() == self._ui._sceneviewer2d:
             self._ui._sceneviewer2d.setActiveModeType(ViewMode.SEGMENT)
-
-
-    def _addNode(self, event):
-        position = self._calcluatePlaneIntersection(event.x(), event.y())
-        if self._coordinatesInElement(position):
-            scale = self._model.getScale()
-            unscaled_position = eldiv(position, scale)
-            c = CommandAddNode(self._node_fieldmodule, unscaled_position)
-            self._undoRedoStack.push(c)
 
     def keyPressEvent(self, keyevent):
         if keyevent.key() == 68 and not self._debug_print:
