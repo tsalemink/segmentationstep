@@ -22,7 +22,7 @@ from PySide import QtCore
 from mapclientplugins.segmentationstep.viewmodes.abstractviewmode import AbstractViewMode
 from mapclientplugins.segmentationstep.widgets.definitions import ViewMode
 from mapclientplugins.segmentationstep.zincutils import setGlyphSize, setGlyphOffset, COORDINATE_SYSTEM_LOCAL
-from mapclientplugins.segmentationstep.undoredo import CommandNode
+from mapclientplugins.segmentationstep.undoredo import CommandNode, CommandSelection
 from mapclientplugins.segmentationstep.segmentpoint import SegmentPointStatus
 from mapclientplugins.segmentationstep.maths.algorithms import calculateLinePlaneIntersection
 
@@ -48,6 +48,12 @@ class SegmentMode(AbstractViewMode):
     def setModel(self, model):
         self._model = model
 
+    def delete(self):
+        '''
+        Delete the currently selected nodes.
+        '''
+        pass
+
     def mousePressEvent(self, event):
         self._selection_mode = SelectionMode.NONE
         self._node_status = None
@@ -56,6 +62,8 @@ class SegmentMode(AbstractViewMode):
             self._selection_mode = SelectionMode.EXCULSIVE
             if event.modifiers() & QtCore.Qt.ALT:
                 self._selection_mode = SelectionMode.ADDITIVE
+
+            self._start_selection = self._model.getCurrentSelection()
         elif (event.modifiers() & QtCore.Qt.CTRL) and event.button() == QtCore.Qt.LeftButton:
             node = self._view.getNearestNode(event.x(), event.y())
             if node and node.isValid():
@@ -127,7 +135,7 @@ class SegmentMode(AbstractViewMode):
                     selection_group.clear()
                 self._view.addPickedNodesToFieldGroup(selection_group)
             else:
-                node = self._view.getNearestNode()
+                node = self._view.getNearestNode(x, y)
                 if self._selection_mode == SelectionMode.EXCULSIVE and not node.isValid():
                     selection_group.clear()
 
@@ -136,7 +144,7 @@ class SegmentMode(AbstractViewMode):
                     group = self._model.getSelectionGroup()
                     if self._selection_mode == SelectionMode.EXCULSIVE:
                         remove_current = group.getSize() == 1 and group.containsNode(node)
-                        self._selectionGroup.clear()
+                        selection_group.clear()
                         if not remove_current:
                             group.addNode(node)
                     elif self._selection_mode == SelectionMode.ADDITIVE:
@@ -145,6 +153,9 @@ class SegmentMode(AbstractViewMode):
                         else:
                             group.addNode(node)
 
+            end_selection = self._model.getCurrentSelection()
+            c = CommandSelection(self._model, self._start_selection, end_selection)
+            self._undo_redo_stack.push(c)
             region.endHierarchicalChange()
             self._selection_mode = SelectionMode.NONE
         elif self._node_status is not None:

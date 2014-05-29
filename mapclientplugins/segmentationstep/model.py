@@ -286,6 +286,27 @@ class NodeModel(AbstractModel):
     def isSelected(self, node):
         return self._group.containsNode(node)
 
+    def getCurrentSelection(self):
+        selection = []
+        ni = self._group.createNodeiterator()
+        node = ni.next()
+        while node.isValid():
+            selection.append(node.getIdentifier())
+            node = ni.next()
+
+        return selection
+
+    def setSelection(self, selection):
+        fieldmodule = self._region.getFieldmodule()
+        nodeset = fieldmodule.findNodesetByName('nodes')
+        fieldmodule.beginChange()
+        self._selection_group_field.clear()
+        for node_id in selection:
+            node = nodeset.findNodeByIdentifier(node_id)
+            self._group.addNode(node)
+
+        fieldmodule.endChange()
+
     def getNodeByIdentifier(self, node_id):
         fieldmodule = self._region.getFieldmodule()
         nodeset = fieldmodule.findNodesetByName('nodes')
@@ -470,5 +491,11 @@ class SegmentationModel(object):
         '''
         self._image_model.setScale(scale)
         self._node_model.setScale(scale)
+
+
+class NodeSelection(object):
+
+    def __init__(self):
+        pass
 
 

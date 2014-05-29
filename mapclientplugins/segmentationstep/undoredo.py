@@ -267,3 +267,18 @@ class CommandNode(QtGui.QUndoCommand):
                 self._model.modifyNode(node_id, location, plane_attitude)
 
 
+class CommandSelection(QtGui.QUndoCommand):
+
+    def __init__(self, model, selection_start, selection_end):
+        super(CommandSelection, self).__init__()
+        self._model = model
+        self._selection_start = selection_start
+        self._selection_end = selection_end
+
+    def redo(self):
+        self._model.setSelection(self._selection_end)
+
+    def undo(self):
+        self._model.setSelection(self._selection_start)
+
+
