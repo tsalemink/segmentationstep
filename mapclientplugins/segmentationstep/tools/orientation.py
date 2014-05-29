@@ -20,20 +20,20 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
 
 from math import cos, sin, sqrt, acos, pi
 
-from mapclientplugins.segmentationstep.viewmodes.glyphmode import GlyphMode
+from mapclientplugins.segmentationstep.tools.planeadjust import PlaneAdjust
 from mapclientplugins.segmentationstep.widgets.definitions import ViewMode
 from mapclientplugins.segmentationstep.maths.vectorops import add, mult, cross, dot, sub, normalize
 from mapclientplugins.segmentationstep.maths.algorithms import calculateCentroid, boundCoordinatesToCuboid, calculateLinePlaneIntersection
 from mapclientplugins.segmentationstep.zincutils import getGlyphPosition, setGlyphPosition, createPlaneManipulationSphere
 
-class RotationMode(GlyphMode):
+class Orientation(PlaneAdjust):
     '''
     Handle sceneviewer input events when in rotation mode.
     The rotation mode allows the user to re-orient the image
     plane and set the plane point of rotation.
     '''
     def __init__(self, sceneviewer, plane, undo_redo_stack):
-        super(RotationMode, self).__init__(sceneviewer, plane, undo_redo_stack)
+        super(Orientation, self).__init__(sceneviewer, plane, undo_redo_stack)
         self._mode_type = ViewMode.PLANE_ROTATION
         self._glyph = createPlaneManipulationSphere(plane.getRegion())
         self._width_method = None
@@ -50,7 +50,7 @@ class RotationMode(GlyphMode):
     def mouseMoveEvent(self, event):
         scene = self._glyph.getScene()
         scene.beginChange()
-#         super(RotationMode, self).mouseMoveEvent(event)
+#         super(Orientation, self).mouseMoveEvent(event)
         if self._glyph.getMaterial().getName() == self._selected_material.getName():
             x = event.x()
             y = event.y()
@@ -117,7 +117,7 @@ class RotationMode(GlyphMode):
             point_on_plane = getGlyphPosition(self._glyph)
             self._plane.setRotationPoint(point_on_plane)
 
-        super(RotationMode, self).mouseReleaseEvent(event)
+        super(Orientation, self).mouseReleaseEvent(event)
         scene.endChange()
 
         self.setUndoRedoCommand('plane rotation')
@@ -126,7 +126,7 @@ class RotationMode(GlyphMode):
     def enter(self):
         scene = self._glyph.getScene()
         scene.beginChange()
-        super(RotationMode, self).enter()
+        super(Orientation, self).enter()
         setGlyphPosition(self._glyph, self._plane.getRotationPoint())
         scene.endChange()
 

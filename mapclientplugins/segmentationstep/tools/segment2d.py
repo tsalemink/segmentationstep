@@ -22,17 +22,17 @@ from math import cos, sin, acos, copysign
 
 from PySide import QtCore
 
-from mapclientplugins.segmentationstep.viewmodes.segmentmode import SegmentMode, SELECTION_BOX_GRAPHIC_NAME_2D
+from mapclientplugins.segmentationstep.tools.segment import Segment, SELECTION_BOX_GRAPHIC_NAME_2D
 from mapclientplugins.segmentationstep.maths.vectorops import add, mult, cross, dot, sub, normalize, magnitude
 from mapclientplugins.segmentationstep.maths.algorithms import calculateCentroid
 from mapclientplugins.segmentationstep.undoredo import CommandChangeView
 from mapclientplugins.segmentationstep.widgets.definitions import IMAGE_PLANE_GRAPHIC_NAME, POINT_CLOUD_GRAPHIC_NAME
 from mapclientplugins.segmentationstep.zincutils import createSelectionBox
 
-class SegmentMode2D(SegmentMode):
+class Segment2D(Segment):
 
     def __init__(self, sceneviewer, plane, undo_redo_stack):
-        super(SegmentMode2D, self).__init__(sceneviewer, plane, undo_redo_stack)
+        super(Segment2D, self).__init__(sceneviewer, plane, undo_redo_stack)
         self._start_position = None
         self._scenviewer_filter = None
         self._sceneviewer_filter_orignal = None
@@ -63,7 +63,7 @@ class SegmentMode2D(SegmentMode):
         return master_filter
 
     def enter(self):
-        super(SegmentMode2D, self).enter()
+        super(Segment2D, self).enter()
         sceneviewer = self._view.getSceneviewer()
         self._sceneviewer_filter_orignal = sceneviewer.getScenefilter()
         if self._scenviewer_filter is None:
@@ -71,7 +71,7 @@ class SegmentMode2D(SegmentMode):
         sceneviewer.setScenefilter(self._scenviewer_filter)
 
     def leave(self):
-        super(SegmentMode2D, self).leave()
+        super(Segment2D, self).leave()
         sceneviewer = self._view.getSceneviewer()
         sceneviewer.setScenefilter(self._sceneviewer_filter_orignal)
 
@@ -82,7 +82,7 @@ class SegmentMode2D(SegmentMode):
             self._start_position = [event.x(), event.y()]
             self._start_view_parameters = self._view.getViewParameters()
         else:
-            super(SegmentMode2D, self).mousePressEvent(event)
+            super(Segment2D, self).mousePressEvent(event)
 
     def mouseMoveEvent(self, event):
         if self._start_position is not None:
@@ -114,7 +114,7 @@ class SegmentMode2D(SegmentMode):
                 self._view.setViewParameters(lookat, eye, v_rot, angle)
                 self._start_position = [event.x(), event.y()]
         else:
-            super(SegmentMode2D, self).mouseMoveEvent(event)
+            super(Segment2D, self).mouseMoveEvent(event)
 
     def mouseReleaseEvent(self, event):
         if self._start_position is not None:
@@ -124,6 +124,6 @@ class SegmentMode2D(SegmentMode):
             c.setCallbackMethod(self._view.setViewParameters)
             self._undo_redo_stack.push(c)
         else:
-            super(SegmentMode2D, self).mouseReleaseEvent(event)
+            super(Segment2D, self).mouseReleaseEvent(event)
 
 

@@ -18,28 +18,28 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
     along with MAP Client.  If not, see <http://www.gnu.org/licenses/>..
 '''
 
-from mapclientplugins.segmentationstep.viewmodes.glyphmode import GlyphMode
+from mapclientplugins.segmentationstep.tools.planeadjust import PlaneAdjust
 from mapclientplugins.segmentationstep.widgets.definitions import ViewMode
 from mapclientplugins.segmentationstep.maths.vectorops import add, mult, dot, sub
 from mapclientplugins.segmentationstep.maths.algorithms import calculateCentroid
 from mapclientplugins.segmentationstep.zincutils import getGlyphPosition, setGlyphPosition, createPlaneNormalIndicator
 
 
-class NormalMode(GlyphMode):
+class Normal(PlaneAdjust):
     '''
     Handle sceneviewer input events when in normal mode.
     The normal mode allows the user to move the plane in 
     the direction of the normal of the plane.  
     '''
     def __init__(self, sceneviewer, plane, undo_redo_stack):
-        super(NormalMode, self).__init__(sceneviewer, plane, undo_redo_stack)
+        super(Normal, self).__init__(sceneviewer, plane, undo_redo_stack)
         self._mode_type = ViewMode.PLANE_NORMAL
         self._glyph = createPlaneNormalIndicator(plane.getRegion(), plane.getNormalField())
 
     def enter(self):
         scene = self._glyph.getScene()
         scene.beginChange()
-        super(NormalMode, self).enter()
+        super(Normal, self).enter()
         setGlyphPosition(self._glyph, calculateCentroid(self._plane.getRotationPoint(), self._plane.getNormal(), self._get_dimension_method()))
         scene.endChange()
 
@@ -65,7 +65,7 @@ class NormalMode(GlyphMode):
             scene.endChange()
             self._previous_mouse_position = [event.x(), event.y()]
         else:
-            super(NormalMode, self).mouseMoveEvent(event)
+            super(Normal, self).mouseMoveEvent(event)
 
     def mouseReleaseEvent(self, event):
         scene = self._glyph.getScene()
@@ -76,7 +76,7 @@ class NormalMode(GlyphMode):
             self._plane.setRotationPoint(point_on_plane)
             set_undo_redo_command = True
 
-        super(NormalMode, self).mouseReleaseEvent(event)
+        super(Normal, self).mouseReleaseEvent(event)
         scene.endChange()
 
         if set_undo_redo_command:

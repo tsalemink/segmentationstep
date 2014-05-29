@@ -17,13 +17,13 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
     You should have received a copy of the GNU General Public License
     along with MAP Client.  If not, see <http://www.gnu.org/licenses/>..
 '''
-from mapclientplugins.segmentationstep.viewmodes.segmentmode import SegmentMode, SELECTION_BOX_GRAPHIC_NAME_2D, SELECTION_BOX_GRAPHIC_NAME_3D
+from mapclientplugins.segmentationstep.tools.segment import Segment, SELECTION_BOX_GRAPHIC_NAME_2D, SELECTION_BOX_GRAPHIC_NAME_3D
 from mapclientplugins.segmentationstep.zincutils import createSelectionBox
 
-class SegmentMode3D(SegmentMode):
+class Segment3D(Segment):
 
     def __init__(self, sceneviewer, plane, undo_redo_stack):
-        super(SegmentMode3D, self).__init__(sceneviewer, plane, undo_redo_stack)
+        super(Segment3D, self).__init__(sceneviewer, plane, undo_redo_stack)
         self._start_position = None
         self._scenviewer_filter = None
         self._sceneviewer_filter_orignal = None
@@ -46,7 +46,7 @@ class SegmentMode3D(SegmentMode):
         return master_filter
 
     def enter(self):
-        super(SegmentMode3D, self).enter()
+        super(Segment3D, self).enter()
         sceneviewer = self._view.getSceneviewer()
         self._sceneviewer_filter_orignal = sceneviewer.getScenefilter()
         if self._scenviewer_filter is None:
@@ -54,7 +54,7 @@ class SegmentMode3D(SegmentMode):
         sceneviewer.setScenefilter(self._scenviewer_filter)
 
     def leave(self):
-        super(SegmentMode3D, self).leave()
+        super(Segment3D, self).leave()
         sceneviewer = self._view.getSceneviewer()
         sceneviewer.setScenefilter(self._sceneviewer_filter_orignal)
 

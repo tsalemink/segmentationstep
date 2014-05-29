@@ -22,7 +22,7 @@ from PySide import QtCore
 from mapclientplugins.segmentationstep.zincutils import button_map, modifier_map, Sceneviewerinput
 from mapclientplugins.segmentationstep.undoredo import CommandChangeView
 
-class AbstractViewMode(object):
+class AbstractTool(object):
 
 
     def __init__(self, view, plane, undo_redo_stack):

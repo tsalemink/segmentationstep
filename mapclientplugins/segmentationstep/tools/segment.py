@@ -19,7 +19,7 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
 '''
 from PySide import QtCore
 
-from mapclientplugins.segmentationstep.viewmodes.abstractviewmode import AbstractViewMode
+from mapclientplugins.segmentationstep.tools.abstracttool import AbstractTool
 from mapclientplugins.segmentationstep.widgets.definitions import ViewMode
 from mapclientplugins.segmentationstep.zincutils import setGlyphSize, setGlyphOffset, COORDINATE_SYSTEM_LOCAL
 from mapclientplugins.segmentationstep.undoredo import CommandNode, CommandSelection
@@ -35,10 +35,10 @@ class SelectionMode(object):
 SELECTION_BOX_GRAPHIC_NAME_3D = 'selection_box_3d'
 SELECTION_BOX_GRAPHIC_NAME_2D = 'selection_box_2d'
 
-class SegmentMode(AbstractViewMode):
+class Segment(AbstractTool):
 
     def __init__(self, sceneviewer, plane, undo_redo_stack):
-        super(SegmentMode, self).__init__(sceneviewer, plane, undo_redo_stack)
+        super(Segment, self).__init__(sceneviewer, plane, undo_redo_stack)
         self._mode_type = ViewMode.SEGMENT
         self._model = None
         self._selection_box = None
@@ -87,7 +87,7 @@ class SegmentMode(AbstractViewMode):
 
             self._node_status = SegmentPointStatus(node.getIdentifier(), node_location, plane_attitude)
         else:
-            super(SegmentMode, self).mousePressEvent(event)
+            super(Segment, self).mousePressEvent(event)
 
 
     def mouseMoveEvent(self, event):
@@ -113,7 +113,7 @@ class SegmentMode(AbstractViewMode):
             point_on_plane = self._calculatePointOnPlane(event.x(), event.y())
             self._model.setNodeLocation(node, point_on_plane)
         else:
-            super(SegmentMode, self).mouseMoveEvent(event)
+            super(Segment, self).mouseMoveEvent(event)
 
     def mouseReleaseEvent(self, event):
         if self._selection_mode != SelectionMode.NONE:
@@ -170,7 +170,7 @@ class SegmentMode(AbstractViewMode):
             c = CommandNode(self._model, self._node_status, node_status)
             self._undo_redo_stack.push(c)
         else:
-            super(SegmentMode, self).mouseReleaseEvent(event)
+            super(Segment, self).mouseReleaseEvent(event)
 
     def _calculatePointOnPlane(self, x, y):
         far_plane_point = self._view.unproject(x, -y, -1.0)
