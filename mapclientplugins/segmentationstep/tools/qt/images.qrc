@@ -1,0 +1,7 @@
+<RCC>
+  <qresource prefix="toolbar_icons">
+    <file>normal.png</file>
+    <file>orientation.png</file>
+    <file>segment.png</file>
+  </qresource>
+</RCC>

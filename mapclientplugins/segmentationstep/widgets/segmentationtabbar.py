@@ -58,8 +58,6 @@ class SegmentationTabBar(QtGui.QTabBar):
         drag.setMimeData(mime)
         d = drag.exec_()
         super(SegmentationTabBar, self).mouseMoveEvent(event)
-#         print(d.values())
-#         print d == QtCore.Qt.IgnoreAction, d == QtCore.Qt.MoveAction
         if d == QtCore.Qt.IgnoreAction:
             fromIndex = self.tabAt(self._start_drag_pos)
             event.accept()
@@ -73,53 +71,5 @@ class SegmentationTabBar(QtGui.QTabBar):
                 self.tabMoveRequested.emit(fromIndex)
                 drag.target().addTab(self.parentWidget().currentWidget(), self.parentWidget().tabText(fromIndex))
             event.accept()
-
-#     def mouseReleaseEvent(self, event):
-#         super(SegmentationTabBar, self).mousePressEvent(event)
-#         print('ypu')
-#         if event.button() == QtCore.Qt.LeftButton:
-#             self._stop_drag_pos = event.pos()
-#             print self._stop_drag_pos
-
-#     def dragEnterEvent(self, event):
-#         m = event.mimeData()
-# #         f = m.formats()
-#         if m.hasFormat('application/tab-moving'):
-#             event.acceptProposedAction()
-#
-#         super(SegmentationTabBar, self).dragEnterEvent(event)
-#
-#     def dragMoveEvent(self, event):
-#         m = event.mimeData()
-#         if m.hasFormat('application/tab-moving'):
-#             self._stop_drag_pos = event.pos()
-#             event.acceptProposedAction()
-#
-#         super(SegmentationTabBar, self).dragMoveEvent(event)
-
-#     def dropEvent(self, event):
-#         m = event.mimeData()
-#         if m.hasFormat('application/tab-moving'):
-#             event.acceptProposedAction()
-#
-#         super(SegmentationTabBar, self).dropEvent(event)
-
-#     def dragLeaveEvent(self, event):
-#         print('didididid')
-# #         self._stop_drag_pos = event.pos()
-#         super(SegmentationTabBar, self).dragLeaveEvent(event)
-#         m = event.mimeData()
-#         f = m.formats()
-#         if 'action' in f and m.data('action') == 'application/tab-moving':
-#             event.acceptProposedAction()
-#             self._stop_drag_pos = event.pos()
-#         fromIndex = self.tabAt(self._start_drag_pos)
-#         toIndex = self.tabAt(event.pos())
-#         d = event.type()
-#         print 'h', d == QtCore.Qt.IgnoreAction, d == QtCore.Qt.MoveAction
-#         # Tell interested objects that
-#         if fromIndex != toIndex:
-#             self.tabReorderRequested.emit(fromIndex, toIndex)
-#             event.acceptProposedAction()
 
 

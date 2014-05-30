@@ -24,9 +24,6 @@ class Segment3D(Segment):
 
     def __init__(self, sceneviewer, plane, undo_redo_stack):
         super(Segment3D, self).__init__(sceneviewer, plane, undo_redo_stack)
-        self._start_position = None
-        self._scenviewer_filter = None
-        self._sceneviewer_filter_orignal = None
         self._selection_box = createSelectionBox(plane.getRegion(), SELECTION_BOX_GRAPHIC_NAME_3D)
 
     def _createSceneviewerFilter(self):
@@ -45,16 +42,4 @@ class Segment3D(Segment):
 
         return master_filter
 
-    def enter(self):
-        super(Segment3D, self).enter()
-        sceneviewer = self._view.getSceneviewer()
-        self._sceneviewer_filter_orignal = sceneviewer.getScenefilter()
-        if self._scenviewer_filter is None:
-            self._scenviewer_filter = self._createSceneviewerFilter()
-        sceneviewer.setScenefilter(self._scenviewer_filter)
-
-    def leave(self):
-        super(Segment3D, self).leave()
-        sceneviewer = self._view.getSceneviewer()
-        sceneviewer.setScenefilter(self._sceneviewer_filter_orignal)
 

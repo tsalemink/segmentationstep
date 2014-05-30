@@ -17,13 +17,14 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
     You should have received a copy of the GNU General Public License
     along with MAP Client.  If not, see <http://www.gnu.org/licenses/>..
 '''
+from PySide import QtGui
 
 from mapclientplugins.segmentationstep.tools.planeadjust import PlaneAdjust
 from mapclientplugins.segmentationstep.widgets.definitions import ViewMode
 from mapclientplugins.segmentationstep.maths.vectorops import add, mult, dot, sub
 from mapclientplugins.segmentationstep.maths.algorithms import calculateCentroid
 from mapclientplugins.segmentationstep.zincutils import getGlyphPosition, setGlyphPosition, createPlaneNormalIndicator
-
+# from mapclientplugins.segmentationstep.tools.resources import images
 
 class Normal(PlaneAdjust):
     '''
@@ -35,6 +36,10 @@ class Normal(PlaneAdjust):
         super(Normal, self).__init__(sceneviewer, plane, undo_redo_stack)
         self._mode_type = ViewMode.PLANE_NORMAL
         self._glyph = createPlaneNormalIndicator(plane.getRegion(), plane.getNormalField())
+        self._icon = QtGui.QIcon(':toolbar_icons/normal.png')
+
+    def getIcon(self):
+        return self._icon
 
     def enter(self):
         scene = self._glyph.getScene()

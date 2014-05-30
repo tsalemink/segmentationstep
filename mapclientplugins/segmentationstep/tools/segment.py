@@ -17,7 +17,7 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
     You should have received a copy of the GNU General Public License
     along with MAP Client.  If not, see <http://www.gnu.org/licenses/>..
 '''
-from PySide import QtCore
+from PySide import QtCore, QtGui
 
 from mapclientplugins.segmentationstep.tools.abstracttool import AbstractTool
 from mapclientplugins.segmentationstep.widgets.definitions import ViewMode
@@ -25,6 +25,8 @@ from mapclientplugins.segmentationstep.zincutils import setGlyphSize, setGlyphOf
 from mapclientplugins.segmentationstep.undoredo import CommandNode, CommandSelection
 from mapclientplugins.segmentationstep.segmentpoint import SegmentPointStatus
 from mapclientplugins.segmentationstep.maths.algorithms import calculateLinePlaneIntersection
+# from mapclientplugins.segmentationstep.tools.resources import images
+from mapclientplugins.segmentationstep.tools.widgets.segment import PropertiesWidget
 
 class SelectionMode(object):
 
@@ -44,15 +46,45 @@ class Segment(AbstractTool):
         self._selection_box = None
         self._selection_mode = SelectionMode.NONE
         self._selection_position_start = None
+        self._icon = QtGui.QIcon(':/toolbar_icons/segment.png')
+        self._scenviewer_filter = None
+        self._sceneviewer_filter_orignal = None
+        self._properties_widget = PropertiesWidget()
 
     def setModel(self, model):
         self._model = model
+
+
+    def getPropertiesWidget(self):
+        pass
+#         self._ui._doubleSpinBoxNormalArrow.setValue(DEFAULT_NORMAL_ARROW_SIZE)
+#         self._ui._doubleSpinBoxRotationCentre.setValue(DEFAULT_GRAPHICS_SPHERE_SIZE)
+#         self._ui._doubleSpinBoxSegmentationPoint.setValue(DEFAULT_SEGMENTATION_POINT_SIZE)
 
     def delete(self):
         '''
         Delete the currently selected nodes.
         '''
         pass
+
+    def getIcon(self):
+        return self._icon
+
+    def getName(self):
+        return 'Segment'
+
+    def enter(self):
+        super(Segment, self).enter()
+        sceneviewer = self._view.getSceneviewer()
+        self._sceneviewer_filter_orignal = sceneviewer.getScenefilter()
+        if self._scenviewer_filter is None:
+            self._scenviewer_filter = self._createSceneviewerFilter()
+        sceneviewer.setScenefilter(self._scenviewer_filter)
+
+    def leave(self):
+        super(Segment, self).leave()
+        sceneviewer = self._view.getSceneviewer()
+        sceneviewer.setScenefilter(self._sceneviewer_filter_orignal)
 
     def mousePressEvent(self, event):
         self._selection_mode = SelectionMode.NONE

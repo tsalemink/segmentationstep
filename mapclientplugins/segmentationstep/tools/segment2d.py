@@ -33,11 +33,7 @@ class Segment2D(Segment):
 
     def __init__(self, sceneviewer, plane, undo_redo_stack):
         super(Segment2D, self).__init__(sceneviewer, plane, undo_redo_stack)
-        self._start_position = None
-        self._scenviewer_filter = None
-        self._sceneviewer_filter_orignal = None
         self._selection_box = createSelectionBox(plane.getRegion(), SELECTION_BOX_GRAPHIC_NAME_2D)
-
 
     def _createSceneviewerFilter(self):
         sceneviewer = self._view.getSceneviewer()
@@ -61,19 +57,6 @@ class Segment2D(Segment):
         master_filter.appendOperand(label_filter)
 
         return master_filter
-
-    def enter(self):
-        super(Segment2D, self).enter()
-        sceneviewer = self._view.getSceneviewer()
-        self._sceneviewer_filter_orignal = sceneviewer.getScenefilter()
-        if self._scenviewer_filter is None:
-            self._scenviewer_filter = self._createSceneviewerFilter()
-        sceneviewer.setScenefilter(self._scenviewer_filter)
-
-    def leave(self):
-        super(Segment2D, self).leave()
-        sceneviewer = self._view.getSceneviewer()
-        sceneviewer.setScenefilter(self._sceneviewer_filter_orignal)
 
     def mousePressEvent(self, event):
         self._node = None

@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>SceneviewerTab</class>
+ <widget class="QWidget" name="SceneviewerTab">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>400</width>
+    <height>300</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <widget class="TabToolBar" name="_tabToolBar" native="true">
+     <property name="minimumSize">
+      <size>
+       <width>0</width>
+       <height>15</height>
+      </size>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="ZincWidgetState" name="_zincwidget" native="true">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+       <horstretch>0</horstretch>
+       <verstretch>10</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>100</width>
+       <height>200</height>
+      </size>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>TabToolBar</class>
+   <extends>QWidget</extends>
+   <header>mapclientplugins/segmentationstep/widgets/tabtoolbar.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>ZincWidgetState</class>
+   <extends>QWidget</extends>
+   <header>mapclientplugins/segmentationstep/widgets/zincwidgetstate.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>

@@ -31,7 +31,6 @@ class AbstractTool(object):
         self._plane = plane
         self._undo_redo_stack = undo_redo_stack
         self._get_dimension_method = None
-        self._icon = None
 
     def setGetDimensionsMethod(self, get_dimensions_method):
         self._get_dimension_method = get_dimensions_method
@@ -44,6 +43,12 @@ class AbstractTool(object):
 
     def getModeType(self):
         return self._mode_type
+
+    def getIcon(self):
+        raise NotImplementedError()
+
+    def getName(self):
+        return 'Tool'
 
     def viewAll(self):
         p1 = self._view.getViewParameters()

@@ -17,12 +17,13 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
     You should have received a copy of the GNU General Public License
     along with MAP Client.  If not, see <http://www.gnu.org/licenses/>..
 '''
-from mapclientplugins.segmentationstep.widgets.sceneviewerwidget import SceneviewerWidget
+from mapclientplugins.segmentationstep.widgets.zincwidget import ZincWidget
+from mapclientplugins.segmentationstep.maths.vectorops import add
 
-class SceneviewerWidgetSegmentation(SceneviewerWidget):
+class ZincWidgetState(ZincWidget):
 
     def __init__(self, parent=None, shared=None):
-        super(SceneviewerWidgetSegmentation, self).__init__(parent, shared)
+        super(ZincWidgetState, self).__init__(parent, shared)
 
         self._active_mode = None
         self._modes = {}
@@ -62,5 +63,16 @@ class SceneviewerWidgetSegmentation(SceneviewerWidget):
 
     def mouseReleaseEvent(self, event):
         self._active_mode.mouseReleaseEvent(event)
+
+    def setPlane(self, plane):
+        self._plane = plane
+        self._plane.notifyChange.addObserver(self.setViewToPlane)
+
+    def setViewToPlane(self):
+        normal = self._plane.getNormal()
+        centre = self._plane.getRotationPoint()
+        _, _, up, angle = self.getViewParameters()
+        self.setViewParameters(add(normal, centre), centre, up, angle)
+        self.viewAll()
 
 

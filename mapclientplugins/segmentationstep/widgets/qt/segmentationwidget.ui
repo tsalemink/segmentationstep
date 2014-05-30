@@ -37,7 +37,7 @@
       </property>
       <layout class="QHBoxLayout" name="horizontalLayout">
        <item>
-        <widget class="QToolBox" name="_toolBox">
+        <widget class="QToolBox" name="_toolTab">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
            <horstretch>0</horstretch>
@@ -52,8 +52,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>572</width>
-            <height>630</height>
+            <width>822</width>
+            <height>700</height>
            </rect>
           </property>
           <property name="minimumSize">
@@ -71,75 +71,100 @@
              <property name="title">
               <string/>
              </property>
-             <layout class="QGridLayout" name="gridLayout">
-              <item row="0" column="0">
-               <widget class="QPushButton" name="_pushButtonSave">
-                <property name="toolTip">
-                 <string>Serialize the current state</string>
-                </property>
-                <property name="text">
-                 <string>Save</string>
-                </property>
-               </widget>
+             <layout class="QVBoxLayout" name="verticalLayout_2">
+              <item>
+               <layout class="QHBoxLayout" name="horizontalLayout_2">
+                <item>
+                 <widget class="QPushButton" name="_pushButtonSave">
+                  <property name="toolTip">
+                   <string>Serialize the current state</string>
+                  </property>
+                  <property name="text">
+                   <string>Save</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <spacer name="horizontalSpacer_2">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>20</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+               </layout>
               </item>
-              <item row="0" column="1">
-               <spacer name="horizontalSpacer_2">
-                <property name="orientation">
-                 <enum>Qt::Horizontal</enum>
-                </property>
-                <property name="sizeHint" stdset="0">
-                 <size>
-                  <width>20</width>
-                  <height>20</height>
-                 </size>
-                </property>
-               </spacer>
+              <item>
+               <layout class="QHBoxLayout" name="horizontalLayout_3">
+                <item>
+                 <widget class="QPushButton" name="_pushButtonLoad">
+                  <property name="toolTip">
+                   <string>Reinstate a previous state </string>
+                  </property>
+                  <property name="text">
+                   <string>Load</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <spacer name="horizontalSpacer">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>40</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+               </layout>
               </item>
-              <item row="1" column="0">
-               <widget class="QPushButton" name="_pushButtonLoad">
-                <property name="toolTip">
-                 <string>Reinstate a previous state </string>
-                </property>
-                <property name="text">
-                 <string>Load</string>
-                </property>
-               </widget>
-              </item>
-              <item row="3" column="0">
-               <spacer name="verticalSpacer_6">
-                <property name="orientation">
-                 <enum>Qt::Vertical</enum>
-                </property>
-                <property name="sizeHint" stdset="0">
-                 <size>
-                  <width>20</width>
-                  <height>31</height>
-                 </size>
-                </property>
-               </spacer>
-              </item>
-              <item row="4" column="0">
-               <widget class="QPushButton" name="doneButton">
-                <property name="toolTip">
-                 <string>Signal the end of this step to the workflow manager</string>
-                </property>
-                <property name="text">
-                 <string>&amp;Done</string>
-                </property>
-               </widget>
-              </item>
-              <item row="2" column="0">
-               <spacer name="verticalSpacer_7">
+              <item>
+               <spacer name="verticalSpacer">
                 <property name="orientation">
                  <enum>Qt::Vertical</enum>
                 </property>
                 <property name="sizeHint" stdset="0">
                  <size>
                   <width>20</width>
-                  <height>40</height>
+                  <height>60</height>
                  </size>
                 </property>
                </spacer>
+              </item>
+              <item>
+               <layout class="QHBoxLayout" name="horizontalLayout_4">
+                <item>
+                 <widget class="QPushButton" name="doneButton">
+                  <property name="toolTip">
+                   <string>Signal the end of this step to the workflow manager</string>
+                  </property>
+                  <property name="text">
+                   <string>&amp;Done</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <spacer name="horizontalSpacer_3">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>40</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+               </layout>
               </item>
              </layout>
             </widget>
@@ -164,130 +189,14 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>558</width>
-            <height>664</height>
+            <width>822</width>
+            <height>700</height>
            </rect>
           </property>
           <attribute name="label">
            <string>View</string>
           </attribute>
           <layout class="QVBoxLayout" name="verticalLayout_3">
-           <item>
-            <widget class="QGroupBox" name="groupBox_3">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="toolTip">
-              <string>Set the view mode to projection or parallel</string>
-             </property>
-             <property name="title">
-              <string>Projection Mode</string>
-             </property>
-             <layout class="QVBoxLayout" name="verticalLayout_9">
-              <item>
-               <widget class="QRadioButton" name="_radioButtonParallel">
-                <property name="text">
-                 <string>Parallel</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QRadioButton" name="_radioButtonPerspective">
-                <property name="text">
-                 <string>Perspective                       </string>
-                </property>
-                <property name="checked">
-                 <bool>true</bool>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </widget>
-           </item>
-           <item>
-            <widget class="QGroupBox" name="groupBox_6">
-             <property name="toolTip">
-              <string>Set the icon sizes for the graphics</string>
-             </property>
-             <property name="title">
-              <string>Icon Sizes</string>
-             </property>
-             <layout class="QVBoxLayout" name="verticalLayout_6">
-              <item>
-               <widget class="QLabel" name="label_7">
-                <property name="text">
-                 <string>Image Plane Normal Arrow</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QDoubleSpinBox" name="_doubleSpinBoxNormalArrow">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="minimum">
-                 <double>0.010000000000000</double>
-                </property>
-                <property name="maximum">
-                 <double>9999999.990000000223517</double>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QLabel" name="label_8">
-                <property name="text">
-                 <string>Image Plane Rotation Centre</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QDoubleSpinBox" name="_doubleSpinBoxRotationCentre">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="minimum">
-                 <double>0.010000000000000</double>
-                </property>
-                <property name="maximum">
-                 <double>999999.989999999990687</double>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QLabel" name="label_9">
-                <property name="text">
-                 <string>Segmentation point</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QDoubleSpinBox" name="_doubleSpinBoxSegmentationPoint">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="minimum">
-                 <double>0.010000000000000</double>
-                </property>
-                <property name="maximum">
-                 <double>999999.989999999990687</double>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </widget>
-           </item>
            <item>
             <widget class="QGroupBox" name="groupBox_7">
              <property name="title">
@@ -307,7 +216,7 @@
               <item>
                <widget class="QCheckBox" name="_checkBoxImageOutline">
                 <property name="text">
-                 <string>Image outline</string>
+                 <string>Image stack outline</string>
                 </property>
                 <property name="checked">
                  <bool>true</bool>
@@ -328,153 +237,7 @@
             </widget>
            </item>
            <item>
-            <widget class="QGroupBox" name="groupBox_9">
-             <property name="title">
-              <string/>
-             </property>
-             <layout class="QVBoxLayout" name="verticalLayout_5">
-              <item>
-               <layout class="QHBoxLayout" name="horizontalLayout_3">
-                <item>
-                 <widget class="QPushButton" name="_pushButtonViewAll">
-                  <property name="text">
-                   <string>View All</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <spacer name="horizontalSpacer">
-                  <property name="orientation">
-                   <enum>Qt::Horizontal</enum>
-                  </property>
-                  <property name="sizeHint" stdset="0">
-                   <size>
-                    <width>40</width>
-                    <height>20</height>
-                   </size>
-                  </property>
-                 </spacer>
-                </item>
-               </layout>
-              </item>
-              <item>
-               <layout class="QHBoxLayout" name="horizontalLayout_4">
-                <item>
-                 <widget class="QPushButton" name="_pushButtonReset">
-                  <property name="text">
-                   <string>Reset</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <spacer name="horizontalSpacer_3">
-                  <property name="orientation">
-                   <enum>Qt::Horizontal</enum>
-                  </property>
-                  <property name="sizeHint" stdset="0">
-                   <size>
-                    <width>40</width>
-                    <height>20</height>
-                   </size>
-                  </property>
-                 </spacer>
-                </item>
-               </layout>
-              </item>
-             </layout>
-            </widget>
-           </item>
-           <item>
             <spacer name="verticalSpacer_2">
-             <property name="orientation">
-              <enum>Qt::Vertical</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>20</width>
-               <height>40</height>
-              </size>
-             </property>
-            </spacer>
-           </item>
-          </layout>
-         </widget>
-         <widget class="QWidget" name="mode">
-          <property name="geometry">
-           <rect>
-            <x>0</x>
-            <y>0</y>
-            <width>572</width>
-            <height>630</height>
-           </rect>
-          </property>
-          <attribute name="label">
-           <string>Mode</string>
-          </attribute>
-          <layout class="QVBoxLayout" name="verticalLayout_4">
-           <item>
-            <widget class="QGroupBox" name="groupBox_2">
-             <property name="toolTip">
-              <string>Set the mode for the 3D view</string>
-             </property>
-             <property name="title">
-              <string>View Mode 3D</string>
-             </property>
-             <layout class="QVBoxLayout" name="verticalLayout_2">
-              <item>
-               <widget class="QRadioButton" name="_radioButtonSegment">
-                <property name="text">
-                 <string>Segment</string>
-                </property>
-                <property name="checked">
-                 <bool>true</bool>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QRadioButton" name="_radioButtonMove">
-                <property name="toolTip">
-                 <string extracomment="Move the image plane along the image planes normal"/>
-                </property>
-                <property name="text">
-                 <string>Move Image Plane</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QRadioButton" name="_radioButtonRotate">
-                <property name="toolTip">
-                 <string extracomment="Rotate the plane about the current rotation point"/>
-                </property>
-                <property name="text">
-                 <string>Rotate Image Plane</string>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </widget>
-           </item>
-           <item>
-            <widget class="QGroupBox" name="groupBox_8">
-             <property name="title">
-              <string>Create Mode</string>
-             </property>
-             <layout class="QVBoxLayout" name="verticalLayout_11">
-              <item>
-               <widget class="QCheckBox" name="_checkBoxStreamingCreate">
-                <property name="toolTip">
-                 <string>Add nodes in streaming mode </string>
-                </property>
-                <property name="text">
-                 <string>Streaming</string>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </widget>
-           </item>
-           <item>
-            <spacer name="verticalSpacer">
              <property name="orientation">
               <enum>Qt::Vertical</enum>
              </property>
@@ -493,8 +256,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>572</width>
-            <height>630</height>
+            <width>822</width>
+            <height>700</height>
            </rect>
           </property>
           <attribute name="label">
@@ -675,143 +438,6 @@
            </item>
           </layout>
          </widget>
-         <widget class="QWidget" name="points">
-          <property name="geometry">
-           <rect>
-            <x>0</x>
-            <y>0</y>
-            <width>572</width>
-            <height>630</height>
-           </rect>
-          </property>
-          <attribute name="label">
-           <string>Points</string>
-          </attribute>
-          <layout class="QVBoxLayout" name="verticalLayout_15">
-           <item>
-            <widget class="QGroupBox" name="groupBox_10">
-             <property name="title">
-              <string>Push/Pull</string>
-             </property>
-             <layout class="QVBoxLayout" name="verticalLayout_7">
-              <item>
-               <layout class="QHBoxLayout" name="horizontalLayout_2">
-                <item>
-                 <widget class="QLabel" name="label_10">
-                  <property name="text">
-                   <string>Depth:</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QDoubleSpinBox" name="doubleSpinBox">
-                  <property name="toolTip">
-                   <string>Set the depth for pushing/pulling segmentation points down/up a layer</string>
-                  </property>
-                  <property name="value">
-                   <double>1.000000000000000</double>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
-              </item>
-              <item>
-               <layout class="QHBoxLayout" name="horizontalLayout_6">
-                <item>
-                 <widget class="QPushButton" name="_pushButtonPushDown">
-                  <property name="minimumSize">
-                   <size>
-                    <width>99</width>
-                    <height>0</height>
-                   </size>
-                  </property>
-                  <property name="text">
-                   <string>Push Down</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <spacer name="horizontalSpacer_5">
-                  <property name="orientation">
-                   <enum>Qt::Horizontal</enum>
-                  </property>
-                  <property name="sizeHint" stdset="0">
-                   <size>
-                    <width>40</width>
-                    <height>20</height>
-                   </size>
-                  </property>
-                 </spacer>
-                </item>
-                <item>
-                 <widget class="QPushButton" name="_pushButtonPullUp">
-                  <property name="minimumSize">
-                   <size>
-                    <width>99</width>
-                    <height>0</height>
-                   </size>
-                  </property>
-                  <property name="text">
-                   <string>Pull Up</string>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
-              </item>
-             </layout>
-            </widget>
-           </item>
-           <item>
-            <widget class="QGroupBox" name="groupBox_11">
-             <property name="title">
-              <string>Edit</string>
-             </property>
-             <layout class="QVBoxLayout" name="verticalLayout_14">
-              <item>
-               <layout class="QHBoxLayout" name="horizontalLayout_5">
-                <item>
-                 <widget class="QPushButton" name="_pushButtonDelete">
-                  <property name="toolTip">
-                   <string>Remove selected segmentation points</string>
-                  </property>
-                  <property name="text">
-                   <string>Delete</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <spacer name="horizontalSpacer_4">
-                  <property name="orientation">
-                   <enum>Qt::Horizontal</enum>
-                  </property>
-                  <property name="sizeHint" stdset="0">
-                   <size>
-                    <width>40</width>
-                    <height>20</height>
-                   </size>
-                  </property>
-                 </spacer>
-                </item>
-               </layout>
-              </item>
-             </layout>
-            </widget>
-           </item>
-           <item>
-            <spacer name="verticalSpacer_5">
-             <property name="orientation">
-              <enum>Qt::Vertical</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>20</width>
-               <height>40</height>
-              </size>
-             </property>
-            </spacer>
-           </item>
-          </layout>
-         </widget>
         </widget>
        </item>
       </layout>
@@ -820,7 +446,7 @@
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
       </property>
-      <widget class="SegmentationTabWidget" name="_tabWidget1">
+      <widget class="SegmentationTabWidget" name="_tabWidgetLeft">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
          <horstretch>2</horstretch>
@@ -831,139 +457,13 @@
         <string notr="true">border-right: 10 px blue</string>
        </property>
        <property name="currentIndex">
-        <number>0</number>
+        <number>-1</number>
        </property>
        <property name="movable">
         <bool>false</bool>
        </property>
-       <widget class="QWidget" name="tab3d">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <attribute name="title">
-         <string>3D View</string>
-        </attribute>
-        <layout class="QVBoxLayout" name="verticalLayoutTab3d">
-         <item>
-          <widget class="QWidget" name="_toolbarwidget3d" native="true">
-           <property name="minimumSize">
-            <size>
-             <width>0</width>
-             <height>15</height>
-            </size>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QWidget" name="widget_1" native="true">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <layout class="QHBoxLayout" name="horizontalLayout_10">
-            <property name="spacing">
-             <number>0</number>
-            </property>
-            <property name="leftMargin">
-             <number>0</number>
-            </property>
-            <property name="topMargin">
-             <number>0</number>
-            </property>
-            <property name="rightMargin">
-             <number>0</number>
-            </property>
-            <property name="bottomMargin">
-             <number>0</number>
-            </property>
-            <item>
-             <widget class="SceneviewerWidget3D" name="_sceneviewer3d" native="true">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
-                <horstretch>0</horstretch>
-                <verstretch>10</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="minimumSize">
-               <size>
-                <width>100</width>
-                <height>200</height>
-               </size>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </widget>
-         </item>
-        </layout>
-       </widget>
-       <widget class="QWidget" name="tab2d">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <attribute name="title">
-         <string>2D View</string>
-        </attribute>
-        <layout class="QVBoxLayout" name="verticalLayout_13">
-         <item>
-          <widget class="QWidget" name="_toolbarwidget2d" native="true">
-           <property name="minimumSize">
-            <size>
-             <width>0</width>
-             <height>15</height>
-            </size>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QWidget" name="widget_2" native="true">
-           <layout class="QVBoxLayout" name="verticalLayout_12">
-            <property name="spacing">
-             <number>0</number>
-            </property>
-            <property name="leftMargin">
-             <number>0</number>
-            </property>
-            <property name="topMargin">
-             <number>0</number>
-            </property>
-            <property name="rightMargin">
-             <number>0</number>
-            </property>
-            <property name="bottomMargin">
-             <number>0</number>
-            </property>
-            <item>
-             <widget class="SceneviewerWidget2D" name="_sceneviewer2d" native="true">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
-                <horstretch>0</horstretch>
-                <verstretch>10</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="minimumSize">
-               <size>
-                <width>100</width>
-                <height>200</height>
-               </size>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </widget>
-         </item>
-        </layout>
-       </widget>
       </widget>
-      <widget class="SegmentationTabWidget" name="_tabWidgetRightDropTarget">
+      <widget class="SegmentationTabWidget" name="_tabWidgetRight">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
          <horstretch>4</horstretch>
@@ -990,21 +490,9 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>SceneviewerWidget2D</class>
-   <extends>QWidget</extends>
-   <header>mapclientplugins/segmentationstep/widgets/sceneviewerwidget2d.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
    <class>SegmentationTabWidget</class>
    <extends>QTabWidget</extends>
    <header>mapclientplugins/segmentationstep/widgets/segmentationtabwidget.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>SceneviewerWidget3D</class>
-   <extends>QWidget</extends>
-   <header>mapclientplugins/segmentationstep/widgets/sceneviewerwidget3d.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

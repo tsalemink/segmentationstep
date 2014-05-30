@@ -17,19 +17,16 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
     You should have received a copy of the GNU General Public License
     along with MAP Client.  If not, see <http://www.gnu.org/licenses/>..
 '''
-DEFAULT_NORMAL_ARROW_SIZE = 25.0
-DEFAULT_GRAPHICS_SPHERE_SIZE = 10.0
-DEFAULT_SEGMENTATION_POINT_SIZE = 2.0
-ELEMENT_NODE_LABEL_GRAPHIC_NAME = 'label_only'
-IMAGE_PLANE_GRAPHIC_NAME = 'image_plane'
-ELEMENT_OUTLINE_GRAPHIC_NAME = 'element_outline'
-POINT_CLOUD_GRAPHIC_NAME = 'point_cloud'
-SELECTION_BOX_GRAPHIC_NAME = 'selection_box'
+from PySide import QtGui
 
-class ViewMode(object):
-
-    SEGMENT = 1
-    PLANE_NORMAL = 2
-    PLANE_ROTATION = 4
+class TabToolBar(QtGui.QToolBar):
+    '''
+    classdocs
+    '''
 
 
+    def __init__(self, parent=None):
+        '''
+        Constructor
+        '''
+        super(TabToolBar, self).__init__(parent)

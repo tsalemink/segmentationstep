@@ -20,11 +20,14 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
 
 from math import cos, sin, sqrt, acos, pi
 
+from PySide import QtGui
+
 from mapclientplugins.segmentationstep.tools.planeadjust import PlaneAdjust
 from mapclientplugins.segmentationstep.widgets.definitions import ViewMode
 from mapclientplugins.segmentationstep.maths.vectorops import add, mult, cross, dot, sub, normalize
 from mapclientplugins.segmentationstep.maths.algorithms import calculateCentroid, boundCoordinatesToCuboid, calculateLinePlaneIntersection
 from mapclientplugins.segmentationstep.zincutils import getGlyphPosition, setGlyphPosition, createPlaneManipulationSphere
+# from mapclientplugins.segmentationstep.tools.resources import images
 
 class Orientation(PlaneAdjust):
     '''
@@ -39,6 +42,10 @@ class Orientation(PlaneAdjust):
         self._width_method = None
         self._height_method = None
         self._getViewParameters_method = None
+        self._icon = QtGui.QIcon(':toolbar_icons/orientation.png')
+
+    def getIcon(self):
+        return self._icon
 
     def setWidthHeightMethods(self, width_method, height_method):
         self._width_method = width_method
@@ -121,7 +128,6 @@ class Orientation(PlaneAdjust):
         scene.endChange()
 
         self.setUndoRedoCommand('plane rotation')
-
 
     def enter(self):
         scene = self._glyph.getScene()

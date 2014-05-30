@@ -19,17 +19,15 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
 '''
 from PySide import QtGui, QtCore
 
-from opencmiss.zinc.field import Field
-from opencmiss.zinc.glyph import Glyph
-
 from mapclientplugins.segmentationstep.tools import normal, orientation, segment2d, segment3d
 from mapclientplugins.segmentationstep.widgets.ui_segmentationwidget import Ui_SegmentationWidget
 from mapclientplugins.segmentationstep.undoredo import CommandChangeViewMode, CommandSetScale, CommandSetSingleParameterMethod, CommandSetGraphicVisibility, CommandSetGlyphSize
 from mapclientplugins.segmentationstep.widgets.zincwidget import ProjectionMode
-from mapclientplugins.segmentationstep.widgets.definitions import DEFAULT_GRAPHICS_SPHERE_SIZE, DEFAULT_NORMAL_ARROW_SIZE, DEFAULT_SEGMENTATION_POINT_SIZE, GRAPHIC_LABEL_NAME, POINT_CLOUD_GRAPHIC_NAME
-from mapclientplugins.segmentationstep.widgets.definitions import ViewMode, IMAGE_PLANE_GRAPHIC_NAME
+from mapclientplugins.segmentationstep.widgets.definitions import ViewMode, ELEMENT_OUTLINE_GRAPHIC_NAME, IMAGE_PLANE_GRAPHIC_NAME, ELEMENT_NODE_LABEL_GRAPHIC_NAME
 from mapclientplugins.segmentationstep.widgets.segmentationstate import SegmentationState
 from mapclientplugins.segmentationstep.zincutils import getGlyphSize, setGlyphSize
+from mapclientplugins.segmentationstep.widgets.sceneviewertab import SceneviewerTab
+from mapclientplugins.segmentationstep.scene.master import MasterScene
 
 class FakeMouseEvent(object):
 
@@ -56,22 +54,15 @@ class SegmentationWidget(QtGui.QWidget):
         QtGui.QWidget.__init__(self, parent)
         self._ui = Ui_SegmentationWidget()
         self._ui.setupUi(self)
-        self._setupUi()
 
         self._ui.splitterToolBox.setStretchFactor(0, 0)
         self._ui.splitterToolBox.setStretchFactor(1, 1)
 
         self._model = model
-        self._context = self._model.getContext()
-        self._ui._sceneviewer2d.setContext(self._context)
-        self._ui._sceneviewer3d.setContext(self._context)
-        self._ui._sceneviewer2d.setUndoRedoStack(model.getUndoRedoStack())
-        self._ui._sceneviewer3d.setUndoRedoStack(model.getUndoRedoStack())
-        self._ui._sceneviewer2d.setPlane(model.getImageModel().getPlane())
+        self._scene = MasterScene(self._model)
 
-        self._setupModes()
-
-        self._maxdim = 100
+        self._setupTabs()
+        self._setupTools()
 
         self._debug_print = False
 
@@ -81,41 +72,19 @@ class SegmentationWidget(QtGui.QWidget):
         self._counter = 0
 
         self._viewstate = None
-        self._current_viewmode = ViewMode.SEGMENT if self._ui._radioButtonSegment.isChecked() else (ViewMode.PLANE_NORMAL if self._ui._radioButtonMove.isChecked() else ViewMode.PLANE_ROTATION)
 
-        self._streaming_create = False
-        self._streaming_create_active = False
-
-        self._setupImageVisualisation()
-        self._setupNodeVisualisation()
+        self._setupUi()
 
         self._makeConnections()
 
     def _makeConnections(self):
-        self._ui._sceneviewer2d.graphicsInitialized.connect(self.sceneviewerReady)
-        self._ui._sceneviewer3d.graphicsInitialized.connect(self.sceneviewerReady)
-        self._ui._pushButtonReset.clicked.connect(self._resetViewClicked)
-        self._ui._pushButtonViewAll.clicked.connect(self._viewAllClicked)
-
-        self._ui._radioButtonSegment.clicked.connect(self._zincWidgetModeChanged)
-        self._ui._radioButtonMove.clicked.connect(self._zincWidgetModeChanged)
-        self._ui._radioButtonRotate.clicked.connect(self._zincWidgetModeChanged)
-        self._ui._radioButtonParallel.clicked.connect(self._projectionModeChanged)
-        self._ui._radioButtonPerspective.clicked.connect(self._projectionModeChanged)
-
         self._ui._lineEditWidthScale.editingFinished.connect(self._scaleChanged)
         self._ui._lineEditHeightScale.editingFinished.connect(self._scaleChanged)
         self._ui._lineEditDepthScale.editingFinished.connect(self._scaleChanged)
 
-        self._ui._doubleSpinBoxNormalArrow.valueChanged.connect(self._iconSizeChanged)
-        self._ui._doubleSpinBoxRotationCentre.valueChanged.connect(self._iconSizeChanged)
-        self._ui._doubleSpinBoxSegmentationPoint.valueChanged.connect(self._iconSizeChanged)
-
         self._ui._checkBoxCoordinateLabels.clicked.connect(self._graphicVisibilityChanged)
         self._ui._checkBoxImageOutline.clicked.connect(self._graphicVisibilityChanged)
         self._ui._checkBoxImagePlane.clicked.connect(self._graphicVisibilityChanged)
-
-        self._ui._checkBoxStreamingCreate.clicked.connect(self._streamingCreateClicked)
 
     def _setupUi(self):
         dbl_validator = QtGui.QDoubleValidator()
@@ -124,11 +93,6 @@ class SegmentationWidget(QtGui.QWidget):
         self._ui._lineEditHeightScale.setValidator(dbl_validator)
         self._ui._lineEditDepthScale.setValidator(dbl_validator)
 
-        self._ui._doubleSpinBoxNormalArrow.setValue(DEFAULT_NORMAL_ARROW_SIZE)
-        self._ui._doubleSpinBoxRotationCentre.setValue(DEFAULT_GRAPHICS_SPHERE_SIZE)
-        self._ui._doubleSpinBoxSegmentationPoint.setValue(DEFAULT_SEGMENTATION_POINT_SIZE)
-
-    def _updateImageUI(self):
         dimensions = self._model.getImageModel().getDimensionsInPixels()
         self._ui._labelmageWidth.setText(str(dimensions[0]) + ' px')
         self._ui._labelmageHeight.setText(str(dimensions[1]) + ' px')
@@ -162,13 +126,6 @@ class SegmentationWidget(QtGui.QWidget):
         base_size = self._viewstate.getPlaneRotationCentreGlyphBaseSize()
         self._ui._doubleSpinBoxRotationCentre.setValue(base_size)
         self._setPlaneRotationCentreGlyphBaseSize(base_size)
-
-    def _viewAllClicked(self):
-        stack = self._model.getUndoRedoStack()
-        stack.beginMacro('view all')
-        self._ui._sceneviewer3d.viewAll()
-        self._ui._sceneviewer2d.viewAll()
-        stack.endMacro()
 
     def _projectionModeChanged(self):
         current_mode = ProjectionMode.PERSPECTIVE if self._ui._radioButtonParallel.isChecked() else ProjectionMode.PARALLEL
@@ -215,11 +172,11 @@ class SegmentationWidget(QtGui.QWidget):
         check_box = self.sender()
         graphic = None
         if check_box == self._ui._checkBoxCoordinateLabels:
-            graphic = self._coordinate_labels
+            graphic = self._scene.getGraphic(ELEMENT_NODE_LABEL_GRAPHIC_NAME)
         elif check_box == self._ui._checkBoxImagePlane:
-            graphic = self._plane_image_graphic
+            graphic = self._scene.getGraphic(IMAGE_PLANE_GRAPHIC_NAME)
         elif check_box == self._ui._checkBoxImageOutline:
-            graphic = self._image_outline
+            graphic = self._scene.getGraphic(ELEMENT_OUTLINE_GRAPHIC_NAME)
 
         c = CommandSetGraphicVisibility(not check_box.isChecked(), check_box.isChecked())
         c.setCheckBox(check_box)
@@ -263,103 +220,6 @@ class SegmentationWidget(QtGui.QWidget):
         self._streaming_create = on
         self._ui._checkBoxStreamingCreate.setChecked(on)
 
-    def _createImageOutline(self, region, finite_element_field):
-        scene = region.getScene()
-
-        scene.beginChange()
-        # Create a surface graphic and set it's coordinate field
-        # to the finite element coordinate field.
-        outline = scene.createGraphicsLines()
-        outline.setCoordinateField(finite_element_field)
-        scene.endChange()
-
-        return outline
-
-    def _createTextureSurface(self, region, coordinate_field, iso_scalar_field):
-        scene = region.getScene()
-
-        fm = region.getFieldmodule()
-        xi = fm.findFieldByName('xi')
-        scene.beginChange()
-        # Create a surface graphic and set it's coordinate field
-        # to the finite element coordinate field.
-        iso_graphic = scene.createGraphicsContours()
-        iso_graphic.setCoordinateField(coordinate_field)
-        iso_graphic.setTextureCoordinateField(xi)
-        iso_graphic.setIsoscalarField(iso_scalar_field)
-        iso_graphic.setListIsovalues(0.0)
-        iso_graphic.setName(IMAGE_PLANE_GRAPHIC_NAME)
-
-        scene.endChange()
-
-        return iso_graphic
-
-    def _createNodeLabels(self, region, finite_element_field):
-        scene = region.getScene()
-
-        scene.beginChange()
-
-        graphic = scene.createGraphicsPoints()
-        graphic.setFieldDomainType(Field.DOMAIN_TYPE_NODES)
-        graphic.setCoordinateField(finite_element_field)
-        graphic.setName(GRAPHIC_LABEL_NAME)
-        attributes = graphic.getGraphicspointattributes()
-        attributes.setGlyphShapeType(Glyph.SHAPE_TYPE_NONE)
-        attributes.setLabelField(finite_element_field)
-
-        scene.endChange()
-
-        return graphic
-
-    def _setupImageVisualisation(self):
-        image_model = self._model.getImageModel()
-        image_region = image_model.getRegion()
-        image_coordinate_field = image_model.getScaledCoordinateField()
-        iso_scalar_field = image_model.getIsoScalarField()
-        material = image_model.getMaterial()
-
-        self._plane_image_graphic = self._createTextureSurface(image_region, image_coordinate_field, iso_scalar_field)
-        self._plane_image_graphic.setMaterial(material)
-        self._image_outline = self._createImageOutline(image_region, image_coordinate_field)
-        self._coordinate_labels = self._createNodeLabels(image_region, image_coordinate_field)
-        self._coordinate_labels.setVisibilityFlag(False)
-
-        self._updateImageUI()
-
-    def _setupNodeVisualisation(self):
-        node_model = self._model.getNodeModel()
-        region = node_model.getRegion()
-        coordinate_field = node_model.getScaledCoordinateField()
-        self._segmentation_point_glyph = self._createNodeGraphics(region, coordinate_field)
-
-    def _createNodeGraphics(self, region, finite_element_field):
-        scene = region.getScene()
-        scene.beginChange()
-
-        materialmodule = self._context.getMaterialmodule()
-        green_material = materialmodule.findMaterialByName('green')
-
-        graphic = scene.createGraphicsPoints()
-        graphic.setFieldDomainType(Field.DOMAIN_TYPE_NODES)
-        graphic.setCoordinateField(finite_element_field)
-        graphic.setName(POINT_CLOUD_GRAPHIC_NAME)
-        graphic.setSelectedMaterial(green_material)
-        attributes = graphic.getGraphicspointattributes()
-        attributes.setGlyphShapeType(Glyph.SHAPE_TYPE_SPHERE)
-        attributes.setBaseSize(DEFAULT_SEGMENTATION_POINT_SIZE)
-#         attributes.setLabelField(finite_element_field)
-
-        scene.endChange()
-
-        return graphic
-
-    def sceneviewerReady(self):
-        if self.sender() == self._ui._sceneviewer3d:
-            self._ui._sceneviewer3d.setActiveModeType(ViewMode.SEGMENT)
-            self._saveViewState()
-        elif self.sender() == self._ui._sceneviewer2d:
-            self._ui._sceneviewer2d.setActiveModeType(ViewMode.SEGMENT)
-
     def keyPressEvent(self, keyevent):
         if keyevent.key() == 68 and not self._debug_print:
             self._debug_print = True
@@ -368,6 +228,7 @@ class SegmentationWidget(QtGui.QWidget):
         if keyevent.key() == 82 and keyevent.modifiers() & QtCore.Qt.CTRL and not keyevent.isAutoRepeat():
             # Put tool into plane rotation mode
             # show sphere centre glyph
+            return
             reverse = keyevent.modifiers() & QtCore.Qt.SHIFT
             cur_mode = self._ui._sceneviewer3d.getMode().getModeType()
             new_mode = cur_mode
@@ -400,14 +261,6 @@ class SegmentationWidget(QtGui.QWidget):
         elif self.sender() == self._ui._radioButtonRotate:
             self._setMode(ViewMode.PLANE_ROTATION)
 
-    def _setViewModeUi(self, mode):
-        if mode == ViewMode.SEGMENT:
-            self._ui._radioButtonSegment.setChecked(True)
-        elif mode == ViewMode.PLANE_NORMAL:
-            self._ui._radioButtonMove.setChecked(True)
-        elif mode == ViewMode.PLANE_ROTATION:
-            self._ui._radioButtonRotate.setChecked(True)
-
     def _setMode(self, view_mode):
         c = CommandChangeViewMode(self._current_viewmode, view_mode)
         c.setSetActiveModeTypeMethod(self._ui._sceneviewer3d.setActiveModeType)
@@ -416,73 +269,56 @@ class SegmentationWidget(QtGui.QWidget):
         self._model.getUndoRedoStack().push(c)
         self._current_viewmode = view_mode
 
-    def _setupSelectionScenefilters(self):
-        print('setup selection scene filters')
-        filtermodule = self._context.getScenefiltermodule()
-        visibility_filter = filtermodule.createScenefilterVisibilityFlags()
-        node_filter = filtermodule.createScenefilterFieldDomainType(Field.DOMAIN_TYPE_NODES)
-        glyph_filter = filtermodule.createScenefilterFieldDomainType(Field.DOMAIN_TYPE_POINT)
-        label_filter = filtermodule.createScenefilterGraphicsName(GRAPHIC_LABEL_NAME)
-        label_filter.setInverse(True)
+    def _setupTabs(self):
+        self._tabs = {}
+        context = self._model.getContext()
 
-        segmentation_point_filter = filtermodule.createScenefilterOperatorAnd()
-        segmentation_point_filter.appendOperand(visibility_filter)
-        segmentation_point_filter.appendOperand(node_filter)
-        segmentation_point_filter.appendOperand(label_filter)
+        view3d = SceneviewerTab(context, self._model.getUndoRedoStack())
+        self._ui._tabWidgetLeft.addTab(view3d, 'View 3D')
 
-        plane_glyph_filter = filtermodule.createScenefilterOperatorAnd()
-        plane_glyph_filter.appendOperand(visibility_filter)
-        plane_glyph_filter.appendOperand(glyph_filter)
+        view2d = SceneviewerTab(context, self._model.getUndoRedoStack(), view3d.getZincWidget())
+        view2d.setPlane(self._model.getImageModel().getPlane())
+        self._ui._tabWidgetLeft.addTab(view2d, 'View 2D')
 
-        segment_mode = self._modes[ViewMode.SEGMENT]
-        segment_mode.setSelectionFilter(segmentation_point_filter)
-        segment_mode.setSelectionFilterMethod(self._ui._sceneviewer3d.setSelectionfilter)
+        self._tabs['view_3d'] = view3d
+        self._tabs['view_2d'] = view2d
 
-        normal_mode = self._modes[ViewMode.PLANE_NORMAL]
-        normal_mode.setSelectionFilter(plane_glyph_filter)
-        normal_mode.setSelectionFilterMethod(self._ui._sceneviewer3d.setSelectionfilter)
-
-        rotation_mode = self._modes[ViewMode.PLANE_ROTATION]
-        rotation_mode.setSelectionFilter(plane_glyph_filter)
-        rotation_mode.setSelectionFilterMethod(self.setSelectionfilter)
-#         rotation_mode.setSelectionFilterMethod(self._ui._sceneviewer3d.setSelectionfilter)
-
-    def _setupModes(self):
+    def _setupTools(self):
+        context = self._model.getContext()
         image_model = self._model.getImageModel()
         node_model = self._model.getNodeModel()
         plane = image_model.getPlane()
         undo_redo_stack = self._model.getUndoRedoStack()
 
-        materialmodule = self._context.getMaterialmodule()
+        materialmodule = context.getMaterialmodule()
         yellow_material = materialmodule.findMaterialByName('yellow')
         orange_material = materialmodule.findMaterialByName('orange')
         purple_material = materialmodule.findMaterialByName('purple')
         red_material = materialmodule.findMaterialByName('red')
 
-        segment_mode = segment3d.Segment3D(self._ui._sceneviewer3d, plane, undo_redo_stack)
-        segment_mode.setModel(node_model)
+        view_3d_tab = self._tabs['view_3d']
+        segment_tool = segment3d.Segment3D(view_3d_tab.getZincWidget(), plane, undo_redo_stack)
+        segment_tool.setModel(node_model)
 
-        segment_mode_2d = segment2d.Segment2D(self._ui._sceneviewer2d, plane, undo_redo_stack)
-        segment_mode_2d.setGetDimensionsMethod(image_model.getDimensions)
-        segment_mode_2d.setModel(node_model)
+        normal_tool = normal.Normal(view_3d_tab.getZincWidget(), plane, undo_redo_stack)
+        normal_tool.setGetDimensionsMethod(image_model.getDimensions)
+        normal_tool.setDefaultMaterial(yellow_material)
+        normal_tool.setSelectedMaterial(orange_material)
 
-        normal_mode = normal.Normal(self._ui._sceneviewer3d, plane, undo_redo_stack)
-        normal_mode.setGetDimensionsMethod(image_model.getDimensions)
-        normal_mode.setDefaultMaterial(yellow_material)
-        normal_mode.setSelectedMaterial(orange_material)
+        rotation_tool = orientation.Orientation(view_3d_tab.getZincWidget(), plane, undo_redo_stack)
+        rotation_tool.setGetDimensionsMethod(image_model.getDimensions)
+        rotation_tool.setDefaultMaterial(purple_material)
+        rotation_tool.setSelectedMaterial(red_material)
 
-        rotation_mode = orientation.Orientation(self._ui._sceneviewer3d, plane, undo_redo_stack)
-        rotation_mode.setGetDimensionsMethod(image_model.getDimensions)
-        rotation_mode.setDefaultMaterial(purple_material)
-        rotation_mode.setSelectedMaterial(red_material)
+        view_3d_tab.addTool(segment_tool)
+        view_3d_tab.addTool(normal_tool)
+        view_3d_tab.addTool(rotation_tool)
 
-        self._ui._sceneviewer3d.addMode(segment_mode)
-        self._ui._sceneviewer3d.addMode(normal_mode)
-        self._ui._sceneviewer3d.addMode(rotation_mode)
+        view_2d_tab = self._tabs['view_2d']
+        segment2d_tool = segment2d.Segment2D(view_2d_tab.getZincWidget(), plane, undo_redo_stack)
+        segment2d_tool.setGetDimensionsMethod(image_model.getDimensions)
+        segment2d_tool.setModel(node_model)
 
-        self._ui._sceneviewer2d.addMode(segment_mode_2d)
-
-#         self._ui._sceneviewer3d.setActiveModeType(ViewMode.SEGMENT)
-#         self._ui._sceneviewer2d.setActiveModeType(ViewMode.SEGMENT)
+        view_2d_tab.addTool(segment2d_tool)
 
 
