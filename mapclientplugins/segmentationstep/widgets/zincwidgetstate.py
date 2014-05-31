@@ -69,10 +69,11 @@ class ZincWidgetState(ZincWidget):
         self._plane.notifyChange.addObserver(self.setViewToPlane)
 
     def setViewToPlane(self):
-        normal = self._plane.getNormal()
-        centre = self._plane.getRotationPoint()
-        _, _, up, angle = self.getViewParameters()
-        self.setViewParameters(add(normal, centre), centre, up, angle)
-        self.viewAll()
+        if self._sceneviewer is not None:
+            normal = self._plane.getNormal()
+            centre = self._plane.getRotationPoint()
+            _, _, up, angle = self.getViewParameters()
+            self.setViewParameters(add(normal, centre), centre, up, angle)
+            self.viewAll()
 
 

@@ -41,6 +41,13 @@ class SceneviewerTab(SegmentationTab):
 
     def _makeConnections(self):
         self._ui._zincwidget.graphicsInitialized.connect(self._sceneviewerReady)
+        self._ui._tabToolBar.actionTriggered.connect(self._toolbarAction)
+
+    def _toolbarAction(self, action):
+        action.setChecked(True)
+        tool = self._action_map[action]
+        self.changeTool(tool)
+        self._ui._zincwidget.setActiveModeType(tool.getModeType())
 
     def _sceneviewerReady(self):
         self._ui._zincwidget.setActiveModeType(ViewMode.SEGMENT)

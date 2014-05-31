@@ -44,11 +44,6 @@ class SegmentationTab(QtGui.QWidget):
         if tool != self._active_tool:
             old_action = self._tool_map[self._active_tool]
             old_action.setChecked(False)
-            current_action = self._tool_map[tool]
-            current_action.setChecked(True)
             self._active_tool = tool
-
-    def _toolbarAction(self):
-        print(self.sender())
 
 
