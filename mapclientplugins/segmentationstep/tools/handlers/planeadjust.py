@@ -17,12 +17,12 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
     You should have received a copy of the GNU General Public License
     along with MAP Client.  If not, see <http://www.gnu.org/licenses/>..
 '''
-from mapclientplugins.segmentationstep.tools.handlers.abstracttool import AbstractTool
+from mapclientplugins.segmentationstep.tools.handlers.abstracthandler import AbstractHandler
 from mapclientplugins.segmentationstep.undoredo import CommandMovePlane, CommandMoveGlyph
 from mapclientplugins.segmentationstep.zincutils import setGlyphPosition
 from mapclientplugins.segmentationstep.plane import PlaneAttitude
 
-class PlaneAdjust(AbstractTool):
+class PlaneAdjust(AbstractHandler):
 
     def __init__(self, sceneviewer, plane, undo_redo_stack):
         super(PlaneAdjust, self).__init__(sceneviewer, plane, undo_redo_stack)

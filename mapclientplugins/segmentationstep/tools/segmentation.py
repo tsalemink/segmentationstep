@@ -24,14 +24,20 @@ class SegmentationTool(object):
     '''
 
 
-    def __init__(self):
+    def __init__(self, name):
         '''
         Constructor
         '''
-        pass
+        self._name = name
+        self._icon = None
+        self._handlers = {}
+        self._widget = None
+
+    def getName(self):
+        return self._name
 
     def getPropertiesWidget(self):
-        raise NotImplementedError()
+        raise self._widget
 
     def getIcon(self):
         raise NotImplementedError()

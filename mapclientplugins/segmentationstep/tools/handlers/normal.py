@@ -17,8 +17,6 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
     You should have received a copy of the GNU General Public License
     along with MAP Client.  If not, see <http://www.gnu.org/licenses/>..
 '''
-from PySide import QtGui
-
 from mapclientplugins.segmentationstep.tools.handlers.planeadjust import PlaneAdjust
 from mapclientplugins.segmentationstep.definitions import ViewMode
 from mapclientplugins.segmentationstep.maths.vectorops import add, mult, dot, sub
@@ -36,7 +34,6 @@ class Normal(PlaneAdjust):
         super(Normal, self).__init__(sceneviewer, plane, undo_redo_stack)
         self._mode_type = ViewMode.PLANE_NORMAL
         self._glyph = createPlaneNormalIndicator(plane.getRegion(), plane.getNormalField())
-        self._icon = QtGui.QIcon(':toolbar_icons/normal.png')
 
     def getIcon(self):
         return self._icon

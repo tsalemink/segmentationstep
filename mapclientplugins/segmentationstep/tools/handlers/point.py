@@ -17,9 +17,9 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
     You should have received a copy of the GNU General Public License
     along with MAP Client.  If not, see <http://www.gnu.org/licenses/>..
 '''
-from PySide import QtCore, QtGui
+from PySide import QtCore
 
-from mapclientplugins.segmentationstep.tools.handlers.abstracttool import AbstractTool
+from mapclientplugins.segmentationstep.tools.handlers.abstracthandler import AbstractHandler
 from mapclientplugins.segmentationstep.definitions import ViewMode
 from mapclientplugins.segmentationstep.zincutils import setGlyphSize, setGlyphOffset, COORDINATE_SYSTEM_LOCAL
 from mapclientplugins.segmentationstep.undoredo import CommandNode, CommandSelection
@@ -36,16 +36,15 @@ class SelectionMode(object):
 SELECTION_BOX_GRAPHIC_NAME_3D = 'selection_box_3d'
 SELECTION_BOX_GRAPHIC_NAME_2D = 'selection_box_2d'
 
-class Segment(AbstractTool):
+class Point(AbstractHandler):
 
     def __init__(self, zinc_view, plane, undo_redo_stack):
-        super(Segment, self).__init__(zinc_view, plane, undo_redo_stack)
+        super(Point, self).__init__(zinc_view, plane, undo_redo_stack)
         self._mode_type = ViewMode.SEGMENT
         self._model = None
         self._selection_box = None
         self._selection_mode = SelectionMode.NONE
         self._selection_position_start = None
-        self._icon = QtGui.QIcon(':/toolbar_icons/point.png')
         self._scenviewer_filter = None
         self._sceneviewer_filter_orignal = None
         self._properties_widget = PropertiesWidget()
@@ -66,14 +65,8 @@ class Segment(AbstractTool):
         '''
         pass
 
-    def getIcon(self):
-        return self._icon
-
-    def getName(self):
-        return 'Segment'
-
     def enter(self):
-        super(Segment, self).enter()
+        super(Point, self).enter()
         sceneviewer = self._view.getSceneviewer()
         self._sceneviewer_filter_orignal = sceneviewer.getScenefilter()
         if self._scenviewer_filter is None:
@@ -81,7 +74,7 @@ class Segment(AbstractTool):
         sceneviewer.setScenefilter(self._scenviewer_filter)
 
     def leave(self):
-        super(Segment, self).leave()
+        super(Point, self).leave()
         sceneviewer = self._view.getSceneviewer()
         sceneviewer.setScenefilter(self._sceneviewer_filter_orignal)
 
@@ -118,7 +111,7 @@ class Segment(AbstractTool):
 
             self._node_status = SegmentPointStatus(node.getIdentifier(), node_location, plane_attitude)
         else:
-            super(Segment, self).mousePressEvent(event)
+            super(Point, self).mousePressEvent(event)
 
 
     def mouseMoveEvent(self, event):
@@ -144,7 +137,7 @@ class Segment(AbstractTool):
             point_on_plane = self._calculatePointOnPlane(event.x(), event.y())
             self._model.setNodeLocation(node, point_on_plane)
         else:
-            super(Segment, self).mouseMoveEvent(event)
+            super(Point, self).mouseMoveEvent(event)
 
     def mouseReleaseEvent(self, event):
         if self._selection_mode != SelectionMode.NONE:
@@ -201,7 +194,7 @@ class Segment(AbstractTool):
             c = CommandNode(self._model, self._node_status, node_status)
             self._undo_redo_stack.push(c)
         else:
-            super(Segment, self).mouseReleaseEvent(event)
+            super(Point, self).mouseReleaseEvent(event)
 
     def _calculatePointOnPlane(self, x, y):
         far_plane_point = self._view.unproject(x, -y, -1.0)

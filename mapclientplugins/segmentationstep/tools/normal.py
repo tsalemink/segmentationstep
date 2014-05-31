@@ -21,10 +21,10 @@ from PySide import QtGui
 
 from mapclientplugins.segmentationstep.tools.segmentation import SegmentationTool
 
-class PointTool(SegmentationTool):
+class NormalTool(SegmentationTool):
 
     def __init__(self):
-        super(PointTool, self).__init__('Point')
-        self._icon = QtGui.QIcon(':/toolbar_icons/point.png')
+        super(NormalTool, self).__init__('Normal')
+        self._icon = QtGui.QIcon(':toolbar_icons/normal.png')
 
 

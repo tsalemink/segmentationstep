@@ -22,17 +22,17 @@ from math import cos, sin, acos, copysign
 
 from PySide import QtCore
 
-from mapclientplugins.segmentationstep.tools.handlers.segment import Segment, SELECTION_BOX_GRAPHIC_NAME_2D
+from mapclientplugins.segmentationstep.tools.handlers.point import Point, SELECTION_BOX_GRAPHIC_NAME_2D
 from mapclientplugins.segmentationstep.maths.vectorops import add, mult, cross, dot, sub, normalize, magnitude
 from mapclientplugins.segmentationstep.maths.algorithms import calculateCentroid
 from mapclientplugins.segmentationstep.undoredo import CommandChangeView
 from mapclientplugins.segmentationstep.definitions import IMAGE_PLANE_GRAPHIC_NAME, POINT_CLOUD_GRAPHIC_NAME
 from mapclientplugins.segmentationstep.zincutils import createSelectionBox
 
-class Segment2D(Segment):
+class Point2D(Point):
 
     def __init__(self, sceneviewer, plane, undo_redo_stack):
-        super(Segment2D, self).__init__(sceneviewer, plane, undo_redo_stack)
+        super(Point2D, self).__init__(sceneviewer, plane, undo_redo_stack)
         self._selection_box = createSelectionBox(plane.getRegion(), SELECTION_BOX_GRAPHIC_NAME_2D)
 
     def _createSceneviewerFilter(self):
@@ -65,7 +65,7 @@ class Segment2D(Segment):
             self._start_position = [event.x(), event.y()]
             self._start_view_parameters = self._view.getViewParameters()
         else:
-            super(Segment2D, self).mousePressEvent(event)
+            super(Point2D, self).mousePressEvent(event)
 
     def mouseMoveEvent(self, event):
         if self._start_position is not None:
@@ -97,7 +97,7 @@ class Segment2D(Segment):
                 self._view.setViewParameters(lookat, eye, v_rot, angle)
                 self._start_position = [event.x(), event.y()]
         else:
-            super(Segment2D, self).mouseMoveEvent(event)
+            super(Point2D, self).mouseMoveEvent(event)
 
     def mouseReleaseEvent(self, event):
         if self._start_position is not None:
@@ -107,6 +107,6 @@ class Segment2D(Segment):
             c.setCallbackMethod(self._view.setViewParameters)
             self._undo_redo_stack.push(c)
         else:
-            super(Segment2D, self).mouseReleaseEvent(event)
+            super(Point2D, self).mouseReleaseEvent(event)
 
 

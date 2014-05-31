@@ -17,13 +17,13 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
     You should have received a copy of the GNU General Public License
     along with MAP Client.  If not, see <http://www.gnu.org/licenses/>..
 '''
-from mapclientplugins.segmentationstep.tools.handlers.segment import Segment, SELECTION_BOX_GRAPHIC_NAME_2D, SELECTION_BOX_GRAPHIC_NAME_3D
+from mapclientplugins.segmentationstep.tools.handlers.point import Point, SELECTION_BOX_GRAPHIC_NAME_2D, SELECTION_BOX_GRAPHIC_NAME_3D
 from mapclientplugins.segmentationstep.zincutils import createSelectionBox
 
-class Segment3D(Segment):
+class Point3D(Point):
 
     def __init__(self, sceneviewer, plane, undo_redo_stack):
-        super(Segment3D, self).__init__(sceneviewer, plane, undo_redo_stack)
+        super(Point3D, self).__init__(sceneviewer, plane, undo_redo_stack)
         self._selection_box = createSelectionBox(plane.getRegion(), SELECTION_BOX_GRAPHIC_NAME_3D)
 
     def _createSceneviewerFilter(self):
