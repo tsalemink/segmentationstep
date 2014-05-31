@@ -22,8 +22,8 @@ from math import cos, sin, sqrt, acos, pi
 
 from PySide import QtGui
 
-from mapclientplugins.segmentationstep.tools.planeadjust import PlaneAdjust
-from mapclientplugins.segmentationstep.widgets.definitions import ViewMode
+from mapclientplugins.segmentationstep.tools.handlers.planeadjust import PlaneAdjust
+from mapclientplugins.segmentationstep.definitions import ViewMode
 from mapclientplugins.segmentationstep.maths.vectorops import add, mult, cross, dot, sub, normalize
 from mapclientplugins.segmentationstep.maths.algorithms import calculateCentroid, boundCoordinatesToCuboid, calculateLinePlaneIntersection
 from mapclientplugins.segmentationstep.zincutils import getGlyphPosition, setGlyphPosition, createPlaneManipulationSphere

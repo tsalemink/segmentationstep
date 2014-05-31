@@ -19,7 +19,7 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
 '''
 from mapclientplugins.segmentationstep.widgets.segmentationtab import SegmentationTab
 from mapclientplugins.segmentationstep.widgets.ui_sceneviewertab import Ui_SceneviewerTab
-from mapclientplugins.segmentationstep.widgets.definitions import ViewMode
+from mapclientplugins.segmentationstep.definitions import ViewMode
 
 class SceneviewerTab(SegmentationTab):
     '''

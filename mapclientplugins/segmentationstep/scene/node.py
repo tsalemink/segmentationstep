@@ -20,7 +20,7 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
 
 from opencmiss.zinc.field import Field
 from opencmiss.zinc.glyph import Glyph
-from mapclientplugins.segmentationstep.widgets.definitions import DEFAULT_SEGMENTATION_POINT_SIZE, POINT_CLOUD_GRAPHIC_NAME
+from mapclientplugins.segmentationstep.definitions import DEFAULT_SEGMENTATION_POINT_SIZE, POINT_CLOUD_GRAPHIC_NAME
 
 class NodeScene(object):
     '''

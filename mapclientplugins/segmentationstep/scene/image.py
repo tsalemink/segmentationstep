@@ -21,7 +21,7 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
 from opencmiss.zinc.field import Field
 from opencmiss.zinc.glyph import Glyph
 
-from mapclientplugins.segmentationstep.widgets.definitions import ELEMENT_NODE_LABEL_GRAPHIC_NAME, IMAGE_PLANE_GRAPHIC_NAME, ELEMENT_OUTLINE_GRAPHIC_NAME
+from mapclientplugins.segmentationstep.definitions import ELEMENT_NODE_LABEL_GRAPHIC_NAME, IMAGE_PLANE_GRAPHIC_NAME, ELEMENT_OUTLINE_GRAPHIC_NAME
 
 class ImageScene(object):
     '''

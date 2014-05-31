@@ -17,7 +17,7 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
     You should have received a copy of the GNU General Public License
     along with MAP Client.  If not, see <http://www.gnu.org/licenses/>..
 '''
-from mapclientplugins.segmentationstep.tools.abstracttool import AbstractTool
+from mapclientplugins.segmentationstep.tools.handlers.abstracttool import AbstractTool
 from mapclientplugins.segmentationstep.undoredo import CommandMovePlane, CommandMoveGlyph
 from mapclientplugins.segmentationstep.zincutils import setGlyphPosition
 from mapclientplugins.segmentationstep.plane import PlaneAttitude

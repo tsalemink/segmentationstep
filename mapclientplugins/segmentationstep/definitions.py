@@ -32,4 +32,8 @@ class ViewMode(object):
     PLANE_NORMAL = 2
     PLANE_ROTATION = 4
 
+class ViewType(object):
+
+    VIEW_3D = 1
+    VIEW_2D = 2
 

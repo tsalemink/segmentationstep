@@ -17,11 +17,9 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
     You should have received a copy of the GNU General Public License
     along with MAP Client.  If not, see <http://www.gnu.org/licenses/>..
 '''
-from PySide import QtGui
+from mapclientplugins.segmentationstep.tools.segmentation import SegmentationTool
 
-from mapclientplugins.segmentationstep.tools.resources.ui_segment import Ui_PropertiesWidget
-
-class PropertiesWidget(QtGui.QWidget):
+class PointTool(SegmentationTool):
     '''
     classdocs
     '''
@@ -31,8 +29,3 @@ class PropertiesWidget(QtGui.QWidget):
         '''
         Constructor
         '''
-        pass
-#         self._ui = Ui_PropertiesWidget()
-#         self._ui.setupUi(self)
-
-

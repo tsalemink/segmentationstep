@@ -19,14 +19,13 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
 '''
 from PySide import QtCore, QtGui
 
-from mapclientplugins.segmentationstep.tools.abstracttool import AbstractTool
-from mapclientplugins.segmentationstep.widgets.definitions import ViewMode
+from mapclientplugins.segmentationstep.tools.handlers.abstracttool import AbstractTool
+from mapclientplugins.segmentationstep.definitions import ViewMode
 from mapclientplugins.segmentationstep.zincutils import setGlyphSize, setGlyphOffset, COORDINATE_SYSTEM_LOCAL
 from mapclientplugins.segmentationstep.undoredo import CommandNode, CommandSelection
 from mapclientplugins.segmentationstep.segmentpoint import SegmentPointStatus
 from mapclientplugins.segmentationstep.maths.algorithms import calculateLinePlaneIntersection
-# from mapclientplugins.segmentationstep.tools.resources import images
-from mapclientplugins.segmentationstep.tools.widgets.segment import PropertiesWidget
+from mapclientplugins.segmentationstep.tools.widgets.point import PropertiesWidget
 
 class SelectionMode(object):
 
@@ -39,14 +38,14 @@ SELECTION_BOX_GRAPHIC_NAME_2D = 'selection_box_2d'
 
 class Segment(AbstractTool):
 
-    def __init__(self, sceneviewer, plane, undo_redo_stack):
-        super(Segment, self).__init__(sceneviewer, plane, undo_redo_stack)
+    def __init__(self, zinc_view, plane, undo_redo_stack):
+        super(Segment, self).__init__(zinc_view, plane, undo_redo_stack)
         self._mode_type = ViewMode.SEGMENT
         self._model = None
         self._selection_box = None
         self._selection_mode = SelectionMode.NONE
         self._selection_position_start = None
-        self._icon = QtGui.QIcon(':/toolbar_icons/segment.png')
+        self._icon = QtGui.QIcon(':/toolbar_icons/point.png')
         self._scenviewer_filter = None
         self._sceneviewer_filter_orignal = None
         self._properties_widget = PropertiesWidget()

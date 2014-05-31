@@ -2,6 +2,6 @@
   <qresource prefix="toolbar_icons">
     <file>normal.png</file>
     <file>orientation.png</file>
-    <file>segment.png</file>
+    <file>point.png</file>
   </qresource>
 </RCC>

@@ -498,6 +498,7 @@
  </customwidgets>
  <resources>
   <include location="resources.qrc"/>
+  <include location="../../tools/qt/images.qrc"/>
  </resources>
  <connections/>
 </ui>

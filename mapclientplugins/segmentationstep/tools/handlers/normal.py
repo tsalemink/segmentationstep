@@ -19,8 +19,8 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
 '''
 from PySide import QtGui
 
-from mapclientplugins.segmentationstep.tools.planeadjust import PlaneAdjust
-from mapclientplugins.segmentationstep.widgets.definitions import ViewMode
+from mapclientplugins.segmentationstep.tools.handlers.planeadjust import PlaneAdjust
+from mapclientplugins.segmentationstep.definitions import ViewMode
 from mapclientplugins.segmentationstep.maths.vectorops import add, mult, dot, sub
 from mapclientplugins.segmentationstep.maths.algorithms import calculateCentroid
 from mapclientplugins.segmentationstep.zincutils import getGlyphPosition, setGlyphPosition, createPlaneNormalIndicator
