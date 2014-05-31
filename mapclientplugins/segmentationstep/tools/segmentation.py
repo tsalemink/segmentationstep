@@ -24,7 +24,7 @@ class SegmentationTool(object):
     '''
 
 
-    def __init__(self, name):
+    def __init__(self, name, undo_redo_stack):
         '''
         Constructor
         '''
@@ -32,6 +32,7 @@ class SegmentationTool(object):
         self._icon = None
         self._handlers = {}
         self._widget = None
+        self._undo_redo_stack = undo_redo_stack
 
     def getName(self):
         return self._name
@@ -40,9 +41,21 @@ class SegmentationTool(object):
         raise self._widget
 
     def getIcon(self):
-        raise NotImplementedError()
+        return self._icon
 
     def getHandler(self, view_type):
-        raise NotImplementedError()
+        return self._handlers[view_type]
+
+    def setGetDimensionsMethod(self, get_dimensions_method):
+        pass
+
+    def setDefaultMaterial(self, material):
+        pass
+
+    def setSelectedMaterial(self, material):
+        pass
+
+    def setModel(self, model):
+        pass
 
 

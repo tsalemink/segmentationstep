@@ -19,12 +19,24 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
 '''
 from PySide import QtGui
 
+from mapclientplugins.segmentationstep.definitions import ViewType
 from mapclientplugins.segmentationstep.tools.segmentation import SegmentationTool
+from mapclientplugins.segmentationstep.tools.handlers.normal import Normal
 
 class NormalTool(SegmentationTool):
 
-    def __init__(self):
-        super(NormalTool, self).__init__('Normal')
+    def __init__(self, plane, undo_redo_stack):
+        super(NormalTool, self).__init__('Normal', undo_redo_stack)
         self._icon = QtGui.QIcon(':toolbar_icons/normal.png')
+        self._handlers[ViewType.VIEW_3D] = Normal(plane, undo_redo_stack)
+
+    def setGetDimensionsMethod(self, get_dimensions_method):
+        self._handlers[ViewType.VIEW_3D].setGetDimensionsMethod(get_dimensions_method)
+
+    def setDefaultMaterial(self, material):
+        self._handlers[ViewType.VIEW_3D].setDefaultMaterial(material)
+
+    def setSelectedMaterial(self, material):
+        self._handlers[ViewType.VIEW_3D].setSelectedMaterial(material)
 
 

@@ -28,22 +28,22 @@ class SegmentationTab(QtGui.QWidget):
         super(SegmentationTab, self).__init__(parent)
         self._undo_redo_stack = undo_redo_stack
 
-        self._active_tool = None
-        self._tools = {}
+        self._active_handler = None
+        self._handlers = {}
         self._action_map = {}
-        self._tool_map = {}
+        self._handler_map = {}
 
-    def addTool(self, tool):
-        action = self._ui._tabToolBar.addAction(tool.getIcon(), tool.getName())
+    def addHandler(self, name, icon, handler):
+        action = self._ui._tabToolBar.addAction(icon, name)
         action.setCheckable(True)
-        self._action_map[action] = tool
-        self._tool_map[tool] = action
-        self._tools[tool.getModeType()] = tool
+        self._action_map[action] = handler
+        self._handler_map[handler] = action
+        self._handlers[handler.getModeType()] = handler
 
-    def changeTool(self, tool):
-        if tool != self._active_tool:
-            old_action = self._tool_map[self._active_tool]
+    def changeHandler(self, tool):
+        if tool != self._active_handler:
+            old_action = self._handler_map[self._active_handler]
             old_action.setChecked(False)
-            self._active_tool = tool
+            self._active_handler = tool
 
 

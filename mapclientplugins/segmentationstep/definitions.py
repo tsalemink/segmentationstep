@@ -34,6 +34,6 @@ class ViewMode(object):
 
 class ViewType(object):
 
-    VIEW_3D = 1
-    VIEW_2D = 2
+    VIEW_3D = 'View 3D'
+    VIEW_2D = 'View 2D'
 

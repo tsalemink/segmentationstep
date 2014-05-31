@@ -45,16 +45,16 @@ class SceneviewerTab(SegmentationTab):
 
     def _toolbarAction(self, action):
         action.setChecked(True)
-        tool = self._action_map[action]
-        self.changeTool(tool)
-        self._ui._zincwidget.setActiveModeType(tool.getModeType())
+        handler = self._action_map[action]
+        self.changeHandler(handler)
+        self._ui._zincwidget.setActiveModeType(handler.getModeType())
 
     def _sceneviewerReady(self):
         self._ui._zincwidget.setActiveModeType(ViewMode.SEGMENT)
-        tool = self._tools[ViewMode.SEGMENT]
-        action = self._tool_map[tool]
+        tool = self._handlers[ViewMode.SEGMENT]
+        action = self._handler_map[tool]
         action.setChecked(True)
-        self._active_tool = tool
+        self._active_handler = tool
 
         # Trying to find a way to have everything in the one place
         # including the sceneviewers added using designer.
@@ -65,9 +65,9 @@ class SceneviewerTab(SegmentationTab):
     def setPlane(self, plane):
         self._ui._zincwidget.setPlane(plane)
 
-    def addTool(self, tool):
-        super(SceneviewerTab, self).addTool(tool)
-        self._ui._zincwidget.addMode(tool)
+    def addHandler(self, name, icon, handler):
+        super(SceneviewerTab, self).addHandler(name, icon, handler)
+        self._ui._zincwidget.addHandler(handler)
 
     def getZincWidget(self):
         return self._ui._zincwidget

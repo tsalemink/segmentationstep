@@ -25,44 +25,45 @@ class ZincWidgetState(ZincWidget):
     def __init__(self, parent=None, shared=None):
         super(ZincWidgetState, self).__init__(parent, shared)
 
-        self._active_mode = None
-        self._modes = {}
+        self._active_handler = None
+        self._handlers = {}
 
     def getActiveModeType(self):
-        return self._active_mode.getModeType()
+        return self._active_handler.getModeType()
 
     def setActiveModeType(self, mode):
-        if (self._active_mode is None or mode != self._active_mode.getModeType()) and mode in self._modes:
-            if not self._active_mode is None:
-                self._active_mode.leave()
-            self._active_mode = self._modes[mode]
-            self._active_mode.enter()
+        if (self._active_handler is None or mode != self._active_handler.getModeType()) and mode in self._handlers:
+            if not self._active_handler is None:
+                self._active_handler.leave()
+            self._active_handler = self._handlers[mode]
+            self._active_handler.enter()
 
     def getMode(self, mode_type='ACTIVE'):
         '''
         Returns the mode specified by mode_type.  If the
-        specified mode is not in the _modes dict then it
+        specified mode is not in the _handlers dict then it
         returns the currently active mode.
         '''
-        if mode_type in self._modes:
-            return self._modes[mode_type]
+        if mode_type in self._handlers:
+            return self._handlers[mode_type]
 
-        return self._active_mode
+        return self._active_handler
 
-    def addMode(self, mode):
-        self._modes[mode.getModeType()] = mode
+    def addHandler(self, handler):
+        handler.setZincView(self)
+        self._handlers[handler.getModeType()] = handler
 
     def viewAll(self):
-        self._active_mode.viewAll()
+        self._active_handler.viewAll()
 
     def mousePressEvent(self, event):
-        self._active_mode.mousePressEvent(event)
+        self._active_handler.mousePressEvent(event)
 
     def mouseMoveEvent(self, event):
-        self._active_mode.mouseMoveEvent(event)
+        self._active_handler.mouseMoveEvent(event)
 
     def mouseReleaseEvent(self, event):
-        self._active_mode.mouseReleaseEvent(event)
+        self._active_handler.mouseReleaseEvent(event)
 
     def setPlane(self, plane):
         self._plane = plane

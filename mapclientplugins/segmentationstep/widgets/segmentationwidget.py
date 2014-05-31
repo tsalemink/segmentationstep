@@ -23,7 +23,7 @@ from mapclientplugins.segmentationstep.tools import normal, orientation, point
 from mapclientplugins.segmentationstep.widgets.ui_segmentationwidget import Ui_SegmentationWidget
 from mapclientplugins.segmentationstep.undoredo import CommandChangeViewMode, CommandSetScale, CommandSetSingleParameterMethod, CommandSetGraphicVisibility, CommandSetGlyphSize
 from mapclientplugins.segmentationstep.widgets.zincwidget import ProjectionMode
-from mapclientplugins.segmentationstep.definitions import ViewMode, ELEMENT_OUTLINE_GRAPHIC_NAME, IMAGE_PLANE_GRAPHIC_NAME, ELEMENT_NODE_LABEL_GRAPHIC_NAME
+from mapclientplugins.segmentationstep.definitions import ViewMode, ViewType, ELEMENT_OUTLINE_GRAPHIC_NAME, IMAGE_PLANE_GRAPHIC_NAME, ELEMENT_NODE_LABEL_GRAPHIC_NAME
 from mapclientplugins.segmentationstep.widgets.segmentationstate import SegmentationState
 from mapclientplugins.segmentationstep.zincutils import getGlyphSize, setGlyphSize
 from mapclientplugins.segmentationstep.widgets.sceneviewertab import SceneviewerTab
@@ -274,16 +274,17 @@ class SegmentationWidget(QtGui.QWidget):
         context = self._model.getContext()
 
         view3d = SceneviewerTab(context, self._model.getUndoRedoStack())
-        self._ui._tabWidgetLeft.addTab(view3d, 'View 3D')
+        self._ui._tabWidgetLeft.addTab(view3d, ViewType.VIEW_3D)
 
         view2d = SceneviewerTab(context, self._model.getUndoRedoStack(), view3d.getZincWidget())
         view2d.setPlane(self._model.getImageModel().getPlane())
-        self._ui._tabWidgetLeft.addTab(view2d, 'View 2D')
+        self._ui._tabWidgetLeft.addTab(view2d, ViewType.VIEW_2D)
 
-        self._tabs['view_3d'] = view3d
-        self._tabs['view_2d'] = view2d
+        self._tabs[ViewType.VIEW_3D] = view3d
+        self._tabs[ViewType.VIEW_2D] = view2d
 
     def _setupTools(self):
+        self._tools = {}
         context = self._model.getContext()
         image_model = self._model.getImageModel()
         node_model = self._model.getNodeModel()
@@ -296,29 +297,32 @@ class SegmentationWidget(QtGui.QWidget):
         purple_material = materialmodule.findMaterialByName('purple')
         red_material = materialmodule.findMaterialByName('red')
 
-        view_3d_tab = self._tabs['view_3d']
-        segment_tool = segment3d.Segment3D(view_3d_tab.getZincWidget(), plane, undo_redo_stack)
-        segment_tool.setModel(node_model)
+        view_3d_tab = self._tabs[ViewType.VIEW_3D]
+        view_2d_tab = self._tabs[ViewType.VIEW_2D]
 
-        normal_tool = normal.Normal(view_3d_tab.getZincWidget(), plane, undo_redo_stack)
+        point_tool = point.PointTool(plane, undo_redo_stack)
+        point_tool.setModel(node_model)
+        point_tool.setGetDimensionsMethod(image_model.getDimensions)
+
+        normal_tool = normal.NormalTool(plane, undo_redo_stack)
         normal_tool.setGetDimensionsMethod(image_model.getDimensions)
         normal_tool.setDefaultMaterial(yellow_material)
         normal_tool.setSelectedMaterial(orange_material)
 
-        rotation_tool = orientation.Orientation(view_3d_tab.getZincWidget(), plane, undo_redo_stack)
+        rotation_tool = orientation.OrientationTool(plane, undo_redo_stack)
         rotation_tool.setGetDimensionsMethod(image_model.getDimensions)
         rotation_tool.setDefaultMaterial(purple_material)
         rotation_tool.setSelectedMaterial(red_material)
 
-        view_3d_tab.addTool(segment_tool)
-        view_3d_tab.addTool(normal_tool)
-        view_3d_tab.addTool(rotation_tool)
+        view_3d_tab.addHandler(point_tool.getName(), point_tool.getIcon(), point_tool.getHandler(ViewType.VIEW_3D))
+        view_3d_tab.addHandler(normal_tool.getName(), normal_tool.getIcon(), normal_tool.getHandler(ViewType.VIEW_3D))
+        view_3d_tab.addHandler(rotation_tool.getName(), rotation_tool.getIcon(), rotation_tool.getHandler(ViewType.VIEW_3D))
 
-        view_2d_tab = self._tabs['view_2d']
-        segment2d_tool = segment2d.Segment2D(view_2d_tab.getZincWidget(), plane, undo_redo_stack)
-        segment2d_tool.setGetDimensionsMethod(image_model.getDimensions)
-        segment2d_tool.setModel(node_model)
 
-        view_2d_tab.addTool(segment2d_tool)
+        view_2d_tab.addHandler(point_tool.getName(), point_tool.getIcon(), point_tool.getHandler(ViewType.VIEW_2D))
+
+        self._tools[ViewMode.SEGMENT] = point_tool
+        self._tools[ViewMode.PLANE_NORMAL] = normal_tool
+        self._tools[ViewMode.PLANE_ROTATION] = rotation_tool
 
 

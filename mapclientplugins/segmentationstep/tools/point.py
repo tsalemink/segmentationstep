@@ -19,12 +19,20 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
 '''
 from PySide import QtGui
 
+from mapclientplugins.segmentationstep.definitions import ViewType
 from mapclientplugins.segmentationstep.tools.segmentation import SegmentationTool
+from mapclientplugins.segmentationstep.tools.handlers.point2d import Point2D
+from mapclientplugins.segmentationstep.tools.handlers.point3d import Point3D
 
 class PointTool(SegmentationTool):
 
-    def __init__(self):
-        super(PointTool, self).__init__('Point')
+    def __init__(self, plane, undo_redo_stack):
+        super(PointTool, self).__init__('Point', undo_redo_stack)
         self._icon = QtGui.QIcon(':/toolbar_icons/point.png')
+        self._handlers[ViewType.VIEW_2D] = Point2D(plane, undo_redo_stack)
+        self._handlers[ViewType.VIEW_3D] = Point3D(plane, undo_redo_stack)
+
+    def setGetDimensionsMethod(self, get_dimensions_method):
+        self._handlers[ViewType.VIEW_2D].setGetDimensionsMethod(get_dimensions_method)
 
 
