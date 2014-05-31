@@ -50,8 +50,8 @@ class SceneviewerTab(SegmentationTab):
         self._ui._zincwidget.setActiveModeType(handler.getModeType())
 
     def _sceneviewerReady(self):
-        self._ui._zincwidget.setActiveModeType(ViewMode.SEGMENT)
-        tool = self._handlers[ViewMode.SEGMENT]
+        self._ui._zincwidget.setActiveModeType(ViewMode.SEGMENT_POINT)
+        tool = self._handlers[ViewMode.SEGMENT_POINT]
         action = self._handler_map[tool]
         action.setChecked(True)
         self._active_handler = tool

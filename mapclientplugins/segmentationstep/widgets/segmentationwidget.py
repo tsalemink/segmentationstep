@@ -232,21 +232,21 @@ class SegmentationWidget(QtGui.QWidget):
             reverse = keyevent.modifiers() & QtCore.Qt.SHIFT
             cur_mode = self._ui._sceneviewer3d.getMode().getModeType()
             new_mode = cur_mode
-            if cur_mode == ViewMode.SEGMENT:
+            if cur_mode == ViewMode.SEGMENT_POINT:
                 if reverse:
                     new_mode = ViewMode.PLANE_ROTATION
                 else:
                     new_mode = ViewMode.PLANE_NORMAL
             elif cur_mode == ViewMode.PLANE_NORMAL:
                 if reverse:
-                    new_mode = ViewMode.SEGMENT
+                    new_mode = ViewMode.SEGMENT_POINT
                 else:
                     new_mode = ViewMode.PLANE_ROTATION
             elif cur_mode == ViewMode.PLANE_ROTATION:
                 if reverse:
                     new_mode = ViewMode.PLANE_NORMAL
                 else:
-                    new_mode = ViewMode.SEGMENT
+                    new_mode = ViewMode.SEGMENT_POINT
 
             self._setMode(new_mode)
 
@@ -255,7 +255,7 @@ class SegmentationWidget(QtGui.QWidget):
 
     def _zincWidgetModeChanged(self):
         if self.sender() == self._ui._radioButtonSegment:
-            self._setMode(ViewMode.SEGMENT)
+            self._setMode(ViewMode.SEGMENT_POINT)
         elif self.sender() == self._ui._radioButtonMove:
             self._setMode(ViewMode.PLANE_NORMAL)
         elif self.sender() == self._ui._radioButtonRotate:
@@ -321,7 +321,7 @@ class SegmentationWidget(QtGui.QWidget):
 
         view_2d_tab.addHandler(point_tool.getName(), point_tool.getIcon(), point_tool.getHandler(ViewType.VIEW_2D))
 
-        self._tools[ViewMode.SEGMENT] = point_tool
+        self._tools[ViewMode.SEGMENT_POINT] = point_tool
         self._tools[ViewMode.PLANE_NORMAL] = normal_tool
         self._tools[ViewMode.PLANE_ROTATION] = rotation_tool
 

@@ -28,7 +28,7 @@ SELECTION_BOX_GRAPHIC_NAME = 'selection_box'
 
 class ViewMode(object):
 
-    SEGMENT = 1
+    SEGMENT_POINT = 1
     PLANE_NORMAL = 2
     PLANE_ROTATION = 4
 

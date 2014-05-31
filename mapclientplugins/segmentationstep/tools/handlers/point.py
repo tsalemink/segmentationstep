@@ -40,7 +40,7 @@ class Point(AbstractHandler):
 
     def __init__(self, plane, undo_redo_stack):
         super(Point, self).__init__(plane, undo_redo_stack)
-        self._mode_type = ViewMode.SEGMENT
+        self._mode_type = ViewMode.SEGMENT_POINT
         self._model = None
         self._selection_box = None
         self._selection_mode = SelectionMode.NONE
