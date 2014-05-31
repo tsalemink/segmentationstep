@@ -20,8 +20,6 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
 
 from math import cos, sin, sqrt, acos, pi
 
-from PySide import QtGui
-
 from mapclientplugins.segmentationstep.tools.handlers.planeadjust import PlaneAdjust
 from mapclientplugins.segmentationstep.definitions import ViewMode
 from mapclientplugins.segmentationstep.maths.vectorops import add, mult, cross, dot, sub, normalize
@@ -35,17 +33,13 @@ class Orientation(PlaneAdjust):
     The rotation mode allows the user to re-orient the image
     plane and set the plane point of rotation.
     '''
-    def __init__(self, sceneviewer, plane, undo_redo_stack):
-        super(Orientation, self).__init__(sceneviewer, plane, undo_redo_stack)
+    def __init__(self, plane, undo_redo_stack):
+        super(Orientation, self).__init__(plane, undo_redo_stack)
         self._mode_type = ViewMode.PLANE_ROTATION
         self._glyph = createPlaneManipulationSphere(plane.getRegion())
         self._width_method = None
         self._height_method = None
         self._getViewParameters_method = None
-        self._icon = QtGui.QIcon(':toolbar_icons/orientation.png')
-
-    def getIcon(self):
-        return self._icon
 
     def setWidthHeightMethods(self, width_method, height_method):
         self._width_method = width_method
@@ -61,8 +55,8 @@ class Orientation(PlaneAdjust):
         if self._glyph.getMaterial().getName() == self._selected_material.getName():
             x = event.x()
             y = event.y()
-            far_plane_point = self._view.unproject(x, -y, -1.0)
-            near_plane_point = self._view.unproject(x, -y, 1.0)
+            far_plane_point = self._zinc_view.unproject(x, -y, -1.0)
+            near_plane_point = self._zinc_view.unproject(x, -y, 1.0)
             point_on_plane = calculateLinePlaneIntersection(near_plane_point, far_plane_point, self._plane.getRotationPoint(), self._plane.getNormal())
             if point_on_plane is not None:
                 dimensions = self._get_dimension_method()
@@ -70,8 +64,8 @@ class Orientation(PlaneAdjust):
                 point_on_plane = boundCoordinatesToCuboid(point_on_plane, centroid, dimensions)
                 setGlyphPosition(self._glyph, point_on_plane)
         else:
-            width = self._view.width()
-            height = self._view.height()
+            width = self._zinc_view.width()
+            height = self._zinc_view.height()
             radius = min([width, height]) / 2.0
             delta_x = float(event.x() - self._previous_mouse_position[0])
             delta_y = float(event.y() - self._previous_mouse_position[1])
@@ -87,7 +81,7 @@ class Orientation(PlaneAdjust):
                 phi = acos(d / radius) - 0.5 * pi
                 angle = 1.0 * tangent_dist / radius
 
-                eye, lookat, up, _ = self._view.getViewParameters()
+                eye, lookat, up, _ = self._zinc_view.getViewParameters()
 
                 b = up[:]
                 b = normalize(b)

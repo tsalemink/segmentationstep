@@ -30,13 +30,10 @@ class Normal(PlaneAdjust):
     The normal mode allows the user to move the plane in 
     the direction of the normal of the plane.  
     '''
-    def __init__(self, sceneviewer, plane, undo_redo_stack):
-        super(Normal, self).__init__(sceneviewer, plane, undo_redo_stack)
+    def __init__(self, plane, undo_redo_stack):
+        super(Normal, self).__init__(plane, undo_redo_stack)
         self._mode_type = ViewMode.PLANE_NORMAL
         self._glyph = createPlaneNormalIndicator(plane.getRegion(), plane.getNormalField())
-
-    def getIcon(self):
-        return self._icon
 
     def enter(self):
         scene = self._glyph.getScene()
@@ -48,9 +45,9 @@ class Normal(PlaneAdjust):
     def mouseMoveEvent(self, event):
         if self._glyph.getMaterial().getName() == self._selected_material.getName():
             pos = getGlyphPosition(self._glyph)
-            screen_pos = self._view.project(pos[0], pos[1], pos[2])
-            global_cur_pos = self._view.unproject(event.x(), -event.y(), screen_pos[2])
-            global_old_pos = self._view.unproject(self._previous_mouse_position[0], -self._previous_mouse_position[1], screen_pos[2])
+            screen_pos = self._zinc_view.project(pos[0], pos[1], pos[2])
+            global_cur_pos = self._zinc_view.unproject(event.x(), -event.y(), screen_pos[2])
+            global_old_pos = self._zinc_view.unproject(self._previous_mouse_position[0], -self._previous_mouse_position[1], screen_pos[2])
             global_pos_diff = sub(global_cur_pos, global_old_pos)
 
             n = self._plane.getNormal()

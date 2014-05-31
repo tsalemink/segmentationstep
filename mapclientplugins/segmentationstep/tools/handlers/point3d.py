@@ -22,12 +22,12 @@ from mapclientplugins.segmentationstep.zincutils import createSelectionBox
 
 class Point3D(Point):
 
-    def __init__(self, sceneviewer, plane, undo_redo_stack):
-        super(Point3D, self).__init__(sceneviewer, plane, undo_redo_stack)
+    def __init__(self, plane, undo_redo_stack):
+        super(Point3D, self).__init__(plane, undo_redo_stack)
         self._selection_box = createSelectionBox(plane.getRegion(), SELECTION_BOX_GRAPHIC_NAME_3D)
 
     def _createSceneviewerFilter(self):
-        sceneviewer = self._view.getSceneviewer()
+        sceneviewer = self._zinc_view.getSceneviewer()
         scene = sceneviewer.getScene()
         filtermodule = scene.getScenefiltermodule()
 

@@ -38,8 +38,8 @@ SELECTION_BOX_GRAPHIC_NAME_2D = 'selection_box_2d'
 
 class Point(AbstractHandler):
 
-    def __init__(self, zinc_view, plane, undo_redo_stack):
-        super(Point, self).__init__(zinc_view, plane, undo_redo_stack)
+    def __init__(self, plane, undo_redo_stack):
+        super(Point, self).__init__(plane, undo_redo_stack)
         self._mode_type = ViewMode.SEGMENT
         self._model = None
         self._selection_box = None
@@ -52,22 +52,9 @@ class Point(AbstractHandler):
     def setModel(self, model):
         self._model = model
 
-
-    def getPropertiesWidget(self):
-        pass
-#         self._ui._doubleSpinBoxNormalArrow.setValue(DEFAULT_NORMAL_ARROW_SIZE)
-#         self._ui._doubleSpinBoxRotationCentre.setValue(DEFAULT_GRAPHICS_SPHERE_SIZE)
-#         self._ui._doubleSpinBoxSegmentationPoint.setValue(DEFAULT_SEGMENTATION_POINT_SIZE)
-
-    def delete(self):
-        '''
-        Delete the currently selected nodes.
-        '''
-        pass
-
     def enter(self):
         super(Point, self).enter()
-        sceneviewer = self._view.getSceneviewer()
+        sceneviewer = self._zinc_view.getSceneviewer()
         self._sceneviewer_filter_orignal = sceneviewer.getScenefilter()
         if self._scenviewer_filter is None:
             self._scenviewer_filter = self._createSceneviewerFilter()
@@ -75,7 +62,7 @@ class Point(AbstractHandler):
 
     def leave(self):
         super(Point, self).leave()
-        sceneviewer = self._view.getSceneviewer()
+        sceneviewer = self._zinc_view.getSceneviewer()
         sceneviewer.setScenefilter(self._sceneviewer_filter_orignal)
 
     def mousePressEvent(self, event):
@@ -89,7 +76,7 @@ class Point(AbstractHandler):
 
             self._start_selection = self._model.getCurrentSelection()
         elif (event.modifiers() & QtCore.Qt.CTRL) and event.button() == QtCore.Qt.LeftButton:
-            node = self._view.getNearestNode(event.x(), event.y())
+            node = self._zinc_view.getNearestNode(event.x(), event.y())
             if node and node.isValid():
                 # node exists at this location so select it
                 group = self._model.getSelectionGroup()
@@ -144,7 +131,7 @@ class Point(AbstractHandler):
             x = event.x()
             y = event.y()
             # Construct a small frustrum to look for nodes in.
-            region = self._model.getRegion()  # self._view._context.getDefaultRegion()
+            region = self._model.getRegion()  # self._zinc_view._context.getDefaultRegion()
             region.beginHierarchicalChange()
             self._selection_box.setVisibilityFlag(False)
             selection_group = self._model.getSelectionGroupField()
@@ -154,12 +141,12 @@ class Point(AbstractHandler):
                 right = max(x, self._selection_position_start[0])
                 bottom = min(y, self._selection_position_start[1])
                 top = max(y, self._selection_position_start[1])
-                self._view.setPickingRectangle(COORDINATE_SYSTEM_LOCAL, left, bottom, right, top)
+                self._zinc_view.setPickingRectangle(COORDINATE_SYSTEM_LOCAL, left, bottom, right, top)
                 if self._selection_mode == SelectionMode.EXCULSIVE:
                     selection_group.clear()
-                self._view.addPickedNodesToFieldGroup(selection_group)
+                self._zinc_view.addPickedNodesToFieldGroup(selection_group)
             else:
-                node = self._view.getNearestNode(x, y)
+                node = self._zinc_view.getNearestNode(x, y)
                 if self._selection_mode == SelectionMode.EXCULSIVE and not node.isValid():
                     selection_group.clear()
 
@@ -197,8 +184,8 @@ class Point(AbstractHandler):
             super(Point, self).mouseReleaseEvent(event)
 
     def _calculatePointOnPlane(self, x, y):
-        far_plane_point = self._view.unproject(x, -y, -1.0)
-        near_plane_point = self._view.unproject(x, -y, 1.0)
+        far_plane_point = self._zinc_view.unproject(x, -y, -1.0)
+        near_plane_point = self._zinc_view.unproject(x, -y, 1.0)
         point_on_plane = calculateLinePlaneIntersection(near_plane_point, far_plane_point, self._plane.getRotationPoint(), self._plane.getNormal())
         return point_on_plane
 

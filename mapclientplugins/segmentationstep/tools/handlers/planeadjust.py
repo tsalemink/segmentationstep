@@ -24,8 +24,8 @@ from mapclientplugins.segmentationstep.plane import PlaneAttitude
 
 class PlaneAdjust(AbstractHandler):
 
-    def __init__(self, sceneviewer, plane, undo_redo_stack):
-        super(PlaneAdjust, self).__init__(sceneviewer, plane, undo_redo_stack)
+    def __init__(self, plane, undo_redo_stack):
+        super(PlaneAdjust, self).__init__(plane, undo_redo_stack)
         self._glyph = None
         self._glyph_picker_method = None
         self._plane_attitude_start = None
@@ -68,7 +68,7 @@ class PlaneAdjust(AbstractHandler):
         super(PlaneAdjust, self).mousePressEvent(event)
         self._previous_mouse_position = [event.x(), event.y()]
         self._plane_attitude_start = PlaneAttitude(self._plane.getRotationPoint(), self._plane.getNormal())
-        graphic = self._view.getNearestGraphicsPoint(event.x(), event.y())
+        graphic = self._zinc_view.getNearestGraphicsPoint(event.x(), event.y())
         if graphic and graphic.isValid():
             graphic.setMaterial(self._selected_material)
 

@@ -31,12 +31,12 @@ from mapclientplugins.segmentationstep.zincutils import createSelectionBox
 
 class Point2D(Point):
 
-    def __init__(self, sceneviewer, plane, undo_redo_stack):
-        super(Point2D, self).__init__(sceneviewer, plane, undo_redo_stack)
+    def __init__(self, plane, undo_redo_stack):
+        super(Point2D, self).__init__(plane, undo_redo_stack)
         self._selection_box = createSelectionBox(plane.getRegion(), SELECTION_BOX_GRAPHIC_NAME_2D)
 
     def _createSceneviewerFilter(self):
-        sceneviewer = self._view.getSceneviewer()
+        sceneviewer = self._zinc_view.getSceneviewer()
         scene = sceneviewer.getScene()
         filtermodule = scene.getScenefiltermodule()
 # #         node_filter = filtermodule.createScenefilterFieldDomainType(Field.DOMAIN_TYPE_NODES)
@@ -63,7 +63,7 @@ class Point2D(Point):
         self._start_position = None
         if not event.modifiers() and event.button() == QtCore.Qt.LeftButton:
             self._start_position = [event.x(), event.y()]
-            self._start_view_parameters = self._view.getViewParameters()
+            self._start_view_parameters = self._zinc_view.getViewParameters()
         else:
             super(Point2D, self).mousePressEvent(event)
 
@@ -76,7 +76,7 @@ class Point2D(Point):
             if self._start_position[0] == event.x() and self._start_position[1] == event.y():
                 return
             centre_point = calculateCentroid(self._plane.getRotationPoint(), self._plane.getNormal(), self._get_dimension_method())
-            centre_widget = self._view.project(centre_point[0], centre_point[1], centre_point[2])
+            centre_widget = self._zinc_view.project(centre_point[0], centre_point[1], centre_point[2])
             a = sub(centre_widget, [event.x(), -event.y(), centre_widget[2]])
             b = sub(centre_widget, [self._start_position[0], -self._start_position[1], centre_widget[2]])
             c = dot(a, b)
@@ -84,7 +84,7 @@ class Point2D(Point):
             theta = acos(min(c / d, 1.0))
             if theta != 0.0:
                 g = cross(a, b)
-                lookat, eye, up, angle = self._view.getViewParameters()
+                lookat, eye, up, angle = self._zinc_view.getViewParameters()
                 w = normalize(sub(lookat, eye))
                 if copysign(1, dot(g, [0, 0, 1])) < 0:
                     theta = -theta
@@ -94,7 +94,7 @@ class Point2D(Point):
                 p3a = mult(w, dot(w, v))
                 p3 = mult(p3a, 1 - cos(theta))
                 v_rot = add(p1, add(p2, p3))
-                self._view.setViewParameters(lookat, eye, v_rot, angle)
+                self._zinc_view.setViewParameters(lookat, eye, v_rot, angle)
                 self._start_position = [event.x(), event.y()]
         else:
             super(Point2D, self).mouseMoveEvent(event)
@@ -102,9 +102,9 @@ class Point2D(Point):
     def mouseReleaseEvent(self, event):
         if self._start_position is not None:
             # Do undo redo command
-            end_view_parameters = self._view.getViewParameters()
+            end_view_parameters = self._zinc_view.getViewParameters()
             c = CommandChangeView(self._start_view_parameters, end_view_parameters)
-            c.setCallbackMethod(self._view.setViewParameters)
+            c.setCallbackMethod(self._zinc_view.setViewParameters)
             self._undo_redo_stack.push(c)
         else:
             super(Point2D, self).mouseReleaseEvent(event)

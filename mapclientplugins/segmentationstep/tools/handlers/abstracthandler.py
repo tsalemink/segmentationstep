@@ -25,15 +25,18 @@ from mapclientplugins.segmentationstep.undoredo import CommandChangeView
 class AbstractHandler(object):
 
 
-    def __init__(self, zinc_view, plane, undo_redo_stack):
+    def __init__(self, plane, undo_redo_stack):
         self._mode_type = None
-        self._view = zinc_view
+        self._zinc_view = None
         self._plane = plane
         self._undo_redo_stack = undo_redo_stack
         self._get_dimension_method = None
 
     def setGetDimensionsMethod(self, get_dimensions_method):
         self._get_dimension_method = get_dimensions_method
+
+    def setZincView(self, zinc_view):
+        self._zinc_view = zinc_view
 
     def leave(self):
         pass
@@ -51,15 +54,15 @@ class AbstractHandler(object):
         return 'Tool'
 
     def viewAll(self):
-        p1 = self._view.getViewParameters()
-        self._view.getSceneviewer().viewAll()
-        p2 = self._view.getViewParameters()
+        p1 = self._zinc_view.getViewParameters()
+        self._zinc_view.getSceneviewer().viewAll()
+        p2 = self._zinc_view.getViewParameters()
         c = CommandChangeView(p1, p2)
-        c.setCallbackMethod(self._view.setViewParameters)
+        c.setCallbackMethod(self._zinc_view.setViewParameters)
         self._undo_redo_stack.push(c)
 
     def mousePressEvent(self, event):
-        sceneviewer = self._view.getSceneviewer()
+        sceneviewer = self._zinc_view.getSceneviewer()
         scene_input = sceneviewer.createSceneviewerinput()
         scene_input.setPosition(event.x(), event.y())
         scene_input.setEventType(Sceneviewerinput.EVENT_TYPE_BUTTON_PRESS)
@@ -67,10 +70,10 @@ class AbstractHandler(object):
         scene_input.setModifierFlags(modifier_map(event.modifiers()))
 
         sceneviewer.processSceneviewerinput(scene_input)
-        self._start_view_parameters = self._view.getViewParameters()
+        self._start_view_parameters = self._zinc_view.getViewParameters()
 
     def mouseMoveEvent(self, event):
-        sceneviewer = self._view.getSceneviewer()
+        sceneviewer = self._zinc_view.getSceneviewer()
         scene_input = sceneviewer.createSceneviewerinput()
         scene_input.setPosition(event.x(), event.y())
         scene_input.setEventType(Sceneviewerinput.EVENT_TYPE_MOTION_NOTIFY)
@@ -80,15 +83,15 @@ class AbstractHandler(object):
         sceneviewer.processSceneviewerinput(scene_input)
 
     def mouseReleaseEvent(self, event):
-        sceneviewer = self._view.getSceneviewer()
+        sceneviewer = self._zinc_view.getSceneviewer()
         scene_input = sceneviewer.createSceneviewerinput()
         scene_input.setPosition(event.x(), event.y())
         scene_input.setEventType(Sceneviewerinput.EVENT_TYPE_BUTTON_RELEASE)
         scene_input.setButtonType(button_map[event.button()])
 
         sceneviewer.processSceneviewerinput(scene_input)
-        end_view_parameters = self._view.getViewParameters()
+        end_view_parameters = self._zinc_view.getViewParameters()
         c = CommandChangeView(self._start_view_parameters, end_view_parameters)
-        c.setCallbackMethod(self._view.setViewParameters)
+        c.setCallbackMethod(self._zinc_view.setViewParameters)
         self._undo_redo_stack.push(c)
 
