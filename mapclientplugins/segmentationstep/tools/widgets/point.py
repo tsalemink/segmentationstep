@@ -21,19 +21,15 @@ from PySide import QtGui
 
 from mapclientplugins.segmentationstep.tools.resources.ui_point import Ui_PropertiesWidget
 
-class PropertiesWidget(QtGui.QWidget):
-    '''
-    classdocs
-    '''
+DEFAULT_STEP_SIZE = 1.0
 
+class PropertiesWidget(QtGui.QWidget):
 
     def __init__(self, tool):
-        '''
-        Constructor
-        '''
         super(PropertiesWidget, self).__init__()
         self._ui = Ui_PropertiesWidget()
         self._ui.setupUi(self)
+        self._ui._doubleSpinBoxStepSize.setValue(DEFAULT_STEP_SIZE)
 
         self._tool = tool
 
@@ -41,6 +37,7 @@ class PropertiesWidget(QtGui.QWidget):
 
     def _makeConnections(self):
         self._ui._doubleSpinBoxPointSize.valueChanged.connect(self._tool.pointSizeChanged)
+        self._ui._doubleSpinBoxStepSize.valueChanged.connect(self._tool.stepSizeChanged)
         self._ui._checkBoxStreamingCreate.stateChanged.connect(self._tool.streamingCreateChanged)
         self._ui._pushButtonDelete.clicked.connect(self._tool.deleteClicked)
         self._ui._pushButtonPullUp.clicked.connect(self._tool.pullUpClicked)

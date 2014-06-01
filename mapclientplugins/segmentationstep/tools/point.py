@@ -23,7 +23,7 @@ from mapclientplugins.segmentationstep.definitions import ViewType
 from mapclientplugins.segmentationstep.tools.segmentation import SegmentationTool
 from mapclientplugins.segmentationstep.tools.handlers.point2d import Point2D
 from mapclientplugins.segmentationstep.tools.handlers.point3d import Point3D
-from mapclientplugins.segmentationstep.tools.widgets.point import PropertiesWidget
+from mapclientplugins.segmentationstep.tools.widgets.point import PropertiesWidget, DEFAULT_STEP_SIZE
 from mapclientplugins.segmentationstep.zincutils import getGlyphSize, setGlyphSize
 from mapclientplugins.segmentationstep.undoredo import CommandSetGlyphSize, CommandSetSingleParameterMethod, CommandDelete, CommandPushPull
 from mapclientplugins.segmentationstep.definitions import POINT_CLOUD_GRAPHIC_NAME
@@ -38,6 +38,7 @@ class PointTool(SegmentationTool):
         self._widget = PropertiesWidget(self)
         self._model = None
         self._plane = plane
+        self._step_size = DEFAULT_STEP_SIZE
 
     def setGetDimensionsMethod(self, get_dimensions_method):
         self._handlers[ViewType.VIEW_2D].setGetDimensionsMethod(get_dimensions_method)
@@ -61,6 +62,19 @@ class PointTool(SegmentationTool):
             c.setSpinBox(self._widget._ui._doubleSpinBoxPointSize)
 
             self._undo_redo_stack.push(c)
+
+    def stepSizeChanged(self, value):
+        if value != self._step_size:
+            c = CommandSetSingleParameterMethod(self._step_size, value)
+            c.setSingleParameterMethod(self._setStepSize)
+            self._step_size = value
+
+            self._undo_redo_stack.push(c)
+
+    def _setStepSize(self, value):
+        self._widget._ui._doubleSpinBoxStepSize.blockSignals(True)
+        self._widget._ui._doubleSpinBoxStepSize.setValue(value)
+        self._widget._ui._doubleSpinBoxStepSize.blockSignals(False)
 
     def streamingCreateChanged(self, state):
         new = True if state == 2 else False
