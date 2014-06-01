@@ -33,7 +33,13 @@ class SegmentPointStatus(object):
     def getLocation(self):
         return self._location
 
+    def setLocation(self, location):
+        self._location = location
+
     def getPlaneAttitude(self):
         return self._plane_attitude
+
+    def setPlaneAttitude(self, plane_attitude):
+        self._plane_attitude = plane_attitude
 
 

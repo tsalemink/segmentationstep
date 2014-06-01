@@ -60,5 +60,10 @@ class NodeScene(object):
 
         return graphic
 
+    def getGraphic(self, name):
+        graphic = None
+        if name == POINT_CLOUD_GRAPHIC_NAME:
+            graphic = self._segmentation_point_glyph
 
+        return graphic
 

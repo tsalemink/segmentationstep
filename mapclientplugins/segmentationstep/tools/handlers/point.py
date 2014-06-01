@@ -25,7 +25,6 @@ from mapclientplugins.segmentationstep.zincutils import setGlyphSize, setGlyphOf
 from mapclientplugins.segmentationstep.undoredo import CommandNode, CommandSelection
 from mapclientplugins.segmentationstep.segmentpoint import SegmentPointStatus
 from mapclientplugins.segmentationstep.maths.algorithms import calculateLinePlaneIntersection
-from mapclientplugins.segmentationstep.tools.widgets.point import PropertiesWidget
 
 class SelectionMode(object):
 
@@ -47,10 +46,13 @@ class Point(AbstractHandler):
         self._selection_position_start = None
         self._scenviewer_filter = None
         self._sceneviewer_filter_orignal = None
-        self._properties_widget = PropertiesWidget()
+        self._streaming_create = False
 
     def setModel(self, model):
         self._model = model
+
+    def setStreamingCreate(self, state):
+        self._streaming_create = state
 
     def enter(self):
         super(Point, self).enter()
@@ -123,6 +125,13 @@ class Point(AbstractHandler):
             node = self._model.getNodeByIdentifier(self._node_status.getNodeIdentifier())
             point_on_plane = self._calculatePointOnPlane(event.x(), event.y())
             self._model.setNodeLocation(node, point_on_plane)
+            if self._streaming_create:
+                node_id = -1
+                plane_attitude = self._plane.getAttitude()
+                fake_status = SegmentPointStatus(node_id, None, None)
+                node_status = SegmentPointStatus(node_id, point_on_plane, plane_attitude)
+                c = CommandNode(self._model, fake_status, node_status)
+                self._undo_redo_stack.push(c)
         else:
             super(Point, self).mouseMoveEvent(event)
 

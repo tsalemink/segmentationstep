@@ -38,7 +38,7 @@ class SegmentationTool(object):
         return self._name
 
     def getPropertiesWidget(self):
-        raise self._widget
+        return self._widget
 
     def getIcon(self):
         return self._icon
@@ -47,15 +47,18 @@ class SegmentationTool(object):
         return self._handlers[view_type]
 
     def setGetDimensionsMethod(self, get_dimensions_method):
-        pass
+        raise NotImplementedError()
 
     def setDefaultMaterial(self, material):
-        pass
+        raise NotImplementedError()
 
     def setSelectedMaterial(self, material):
-        pass
+        raise NotImplementedError()
 
     def setModel(self, model):
-        pass
+        raise NotImplementedError()
+
+    def setScene(self, scene):
+        raise NotImplementedError()
 
 

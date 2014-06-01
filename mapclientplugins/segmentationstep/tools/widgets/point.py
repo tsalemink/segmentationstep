@@ -27,12 +27,23 @@ class PropertiesWidget(QtGui.QWidget):
     '''
 
 
-    def __init__(self):
+    def __init__(self, tool):
         '''
         Constructor
         '''
-        pass
-#         self._ui = Ui_PropertiesWidget()
-#         self._ui.setupUi(self)
+        super(PropertiesWidget, self).__init__()
+        self._ui = Ui_PropertiesWidget()
+        self._ui.setupUi(self)
+
+        self._tool = tool
+
+        self._makeConnections()
+
+    def _makeConnections(self):
+        self._ui._doubleSpinBoxPointSize.valueChanged.connect(self._tool.pointSizeChanged)
+        self._ui._checkBoxStreamingCreate.stateChanged.connect(self._tool.streamingCreateChanged)
+        self._ui._pushButtonDelete.clicked.connect(self._tool.deleteClicked)
+        self._ui._pushButtonPullUp.clicked.connect(self._tool.pullUpClicked)
+        self._ui._pushButtonPushDown.clicked.connect(self._tool.pushDownClicked)
 
 

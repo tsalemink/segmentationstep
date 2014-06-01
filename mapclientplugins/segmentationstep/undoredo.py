@@ -19,6 +19,9 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
 '''
 from PySide import QtGui
 
+from mapclientplugins.segmentationstep.plane import PlaneAttitude
+from mapclientplugins.segmentationstep.maths.vectorops import mult, add
+
 class CommandAdd(QtGui.QUndoCommand):
     '''
     '''
@@ -280,5 +283,87 @@ class CommandSelection(QtGui.QUndoCommand):
 
     def undo(self):
         self._model.setSelection(self._selection_start)
+
+
+class CommandDelete(QtGui.QUndoCommand):
+
+    def __init__(self, model, selected):
+        super(CommandDelete, self).__init__()
+        self._model = model
+        self._node_statuses = []
+        for node_id in selected:
+            self._node_statuses.append(model.getNodeStatus(node_id))
+
+    def redo(self):
+        self._model.removeNodes(self._node_statuses)
+
+    def undo(self):
+        region = self._model.getRegion()
+        fieldmodule = region.getFieldmodule()
+        fieldmodule.beginChange()
+        node_ids = self._model.createNodes(self._node_statuses)
+        self._model.setSelection(node_ids)
+        fieldmodule.endChange()
+
+
+class CommandPushPull(QtGui.QUndoCommand):
+
+    def __init__(self, model, selected, scale):
+        super(CommandPushPull, self).__init__()
+        self._rotation_point_start = None
+        self._rotation_point_end = None
+        self._model = model
+        self._selected = selected
+        self._node_statuses = self._adjustNodeLocation(selected, scale)
+        self._set_rotation_point_method = None
+
+    def setSetRotationPointMethod(self, set_rotation_point_method):
+        self._set_rotation_point_method = set_rotation_point_method
+
+    def _adjustNodeLocation(self, selected, scale):
+        '''
+        Adjust the node location by adding the scaled normal
+        for the plane.
+        '''
+        node_statuses = []
+        for node_id in selected:
+            node_status = self._model.getNodeStatus(node_id)
+            location = node_status.getLocation()
+            plane_attitude = node_status.getPlaneAttitude()
+            normal = plane_attitude.getNormal()
+            point_on_plane = plane_attitude.getPoint()
+            if self._rotation_point_start is None:
+                self._rotation_point_start = point_on_plane
+            adjustment = mult(normal, scale)
+
+            point_on_plane = add(point_on_plane, adjustment)
+            if self._rotation_point_end is None:
+                self._rotation_point_end = point_on_plane
+            plane_attitude = PlaneAttitude(add(point_on_plane, adjustment), normal)
+            node_status.setLocation(add(location, adjustment))
+            node_status.setPlaneAttitude(plane_attitude)
+
+            node_statuses.append(node_status)
+
+        return node_statuses
+
+    def _updateNodeIdentifiers(self, node_ids):
+        for i, node_status in enumerate(self._node_statuses):
+            node_status.setNodeIdentifier(node_ids[i])
+
+    def redo(self):
+        region = self._model.getRegion()
+        fieldmodule = region.getFieldmodule()
+        fieldmodule.beginChange()
+        node_ids = self._model.createNodes(self._node_statuses)
+        self._model.setSelection(node_ids)
+        self._updateNodeIdentifiers(node_ids)
+        self._set_rotation_point_method(self._rotation_point_end)
+        fieldmodule.endChange()
+
+    def undo(self):
+        self._model.removeNodes(self._node_statuses)
+        self._model.setSelection(self._selected)
+        self._set_rotation_point_method(self._rotation_point_start)
 
 

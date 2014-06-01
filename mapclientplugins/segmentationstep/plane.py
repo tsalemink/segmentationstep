@@ -99,14 +99,17 @@ class PlaneAttitude(object):
     prec = 12
 
     def __init__(self, point, normal):
-        self._normal = normal
         self._point = point
+        self._normal = normal
 
     def getNormal(self):
         return self._normal
 
     def getPoint(self):
         return self._point
+
+    def setPoint(self, point):
+        self._point = point
 
     def __hash__(self, *args, **kwargs):
         p = [str(int(v * (10 ** self.prec))) for v in self._point]

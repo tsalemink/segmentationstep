@@ -23,6 +23,10 @@ from mapclientplugins.segmentationstep.definitions import ViewType
 from mapclientplugins.segmentationstep.tools.segmentation import SegmentationTool
 from mapclientplugins.segmentationstep.tools.handlers.point2d import Point2D
 from mapclientplugins.segmentationstep.tools.handlers.point3d import Point3D
+from mapclientplugins.segmentationstep.tools.widgets.point import PropertiesWidget
+from mapclientplugins.segmentationstep.zincutils import getGlyphSize, setGlyphSize
+from mapclientplugins.segmentationstep.undoredo import CommandSetGlyphSize, CommandSetSingleParameterMethod, CommandDelete, CommandPushPull
+from mapclientplugins.segmentationstep.definitions import POINT_CLOUD_GRAPHIC_NAME
 
 class PointTool(SegmentationTool):
 
@@ -31,8 +35,63 @@ class PointTool(SegmentationTool):
         self._icon = QtGui.QIcon(':/toolbar_icons/point.png')
         self._handlers[ViewType.VIEW_2D] = Point2D(plane, undo_redo_stack)
         self._handlers[ViewType.VIEW_3D] = Point3D(plane, undo_redo_stack)
+        self._widget = PropertiesWidget(self)
+        self._model = None
+        self._plane = plane
 
     def setGetDimensionsMethod(self, get_dimensions_method):
         self._handlers[ViewType.VIEW_2D].setGetDimensionsMethod(get_dimensions_method)
+
+    def setModel(self, model):
+        self._model = model
+        self._handlers[ViewType.VIEW_2D].setModel(model)
+        self._handlers[ViewType.VIEW_3D].setModel(model)
+
+    def setScene(self, scene):
+        self._scene = scene
+
+    def pointSizeChanged(self, value):
+        glyph = self._scene.getGraphic(POINT_CLOUD_GRAPHIC_NAME)
+        current = getGlyphSize(glyph)
+        new = [value, value, value]
+
+        if current != new:
+            c = CommandSetGlyphSize(current, new, glyph)
+            c.setSetGlyphSizeMethod(setGlyphSize)
+            c.setSpinBox(self._widget._ui._doubleSpinBoxPointSize)
+
+            self._undo_redo_stack.push(c)
+
+    def streamingCreateChanged(self, state):
+        new = True if state == 2 else False
+        current = not new
+        c = CommandSetSingleParameterMethod(current, new)
+        c.setSingleParameterMethod(self._setStreamingCreate)
+
+        self._undo_redo_stack.push(c)
+
+    def _setStreamingCreate(self, state):
+        self._handlers[ViewType.VIEW_2D].setStreamingCreate(state)
+        self._handlers[ViewType.VIEW_3D].setStreamingCreate(state)
+        self._widget._ui._checkBoxStreamingCreate.blockSignals(True)
+        self._widget._ui._checkBoxStreamingCreate.setChecked(state)
+        self._widget._ui._checkBoxStreamingCreate.blockSignals(False)
+
+    def deleteClicked(self):
+        c = CommandDelete(self._model, self._model.getCurrentSelection())
+        self._undo_redo_stack.push(c)
+
+    def pushDownClicked(self):
+        self._pushPullNodes(-1.0)
+
+    def pullUpClicked(self):
+        self._pushPullNodes(1.0)
+
+    def _pushPullNodes(self, direction):
+        value = self._widget._ui._doubleSpinBoxStepSize.value()
+        scale = value * direction
+        c = CommandPushPull(self._model, self._model.getCurrentSelection(), scale)
+        c.setSetRotationPointMethod(self._plane.setRotationPoint)
+        self._undo_redo_stack.push(c)
 
 

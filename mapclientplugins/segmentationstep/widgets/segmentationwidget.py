@@ -184,17 +184,6 @@ class SegmentationWidget(QtGui.QWidget):
 
         self._model.getUndoRedoStack().push(c)
 
-    def _streamingCreateClicked(self):
-        if self.sender() == self._ui._checkBoxStreamingCreate:
-            new = self._ui._checkBoxStreamingCreate.isChecked()
-            current = not new
-
-        if current != new:
-            c = CommandSetSingleParameterMethod(current, new)
-            c.setSingleParameterMethod(self._setStreamingCreate)
-
-            self._model.getUndoRedoStack().push(c)
-
     def _scaleChanged(self):
         current_scale = self._model.getScale()
         new_scale = current_scale[:]
@@ -215,10 +204,6 @@ class SegmentationWidget(QtGui.QWidget):
             c.setSetScaleMethod(self._model.setScale)
 
             self._model.getUndoRedoStack().push(c)
-
-    def _setStreamingCreate(self, on=True):
-        self._streaming_create = on
-        self._ui._checkBoxStreamingCreate.setChecked(on)
 
     def keyPressEvent(self, keyevent):
         if keyevent.key() == 68 and not self._debug_print:
@@ -288,6 +273,7 @@ class SegmentationWidget(QtGui.QWidget):
         context = self._model.getContext()
         image_model = self._model.getImageModel()
         node_model = self._model.getNodeModel()
+        node_scene = self._scene.getNodeScene()
         plane = image_model.getPlane()
         undo_redo_stack = self._model.getUndoRedoStack()
 
@@ -302,7 +288,10 @@ class SegmentationWidget(QtGui.QWidget):
 
         point_tool = point.PointTool(plane, undo_redo_stack)
         point_tool.setModel(node_model)
+        point_tool.setScene(node_scene)
         point_tool.setGetDimensionsMethod(image_model.getDimensions)
+        w = point_tool.getPropertiesWidget()
+        self._ui._toolTab.addItem(w, point_tool.getName())
 
         normal_tool = normal.NormalTool(plane, undo_redo_stack)
         normal_tool.setGetDimensionsMethod(image_model.getDimensions)

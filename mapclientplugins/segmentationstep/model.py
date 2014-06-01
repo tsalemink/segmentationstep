@@ -30,6 +30,7 @@ from mapclientplugins.segmentationstep.maths.vectorops import elmult
 from mapclientplugins.segmentationstep.plane import Plane
 from mapclientplugins.segmentationstep.zincutils import createFiniteElementField, createFiniteElement
 from mapclientplugins.segmentationstep.misc import alphanum_key
+from mapclientplugins.segmentationstep.segmentpoint import SegmentPointStatus
 
 class AbstractModel(object):
 
@@ -316,6 +317,11 @@ class NodeModel(AbstractModel):
     def getNodePlaneAttitude(self, node_id):
         return self._nodes[node_id]
 
+    def getNodeStatus(self, node_id):
+        node = self.getNodeByIdentifier(node_id)
+        node_status = SegmentPointStatus(node_id, self.getNodeLocation(node), self.getNodePlaneAttitude(node_id))
+        return node_status
+
     def _addId(self, plane_attitude, node_id):
         if plane_attitude in self._plane_attitudes:
             self._plane_attitudes[plane_attitude].append(node_id)
@@ -347,15 +353,6 @@ class NodeModel(AbstractModel):
             self._addId(plane_attitude, node_id)
             self._nodes[node_id] = plane_attitude
 
-    def removeNode(self, node_id):
-        plane_attitude = self._nodes[node_id]
-        self._removeId(plane_attitude, node_id)
-        del self._nodes[node_id]
-        node = self.getNodeByIdentifier(node_id)
-        nodeset = node.getNodeset()
-        nodeset.destroyNode(node)
-
-
     def setNodeLocation(self, node, location):
         fieldmodule = self._region.getFieldmodule()
         fieldcache = fieldmodule.createFieldcache()
@@ -376,6 +373,34 @@ class NodeModel(AbstractModel):
             return location
 
         return None
+
+    def removeNodes(self, node_statuses):
+        fieldmodule = self._region.getFieldmodule()
+        fieldmodule.beginChange()
+
+        for node_status in node_statuses:
+            self.removeNode(node_status.getNodeIdentifier())
+
+        fieldmodule.endChange()
+
+    def removeNode(self, node_id):
+        plane_attitude = self._nodes[node_id]
+        self._removeId(plane_attitude, node_id)
+        del self._nodes[node_id]
+        node = self.getNodeByIdentifier(node_id)
+        nodeset = node.getNodeset()
+        nodeset.destroyNode(node)
+
+    def createNodes(self, node_statuses):
+        node_ids = []
+        for node_status in node_statuses:
+            location = node_status.getLocation()
+            node = self._createNodeAtLocation(location)
+            node_id = node.getIdentifier()
+            node = self.addNode(node_id, location, node_status.getPlaneAttitude())
+            node_ids.append(node_id)
+
+        return node_ids
 
     def createNode(self):
         '''
