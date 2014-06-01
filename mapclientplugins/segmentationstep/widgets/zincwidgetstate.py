@@ -75,6 +75,7 @@ class ZincWidgetState(ZincWidget):
             centre = self._plane.getRotationPoint()
             _, _, up, angle = self.getViewParameters()
             self.setViewParameters(add(normal, centre), centre, up, angle)
-            self.viewAll()
+            self._active_handler.updateNodeVisibility()
+            self._sceneviewer.viewAll()
 
 

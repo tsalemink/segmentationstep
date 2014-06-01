@@ -21,7 +21,7 @@ from PySide import QtGui, QtCore
 
 from mapclientplugins.segmentationstep.tools import normal, orientation, point
 from mapclientplugins.segmentationstep.widgets.ui_segmentationwidget import Ui_SegmentationWidget
-from mapclientplugins.segmentationstep.undoredo import CommandChangeViewMode, CommandSetScale, CommandSetSingleParameterMethod, CommandSetGraphicVisibility, CommandSetGlyphSize
+from mapclientplugins.segmentationstep.undoredo import CommandSetScale, CommandSetSingleParameterMethod, CommandSetGraphicVisibility, CommandSetGlyphSize
 from mapclientplugins.segmentationstep.widgets.zincwidget import ProjectionMode
 from mapclientplugins.segmentationstep.definitions import ViewMode, ViewType, ELEMENT_OUTLINE_GRAPHIC_NAME, IMAGE_PLANE_GRAPHIC_NAME, ELEMENT_NODE_LABEL_GRAPHIC_NAME
 from mapclientplugins.segmentationstep.widgets.segmentationstate import SegmentationState
@@ -210,49 +210,14 @@ class SegmentationWidget(QtGui.QWidget):
             self._debug_print = True
 
     def keyReleaseEvent(self, keyevent):
-        if keyevent.key() == 82 and keyevent.modifiers() & QtCore.Qt.CTRL and not keyevent.isAutoRepeat():
+        if keyevent.key() == 49 and keyevent.modifiers() & QtCore.Qt.CTRL and not keyevent.isAutoRepeat():
             # Put tool into plane rotation mode
             # show sphere centre glyph
+            print('1-key')
             return
-            reverse = keyevent.modifiers() & QtCore.Qt.SHIFT
-            cur_mode = self._ui._sceneviewer3d.getMode().getModeType()
-            new_mode = cur_mode
-            if cur_mode == ViewMode.SEGMENT_POINT:
-                if reverse:
-                    new_mode = ViewMode.PLANE_ROTATION
-                else:
-                    new_mode = ViewMode.PLANE_NORMAL
-            elif cur_mode == ViewMode.PLANE_NORMAL:
-                if reverse:
-                    new_mode = ViewMode.SEGMENT_POINT
-                else:
-                    new_mode = ViewMode.PLANE_ROTATION
-            elif cur_mode == ViewMode.PLANE_ROTATION:
-                if reverse:
-                    new_mode = ViewMode.PLANE_NORMAL
-                else:
-                    new_mode = ViewMode.SEGMENT_POINT
-
-            self._setMode(new_mode)
 
         if keyevent.key() == 68 and not keyevent.isAutoRepeat():
             self._debug_print = False
-
-    def _zincWidgetModeChanged(self):
-        if self.sender() == self._ui._radioButtonSegment:
-            self._setMode(ViewMode.SEGMENT_POINT)
-        elif self.sender() == self._ui._radioButtonMove:
-            self._setMode(ViewMode.PLANE_NORMAL)
-        elif self.sender() == self._ui._radioButtonRotate:
-            self._setMode(ViewMode.PLANE_ROTATION)
-
-    def _setMode(self, view_mode):
-        c = CommandChangeViewMode(self._current_viewmode, view_mode)
-        c.setSetActiveModeTypeMethod(self._ui._sceneviewer3d.setActiveModeType)
-        c.setSetViewModeUiMethod(self._setViewModeUi)
-
-        self._model.getUndoRedoStack().push(c)
-        self._current_viewmode = view_mode
 
     def _setupTabs(self):
         self._tabs = {}

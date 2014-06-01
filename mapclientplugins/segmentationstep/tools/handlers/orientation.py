@@ -121,7 +121,7 @@ class Orientation(PlaneAdjust):
         super(Orientation, self).mouseReleaseEvent(event)
         scene.endChange()
 
-        self.setUndoRedoCommand('plane rotation')
+        self.setUndoRedoCommand('Plane Rotation')
 
     def enter(self):
         scene = self._glyph.getScene()

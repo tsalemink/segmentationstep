@@ -22,46 +22,11 @@ from PySide import QtGui
 from mapclientplugins.segmentationstep.plane import PlaneAttitude
 from mapclientplugins.segmentationstep.maths.vectorops import mult, add
 
-class CommandAdd(QtGui.QUndoCommand):
-    '''
-    '''
-
-    def __init__(self, field_module, position, updateGL):
-        super(CommandAdd, self).__init__()
-        self._fieldmodule = field_module
-        self._position = position
-        self._updateGL = updateGL
-        self._id = -1
-        self._node = None
-
-    def redo(self):
-        self._fieldmodule.beginChange()
-        field_cache = self._fieldmodule.createCache()
-        coordinate_field = self._fieldmodule.findFieldByName('coordinates')
-        nodeset = self._fieldmodule.findNodesetByName('cmiss_nodes')
-        template = nodeset.createNodeTemplate()
-        template.defineField(coordinate_field)
-
-        self._node = nodeset.createNode(self._id, template)
-        self._id = self._node.getIdentifier()
-        field_cache.setNode(self._node)
-        coordinate_field.assignReal(field_cache, self._position)
-
-        self._fieldmodule.endChange()
-
-        self._updateGL()
-
-    def undo(self):
-        nodeset = self._fieldmodule.findNodesetByName('cmiss_nodes')
-        nodeset.destroyNode(self._node)
-
-        self._updateGL()
-
-
 class CommandMovePlane(QtGui.QUndoCommand):
 
     def __init__(self, plane, plane_start, plane_end):
         super(CommandMovePlane, self).__init__()
+        self.setText('Move Plane')
         self._plane_start = plane_start
         self._plane_end = plane_end
         self._plane = plane
@@ -76,6 +41,7 @@ class CommandMoveGlyph(QtGui.QUndoCommand):
 
     def __init__(self, glyph, start_location, end_location):
         super(CommandMoveGlyph, self).__init__()
+        self.setText('Move Glyph')
         self._start_location = start_location
         self._end_location = end_location
         self._glyph = glyph
@@ -95,6 +61,7 @@ class CommandChangeView(QtGui.QUndoCommand):
 
     def __init__(self, view_start, view_end):
         super(CommandChangeView, self).__init__()
+        self.setText('Change View')
         self._view_start = view_start
         self._view_end = view_end
         self._set_viewport_parameters_method = None
@@ -111,6 +78,37 @@ class CommandChangeView(QtGui.QUndoCommand):
         self._set_viewport_parameters_method = viewport_parameters
 
 
+class CommandChangeViewHandler(QtGui.QUndoCommand):
+
+    def __init__(self, current_handler, current_action, new_handler, new_action):
+        super(CommandChangeViewHandler, self).__init__()
+        self.setText('Change View Handler')
+        self._current_handler = current_handler
+        self._current_action = current_action
+        self._new_handler = new_handler
+        self._new_action = new_action
+        self._set_active_mode_type_method = None
+
+    def setSetChangeHandlerMethod(self, method):
+        self._set_change_handler_method = method
+
+    def _setActionState(self, new):
+        self._new_action.blockSignals(True)
+        self._new_action.setChecked(new)
+        self._new_action.blockSignals(False)
+        self._current_action.blockSignals(True)
+        self._current_action.setChecked(not new)
+        self._current_action.blockSignals(False)
+
+    def redo(self):
+        self._setActionState(True)
+        self._set_change_handler_method(self._new_handler)
+
+    def undo(self):
+        self._setActionState(False)
+        self._set_change_handler_method(self._current_handler)
+
+
 class CommandCurrentNew(QtGui.QUndoCommand):
 
     def __init__(self, current, new):
@@ -119,32 +117,11 @@ class CommandCurrentNew(QtGui.QUndoCommand):
         self._new = new
 
 
-class CommandChangeViewMode(CommandCurrentNew):
-
-    def __init__(self, current, new):
-        super(CommandChangeViewMode, self).__init__(current, new)
-        self._set_active_mode_type_method = None
-        self._set_view_mode_ui_method = None
-
-    def setSetActiveModeTypeMethod(self, method):
-        self._set_active_mode_type_method = method
-
-    def setSetViewModeUiMethod(self, method):
-        self._set_view_mode_ui_method = method
-
-    def redo(self):
-        self._set_active_mode_type_method(self._new)
-        self._set_view_mode_ui_method(self._new)
-
-    def undo(self):
-        self._set_active_mode_type_method(self._current)
-        self._set_view_mode_ui_method(self._current)
-
-
 class CommandSetScale(CommandCurrentNew):
 
     def __init__(self, current, new, scale_index):
         super(CommandSetScale, self).__init__(current, new)
+        self.setText('Set Scale')
         self._scale_index = scale_index
         self._set_scale_method = None
         self._line_edit = None
@@ -168,6 +145,8 @@ class CommandSetSingleParameterMethod(CommandCurrentNew):
 
     def __init__(self, current, new):
         super(CommandSetSingleParameterMethod, self).__init__(current, new)
+        self.setText('Single Parameter')
+
         self._set_single_parameter_method = None
 
     def setSingleParameterMethod(self, method):
@@ -184,6 +163,7 @@ class CommandSetGraphicVisibility(CommandCurrentNew):
 
     def __init__(self, current, new):
         super(CommandSetGraphicVisibility, self).__init__(current, new)
+        self.setText('Graphic Visibility')
         self._graphic = None
         self._check_box = None
 
@@ -206,6 +186,7 @@ class CommandSetGlyphSize(CommandCurrentNew):
 
     def __init__(self, current, new, glyph):
         super(CommandSetGlyphSize, self).__init__(current, new)
+        self.setText('Graphic Size')
         self._set_glyph_size_method = None
         self._spin_box = None
         self._glyph = glyph
@@ -229,6 +210,7 @@ class CommandNode(QtGui.QUndoCommand):
 
     def __init__(self, node_model, node_status_start, node_status_end):
         super(CommandNode, self).__init__()
+        self.setText('Node')
         self._model = node_model
         self._status_start = node_status_start
         self._status_end = node_status_end
@@ -274,6 +256,7 @@ class CommandSelection(QtGui.QUndoCommand):
 
     def __init__(self, model, selection_start, selection_end):
         super(CommandSelection, self).__init__()
+        self.setText('Selection')
         self._model = model
         self._selection_start = selection_start
         self._selection_end = selection_end
@@ -289,6 +272,7 @@ class CommandDelete(QtGui.QUndoCommand):
 
     def __init__(self, model, selected):
         super(CommandDelete, self).__init__()
+        self.setText('Delete')
         self._model = model
         self._node_statuses = []
         for node_id in selected:
@@ -310,6 +294,7 @@ class CommandPushPull(QtGui.QUndoCommand):
 
     def __init__(self, model, selected, scale):
         super(CommandPushPull, self).__init__()
+        self.setText('Push/Pull')
         self._rotation_point_start = None
         self._rotation_point_end = None
         self._model = model
@@ -339,7 +324,7 @@ class CommandPushPull(QtGui.QUndoCommand):
             point_on_plane = add(point_on_plane, adjustment)
             if self._rotation_point_end is None:
                 self._rotation_point_end = point_on_plane
-            plane_attitude = PlaneAttitude(add(point_on_plane, adjustment), normal)
+            plane_attitude = PlaneAttitude(point_on_plane, normal)
             node_status.setLocation(add(location, adjustment))
             node_status.setPlaneAttitude(plane_attitude)
 

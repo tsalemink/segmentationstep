@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'qt/segment.ui'
+# Form implementation generated from reading ui file 'qt/point.ui'
 #
-# Created: Fri May 30 16:44:51 2014
+# Created: Sun Jun  1 20:36:44 2014
 #      by: pyside-uic 0.2.15 running on PySide 1.2.1
 #
 # WARNING! All changes made in this file will be lost!
@@ -80,6 +80,8 @@ class Ui_PropertiesWidget(object):
         self.horizontalLayout_5.addItem(spacerItem1)
         self.verticalLayout_14.addLayout(self.horizontalLayout_5)
         self.verticalLayout.addWidget(self.groupBox_11)
+        spacerItem2 = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
+        self.verticalLayout.addItem(spacerItem2)
 
         self.retranslateUi(PropertiesWidget)
         QtCore.QMetaObject.connectSlotsByName(PropertiesWidget)

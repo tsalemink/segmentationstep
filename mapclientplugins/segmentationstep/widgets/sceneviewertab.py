@@ -20,6 +20,7 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
 from mapclientplugins.segmentationstep.widgets.segmentationtab import SegmentationTab
 from mapclientplugins.segmentationstep.widgets.ui_sceneviewertab import Ui_SceneviewerTab
 from mapclientplugins.segmentationstep.definitions import ViewMode
+from mapclientplugins.segmentationstep.undoredo import CommandChangeViewHandler
 
 class SceneviewerTab(SegmentationTab):
     '''
@@ -44,9 +45,21 @@ class SceneviewerTab(SegmentationTab):
         self._ui._tabToolBar.actionTriggered.connect(self._toolbarAction)
 
     def _toolbarAction(self, action):
-        action.setChecked(True)
-        handler = self._action_map[action]
-        self.changeHandler(handler)
+        new_handler = self._action_map[action]
+        if new_handler == self._active_handler:
+            action.blockSignals(True)
+            action.setChecked(True)
+            action.blockSignals(False)
+        else:
+            current_action = self._handler_map[self._active_handler]
+            current_handler = self._active_handler
+            c = CommandChangeViewHandler(current_handler, current_action, new_handler, action)
+            c.setSetChangeHandlerMethod(self._changeHandler)
+
+            self._undo_redo_stack.push(c)
+
+    def _changeHandler(self, handler):
+        self._active_handler = handler
         self._ui._zincwidget.setActiveModeType(handler.getModeType())
 
     def _sceneviewerReady(self):

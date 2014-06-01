@@ -129,10 +129,11 @@ def createFiniteElement(region, finite_element_field, dim):
     fieldmodule.endChange()
 
 def setGlyphPosition(glyph, position):
-    position_field = glyph.getCoordinateField()
-    fieldmodule = position_field.getFieldmodule()
-    fieldcache = fieldmodule.createFieldcache()
-    position_field.assignReal(fieldcache, position)
+    if position is not None:
+        position_field = glyph.getCoordinateField()
+        fieldmodule = position_field.getFieldmodule()
+        fieldcache = fieldmodule.createFieldcache()
+        position_field.assignReal(fieldcache, position)
 
 def getGlyphPosition(glyph):
     position_field = glyph.getCoordinateField()

@@ -79,6 +79,6 @@ class Normal(PlaneAdjust):
         scene.endChange()
 
         if set_undo_redo_command:
-            self.setUndoRedoCommand('plane normal')
+            self.setUndoRedoCommand('Plane Normal')
 
 

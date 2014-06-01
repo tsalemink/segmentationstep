@@ -139,7 +139,7 @@ class ImageModel(AbstractModel):
         '''
         Sets up a number of fields to represent the image plane and stores
         a handle to an object encapsulating these fields in the 
-        class attribute '_plane'.  The plane has a normal, centre point and a
+        class attribute '_plane'.  The plane has a normal and a
         point of rotation.
         '''
         fieldmodule = self._region.getFieldmodule()
@@ -448,7 +448,7 @@ class SegmentationModel(object):
 
     def __init__(self, dataIn):
         self._context = Context('Segmentation')
-        self._undoRedoStack = QtGui.QUndoStack()
+        self._undo_redo_stack = QtGui.QUndoStack()
 
         self.defineStandardMaterials()
         self._createModeMaterials()
@@ -464,7 +464,7 @@ class SegmentationModel(object):
         return None
 
     def getUndoRedoStack(self):
-        return self._undoRedoStack
+        return self._undo_redo_stack
 
     def getImageModel(self):
         return self._image_model
