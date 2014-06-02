@@ -32,9 +32,6 @@ class SelectionMode(object):
     EXCULSIVE = 0
     ADDITIVE = 1
 
-SELECTION_BOX_GRAPHIC_NAME_3D = 'selection_box_3d'
-SELECTION_BOX_GRAPHIC_NAME_2D = 'selection_box_2d'
-
 class Point(AbstractHandler):
 
     def __init__(self, plane, undo_redo_stack):
@@ -56,16 +53,9 @@ class Point(AbstractHandler):
 
     def enter(self):
         super(Point, self).enter()
-        sceneviewer = self._zinc_view.getSceneviewer()
-        self._sceneviewer_filter_orignal = sceneviewer.getScenefilter()
-        if self._scenviewer_filter is None:
-            self._scenviewer_filter = self._createSceneviewerFilter()
-        sceneviewer.setScenefilter(self._scenviewer_filter)
 
     def leave(self):
         super(Point, self).leave()
-        sceneviewer = self._zinc_view.getSceneviewer()
-        sceneviewer.setScenefilter(self._sceneviewer_filter_orignal)
 
     def mousePressEvent(self, event):
         self._selection_mode = SelectionMode.NONE

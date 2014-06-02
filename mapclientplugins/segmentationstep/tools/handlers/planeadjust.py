@@ -46,10 +46,12 @@ class PlaneAdjust(AbstractHandler):
         self._selected_material = material
 
     def enter(self):
+        super(PlaneAdjust, self).enter()
         self._glyph.setVisibilityFlag(True)
         self._glyph.setMaterial(self._default_material)
 
     def leave(self):
+        super(PlaneAdjust, self).leave()
         self._glyph.setVisibilityFlag(False)
 
     def setUndoRedoCommand(self, name):

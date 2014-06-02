@@ -21,6 +21,7 @@ from PySide import QtCore
 
 from mapclientplugins.segmentationstep.zincutils import button_map, modifier_map, Sceneviewerinput
 from mapclientplugins.segmentationstep.undoredo import CommandChangeView
+from mapclientplugins.segmentationstep.definitions import SELECTION_BOX_GRAPHIC_NAME_2D
 
 class AbstractHandler(object):
 
@@ -31,6 +32,7 @@ class AbstractHandler(object):
         self._plane = plane
         self._undo_redo_stack = undo_redo_stack
         self._get_dimension_method = None
+        self._scenviewer_filter = None
 
     def setGetDimensionsMethod(self, get_dimensions_method):
         self._get_dimension_method = get_dimensions_method
@@ -38,11 +40,16 @@ class AbstractHandler(object):
     def setZincView(self, zinc_view):
         self._zinc_view = zinc_view
 
-    def leave(self):
-        pass
-
     def enter(self):
-        pass
+        sceneviewer = self._zinc_view.getSceneviewer()
+        self._sceneviewer_filter_orignal = sceneviewer.getScenefilter()
+        if self._scenviewer_filter is None:
+            self._scenviewer_filter = self._createSceneviewerFilter()
+        sceneviewer.setScenefilter(self._scenviewer_filter)
+
+    def leave(self):
+        sceneviewer = self._zinc_view.getSceneviewer()
+        sceneviewer.setScenefilter(self._sceneviewer_filter_orignal)
 
     def getModeType(self):
         return self._mode_type
@@ -94,4 +101,21 @@ class AbstractHandler(object):
         c = CommandChangeView(self._start_view_parameters, end_view_parameters)
         c.setCallbackMethod(self._zinc_view.setViewParameters)
         self._undo_redo_stack.push(c)
+
+    def _createSceneviewerFilter(self):
+        sceneviewer = self._zinc_view.getSceneviewer()
+        scene = sceneviewer.getScene()
+        filtermodule = scene.getScenefiltermodule()
+
+        visibility_filter = filtermodule.createScenefilterVisibilityFlags()
+        selection_box_2d_filter = filtermodule.createScenefilterGraphicsName(SELECTION_BOX_GRAPHIC_NAME_2D)
+        selection_box_2d_filter.setInverse(True)
+
+        master_filter = filtermodule.createScenefilterOperatorAnd()
+
+        master_filter.appendOperand(visibility_filter)
+        master_filter.appendOperand(selection_box_2d_filter)
+
+        return master_filter
+
 

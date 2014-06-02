@@ -22,11 +22,11 @@ from math import cos, sin, acos, copysign
 
 from PySide import QtCore
 
-from mapclientplugins.segmentationstep.tools.handlers.point import Point, SELECTION_BOX_GRAPHIC_NAME_2D
+from mapclientplugins.segmentationstep.tools.handlers.point import Point
 from mapclientplugins.segmentationstep.maths.vectorops import add, mult, cross, dot, sub, normalize, magnitude
 from mapclientplugins.segmentationstep.maths.algorithms import calculateCentroid
 from mapclientplugins.segmentationstep.undoredo import CommandChangeView
-from mapclientplugins.segmentationstep.definitions import IMAGE_PLANE_GRAPHIC_NAME, POINT_CLOUD_GRAPHIC_NAME
+from mapclientplugins.segmentationstep.definitions import IMAGE_PLANE_GRAPHIC_NAME, POINT_CLOUD_GRAPHIC_NAME, SELECTION_BOX_GRAPHIC_NAME_2D
 from mapclientplugins.segmentationstep.zincutils import createSelectionBox
 
 class Point2D(Point):

@@ -24,7 +24,8 @@ ELEMENT_NODE_LABEL_GRAPHIC_NAME = 'label_only'
 IMAGE_PLANE_GRAPHIC_NAME = 'image_plane'
 ELEMENT_OUTLINE_GRAPHIC_NAME = 'element_outline'
 POINT_CLOUD_GRAPHIC_NAME = 'point_cloud'
-SELECTION_BOX_GRAPHIC_NAME = 'selection_box'
+SELECTION_BOX_GRAPHIC_NAME_2D = 'selection_box_2d'
+SELECTION_BOX_GRAPHIC_NAME_3D = 'selection_box_3d'
 
 class ViewMode(object):
 
