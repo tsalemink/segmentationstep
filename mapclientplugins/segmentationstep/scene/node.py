@@ -20,7 +20,8 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
 
 from opencmiss.zinc.field import Field
 from opencmiss.zinc.glyph import Glyph
-from mapclientplugins.segmentationstep.definitions import DEFAULT_SEGMENTATION_POINT_SIZE, POINT_CLOUD_GRAPHIC_NAME
+from mapclientplugins.segmentationstep.definitions import DEFAULT_SEGMENTATION_POINT_SIZE, POINT_CLOUD_GRAPHIC_NAME, \
+    POINT_CLOUD_ON_PLANE_GRAPHIC_NAME
 
 class NodeScene(object):
     '''
@@ -39,6 +40,7 @@ class NodeScene(object):
         region = self._model.getRegion()
         coordinate_field = self._model.getScaledCoordinateField()
         self._segmentation_point_glyph = self._createNodeGraphics(region, coordinate_field)
+        self._segmentation_point_on_plane_glyph = self._createDatapointGraphics(region, coordinate_field)
 
     def _createNodeGraphics(self, region, finite_element_field):
         scene = region.getScene()
@@ -60,10 +62,32 @@ class NodeScene(object):
 
         return graphic
 
+    def _createDatapointGraphics(self, region, finite_element_field):
+        scene = region.getScene()
+        scene.beginChange()
+
+        materialmodule = scene.getMaterialmodule()
+        green_material = materialmodule.findMaterialByName('green')
+
+        graphic = scene.createGraphicsPoints()
+        graphic.setFieldDomainType(Field.DOMAIN_TYPE_DATAPOINTS)
+        graphic.setCoordinateField(finite_element_field)
+        graphic.setName(POINT_CLOUD_ON_PLANE_GRAPHIC_NAME)
+        graphic.setSelectedMaterial(green_material)
+        attributes = graphic.getGraphicspointattributes()
+        attributes.setGlyphShapeType(Glyph.SHAPE_TYPE_SPHERE)
+        attributes.setBaseSize(DEFAULT_SEGMENTATION_POINT_SIZE)
+
+        scene.endChange()
+
+        return graphic
+
     def getGraphic(self, name):
         graphic = None
         if name == POINT_CLOUD_GRAPHIC_NAME:
             graphic = self._segmentation_point_glyph
+        elif name == POINT_CLOUD_ON_PLANE_GRAPHIC_NAME:
+            graphic = self._segmentation_point_on_plane_glyph
 
         return graphic
 

@@ -26,7 +26,7 @@ from mapclientplugins.segmentationstep.tools.handlers.point import Point
 from mapclientplugins.segmentationstep.maths.vectorops import add, mult, cross, dot, sub, normalize, magnitude
 from mapclientplugins.segmentationstep.maths.algorithms import calculateCentroid
 from mapclientplugins.segmentationstep.undoredo import CommandChangeView
-from mapclientplugins.segmentationstep.definitions import IMAGE_PLANE_GRAPHIC_NAME, POINT_CLOUD_GRAPHIC_NAME, SELECTION_BOX_GRAPHIC_NAME_2D
+from mapclientplugins.segmentationstep.definitions import IMAGE_PLANE_GRAPHIC_NAME, POINT_CLOUD_ON_PLANE_GRAPHIC_NAME, SELECTION_BOX_GRAPHIC_NAME_2D
 from mapclientplugins.segmentationstep.zincutils import createSelectionBox
 
 class Point2D(Point):
@@ -42,7 +42,7 @@ class Point2D(Point):
 # #         node_filter = filtermodule.createScenefilterFieldDomainType(Field.DOMAIN_TYPE_NODES)
         visibility_filter = filtermodule.createScenefilterVisibilityFlags()
         label_filter1 = filtermodule.createScenefilterGraphicsName(IMAGE_PLANE_GRAPHIC_NAME)
-        label_filter2 = filtermodule.createScenefilterGraphicsName(POINT_CLOUD_GRAPHIC_NAME)
+        label_filter2 = filtermodule.createScenefilterGraphicsName(POINT_CLOUD_ON_PLANE_GRAPHIC_NAME)
         label_filter3 = filtermodule.createScenefilterGraphicsName(SELECTION_BOX_GRAPHIC_NAME_2D)
 #         label_filter3.setInverse(True)
 #

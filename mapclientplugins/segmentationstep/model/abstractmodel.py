@@ -17,25 +17,22 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
     You should have received a copy of the GNU General Public License
     along with MAP Client.  If not, see <http://www.gnu.org/licenses/>..
 '''
-DEFAULT_NORMAL_ARROW_SIZE = 25.0
-DEFAULT_GRAPHICS_SPHERE_SIZE = 10.0
-DEFAULT_SEGMENTATION_POINT_SIZE = 2.0
-ELEMENT_NODE_LABEL_GRAPHIC_NAME = 'label_only'
-IMAGE_PLANE_GRAPHIC_NAME = 'image_plane'
-ELEMENT_OUTLINE_GRAPHIC_NAME = 'element_outline'
-POINT_CLOUD_GRAPHIC_NAME = 'point_cloud'
-POINT_CLOUD_ON_PLANE_GRAPHIC_NAME = 'point_cloud_on_plane'
-SELECTION_BOX_GRAPHIC_NAME_2D = 'selection_box_2d'
-SELECTION_BOX_GRAPHIC_NAME_3D = 'selection_box_3d'
 
-class ViewMode(object):
+class AbstractModel(object):
 
-    SEGMENT_POINT = 1
-    PLANE_NORMAL = 2
-    PLANE_ROTATION = 4
+    def __init__(self, context):
+        self._context = context
 
-class ViewType(object):
+        self._region = None
+        self._coordinate_field = None
+        self._scaled_coordinate_field = None
 
-    VIEW_3D = 'View 3D'
-    VIEW_2D = 'View 2D'
+    def getRegion(self):
+        return self._region
+
+    def getCoordinateField(self):
+        return self._coordinate_field
+
+    def getScaledCoordinateField(self):
+        return self._scaled_coordinate_field
 
