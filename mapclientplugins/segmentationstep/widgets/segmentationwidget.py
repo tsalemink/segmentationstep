@@ -211,10 +211,14 @@ class SegmentationWidget(QtGui.QWidget):
 
     def keyReleaseEvent(self, keyevent):
         if keyevent.key() == 49 and keyevent.modifiers() & QtCore.Qt.CTRL and not keyevent.isAutoRepeat():
-            # Put tool into plane rotation mode
-            # show sphere centre glyph
-            print('1-key')
-            return
+            self._tabs[ViewType.VIEW_2D].setActiveHandler(ViewMode.SEGMENT_POINT)
+            self._tabs[ViewType.VIEW_3D].setActiveHandler(ViewMode.SEGMENT_POINT)
+        if keyevent.key() == 50 and keyevent.modifiers() & QtCore.Qt.CTRL and not keyevent.isAutoRepeat():
+            self._tabs[ViewType.VIEW_2D].setActiveHandler(ViewMode.PLANE_NORMAL)
+            self._tabs[ViewType.VIEW_3D].setActiveHandler(ViewMode.PLANE_NORMAL)
+        if keyevent.key() == 51 and keyevent.modifiers() & QtCore.Qt.CTRL and not keyevent.isAutoRepeat():
+            self._tabs[ViewType.VIEW_2D].setActiveHandler(ViewMode.PLANE_ROTATION)
+            self._tabs[ViewType.VIEW_3D].setActiveHandler(ViewMode.PLANE_ROTATION)
 
         if keyevent.key() == 68 and not keyevent.isAutoRepeat():
             self._debug_print = False

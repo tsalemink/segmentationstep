@@ -62,6 +62,19 @@ class SceneviewerTab(SegmentationTab):
         self._active_handler = handler
         self._ui._zincwidget.setActiveModeType(handler.getModeType())
 
+    def setActiveHandler(self, handler_type):
+        if handler_type in self._handlers:
+            handler = self._handlers[handler_type]
+            if self._active_handler is not None and handler != self._active_handler:
+                action = self._handler_map[handler]
+                current_action = self._handler_map[self._active_handler]
+                current_handler = self._active_handler
+                c = CommandChangeViewHandler(current_handler, current_action, handler, action)
+                c.setSetChangeHandlerMethod(self._changeHandler)
+
+                self._undo_redo_stack.push(c)
+
+
     def _sceneviewerReady(self):
         self._ui._zincwidget.setActiveModeType(ViewMode.SEGMENT_POINT)
         tool = self._handlers[ViewMode.SEGMENT_POINT]
