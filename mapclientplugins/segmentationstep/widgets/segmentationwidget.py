@@ -19,7 +19,8 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
 '''
 from PySide import QtGui, QtCore
 
-from mapclientplugins.segmentationstep.tools import normal, orientation, point
+from mapclientplugins.segmentationstep.tools import normal, orientation, point, \
+    curve
 from mapclientplugins.segmentationstep.widgets.ui_segmentationwidget import Ui_SegmentationWidget
 from mapclientplugins.segmentationstep.undoredo import CommandSetScale, CommandSetSingleParameterMethod, CommandSetGraphicVisibility, CommandSetGlyphSize
 from mapclientplugins.segmentationstep.widgets.zincwidget import ProjectionMode
@@ -272,12 +273,16 @@ class SegmentationWidget(QtGui.QWidget):
         rotation_tool.setDefaultMaterial(purple_material)
         rotation_tool.setSelectedMaterial(red_material)
 
+        curve_tool = curve.CurveTool(plane, undo_redo_stack)
+        curve_tool.setModel(node_model)
+        curve_tool.setGetDimensionsMethod(image_model.getDimensions)
+
         view_3d_tab.addHandler(point_tool.getName(), point_tool.getIcon(), point_tool.getHandler(ViewType.VIEW_3D))
         view_3d_tab.addHandler(normal_tool.getName(), normal_tool.getIcon(), normal_tool.getHandler(ViewType.VIEW_3D))
         view_3d_tab.addHandler(rotation_tool.getName(), rotation_tool.getIcon(), rotation_tool.getHandler(ViewType.VIEW_3D))
 
-
         view_2d_tab.addHandler(point_tool.getName(), point_tool.getIcon(), point_tool.getHandler(ViewType.VIEW_2D))
+        view_2d_tab.addHandler(curve_tool.getName(), curve_tool.getIcon(), curve_tool.getHandler(ViewType.VIEW_2D))
 
         self._tools[ViewMode.SEGMENT_POINT] = point_tool
         self._tools[ViewMode.PLANE_NORMAL] = normal_tool

@@ -20,6 +20,9 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
 from PySide import QtGui
 
 from mapclientplugins.segmentationstep.tools.segmentation import SegmentationTool
+from mapclientplugins.segmentationstep.definitions import ViewType
+from mapclientplugins.segmentationstep.tools.handlers.curve2d import Curve2D
+from mapclientplugins.segmentationstep.tools.handlers.curve3d import Curve3D
 
 class CurveTool(SegmentationTool):
 
@@ -27,3 +30,14 @@ class CurveTool(SegmentationTool):
         super(CurveTool, self).__init__('Curve', undo_redo_stack)
         self._icon = QtGui.QIcon(':/toolbar_icons/point.png')
         self._plane = plane
+        self._handlers[ViewType.VIEW_2D] = Curve2D(plane, undo_redo_stack)
+        self._handlers[ViewType.VIEW_3D] = Curve3D(plane, undo_redo_stack)
+
+    def setGetDimensionsMethod(self, get_dimensions_method):
+        self._handlers[ViewType.VIEW_2D].setGetDimensionsMethod(get_dimensions_method)
+
+    def setModel(self, model):
+        self._model = model
+        self._handlers[ViewType.VIEW_2D].setModel(model)
+        self._handlers[ViewType.VIEW_3D].setModel(model)
+
