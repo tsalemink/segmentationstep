@@ -25,7 +25,6 @@ from mapclientplugins.segmentationstep.definitions import SELECTION_BOX_GRAPHIC_
 
 class AbstractHandler(object):
 
-
     def __init__(self, plane, undo_redo_stack):
         self._mode_type = None
         self._zinc_view = None
