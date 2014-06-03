@@ -103,11 +103,13 @@ class PointTool(SegmentationTool):
         self._pushPullNodes(1.0)
 
     def _pushPullNodes(self, direction):
-        value = self._widget._ui._doubleSpinBoxStepSize.value()
-        scale = value * direction
-        c = CommandPushPull(self._model, self._model.getCurrentSelection(), scale)
-        c.setSetRotationPointMethod(self._plane.setRotationPoint)
-        c.setSetNormalMethod(self._plane.setNormal)
-        self._undo_redo_stack.push(c)
+        current_selection = self._model.getCurrentSelection()
+        if current_selection:
+            value = self._widget._ui._doubleSpinBoxStepSize.value()
+            scale = value * direction
+            c = CommandPushPull(self._model, current_selection, scale)
+            c.setSetRotationPointMethod(self._plane.setRotationPoint)
+            c.setSetNormalMethod(self._plane.setNormal)
+            self._undo_redo_stack.push(c)
 
 
