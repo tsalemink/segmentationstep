@@ -25,12 +25,13 @@ from mapclientplugins.segmentationstep.segmentpoint import SegmentPointStatus
 
 class NodeModel(AbstractModel):
 
-    def __init__(self, context):
+    def __init__(self, context, plane):
         super(NodeModel, self).__init__(context)
-        self._setupNodeRegion()
+        self._plane = plane
         self._plane_attitudes = {}
         self._nodes = {}
-
+        self._setupNodeRegion()
+        self._setupPlaneConditionalField()
 
     def _setupNodeRegion(self):
         self._region = self._context.getDefaultRegion().createChild('point_cloud')
@@ -46,7 +47,28 @@ class NodeModel(AbstractModel):
         nodeset = fieldmodule.findNodesetByName('nodes')
         nodegroup = self._selection_group_field.createFieldNodeGroup(nodeset)
         self._group = nodegroup.getNodesetGroup()
+
         fieldmodule.endChange()
+
+    def _setupPlaneConditionalField(self):
+        fieldmodule = self._region.getFieldmodule()
+        fieldmodule.beginChange()
+
+        alias_normal_field = fieldmodule.createFieldAlias(self._plane.getNormalField())
+        alias_point_field = fieldmodule.createFieldAlias(self._plane.getRotationPointField())
+
+        plane_equation_field = self._createPlaneEquationField(fieldmodule, self._scaled_coordinate_field, alias_normal_field, alias_point_field)
+        tolerance_field = fieldmodule.createFieldConstant(0.5)
+        abs_field = fieldmodule.createFieldAbs(plane_equation_field)
+        self._on_plane_field = fieldmodule.createFieldLessThan(abs_field, tolerance_field)
+
+        fieldmodule.endChange()
+
+    def _createPlaneEquationField(self, fieldmodule, coordinate_field, plane_normal_field, point_on_plane_field):
+        d = fieldmodule.createFieldDotProduct(plane_normal_field, point_on_plane_field)
+        plane_equation_field = fieldmodule.createFieldDotProduct(coordinate_field, plane_normal_field) - d
+
+        return plane_equation_field
 
     def setScale(self, scale):
         '''
@@ -57,6 +79,9 @@ class NodeModel(AbstractModel):
         fieldmodule = self._region.getFieldmodule()
         fieldcache = fieldmodule.createFieldcache()
         self._scale_field.assignReal(fieldcache, scale)
+
+    def getPlaneGroupField(self):
+        return self._on_plane_field
 
     def getSelectionGroupField(self):
         return self._selection_group_field
@@ -124,7 +149,6 @@ class NodeModel(AbstractModel):
         return node_id
 
     def modifyNode(self, node_id, location, plane_attitude):
-#         node_id = node.getIdentifier()
         current_plane_attitude = self._nodes[node_id]
         node = self.getNodeByIdentifier(node_id)
         self.setNodeLocation(node, location)

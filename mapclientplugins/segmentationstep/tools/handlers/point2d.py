@@ -109,7 +109,4 @@ class Point2D(Point):
         else:
             super(Point2D, self).mouseReleaseEvent(event)
 
-    def updateNodeVisibility(self):
-        print('update node visibility')
-
 

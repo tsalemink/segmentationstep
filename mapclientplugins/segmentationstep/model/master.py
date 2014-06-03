@@ -36,7 +36,7 @@ class SegmentationModel(object):
         self.defineStandardGlyphs()
 
         self._image_model = ImageModel(self._context, dataIn)
-        self._node_model = NodeModel(self._context)
+        self._node_model = NodeModel(self._context, self._image_model.getPlane())
 
     def getContext(self):
         return self._context

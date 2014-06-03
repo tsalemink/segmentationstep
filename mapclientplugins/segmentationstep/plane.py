@@ -24,7 +24,6 @@ class Plane(object):
     def __init__(self, fieldmodule):
         self._normal_field = self._createNormalField(fieldmodule)
         self._rotation_point_field = self._createRotationPointField(fieldmodule)
-        self._centre_point_field = self._createRotationPointField(fieldmodule)
 
     def _createNormalField(self, fieldmodule):
         plane_normal_field = fieldmodule.createFieldConstant([1, 0, 0])

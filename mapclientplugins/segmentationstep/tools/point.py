@@ -19,7 +19,8 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
 '''
 from PySide import QtGui
 
-from mapclientplugins.segmentationstep.definitions import ViewType
+from mapclientplugins.segmentationstep.definitions import ViewType, \
+    POINT_CLOUD_ON_PLANE_GRAPHIC_NAME
 from mapclientplugins.segmentationstep.tools.segmentation import SegmentationTool
 from mapclientplugins.segmentationstep.tools.handlers.point2d import Point2D
 from mapclientplugins.segmentationstep.tools.handlers.point3d import Point3D
@@ -57,7 +58,7 @@ class PointTool(SegmentationTool):
         new = [value, value, value]
 
         if current != new:
-            c = CommandSetGlyphSize(current, new, glyph)
+            c = CommandSetGlyphSize(current, new, [glyph, self._scene.getGraphic(POINT_CLOUD_ON_PLANE_GRAPHIC_NAME)])
             c.setSetGlyphSizeMethod(setGlyphSize)
             c.setSpinBox(self._widget._ui._doubleSpinBoxPointSize)
 
@@ -106,6 +107,7 @@ class PointTool(SegmentationTool):
         scale = value * direction
         c = CommandPushPull(self._model, self._model.getCurrentSelection(), scale)
         c.setSetRotationPointMethod(self._plane.setRotationPoint)
+        c.setSetNormalMethod(self._plane.setNormal)
         self._undo_redo_stack.push(c)
 
 

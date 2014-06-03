@@ -73,8 +73,8 @@ class Point(AbstractHandler):
                 # node exists at this location so select it
                 group = self._model.getSelectionGroup()
                 group.removeAllNodes()
-#                 node = None
                 group.addNode(node)
+
                 node_location = self._model.getNodeLocation(node)
                 plane_attitude = self._model.getNodePlaneAttitude(node.getIdentifier())
             else:
@@ -130,7 +130,7 @@ class Point(AbstractHandler):
             x = event.x()
             y = event.y()
             # Construct a small frustrum to look for nodes in.
-            region = self._model.getRegion()  # self._zinc_view._context.getDefaultRegion()
+            region = self._model.getRegion()
             region.beginHierarchicalChange()
             self._selection_box.setVisibilityFlag(False)
             selection_group = self._model.getSelectionGroupField()
@@ -150,7 +150,6 @@ class Point(AbstractHandler):
                     selection_group.clear()
 
                 if node.isValid():
-#                     nodeset = node.getNodeset()
                     group = self._model.getSelectionGroup()
                     if self._selection_mode == SelectionMode.EXCULSIVE:
                         remove_current = group.getSize() == 1 and group.containsNode(node)

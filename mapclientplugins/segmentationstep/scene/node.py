@@ -40,7 +40,7 @@ class NodeScene(object):
         region = self._model.getRegion()
         coordinate_field = self._model.getScaledCoordinateField()
         self._segmentation_point_glyph = self._createNodeGraphics(region, coordinate_field)
-        self._segmentation_point_on_plane_glyph = self._createDatapointGraphics(region, coordinate_field)
+        self._segmentation_point_on_plane_glyph = self._createNodeOnPlaneGraphics(region, coordinate_field)
 
     def _createNodeGraphics(self, region, finite_element_field):
         scene = region.getScene()
@@ -62,7 +62,7 @@ class NodeScene(object):
 
         return graphic
 
-    def _createDatapointGraphics(self, region, finite_element_field):
+    def _createNodeOnPlaneGraphics(self, region, finite_element_field):
         scene = region.getScene()
         scene.beginChange()
 
@@ -70,10 +70,11 @@ class NodeScene(object):
         green_material = materialmodule.findMaterialByName('green')
 
         graphic = scene.createGraphicsPoints()
-        graphic.setFieldDomainType(Field.DOMAIN_TYPE_DATAPOINTS)
+        graphic.setFieldDomainType(Field.DOMAIN_TYPE_NODES)
         graphic.setCoordinateField(finite_element_field)
         graphic.setName(POINT_CLOUD_ON_PLANE_GRAPHIC_NAME)
         graphic.setSelectedMaterial(green_material)
+        graphic.setSubgroupField(self._model.getPlaneGroupField())
         attributes = graphic.getGraphicspointattributes()
         attributes.setGlyphShapeType(Glyph.SHAPE_TYPE_SPHERE)
         attributes.setBaseSize(DEFAULT_SEGMENTATION_POINT_SIZE)

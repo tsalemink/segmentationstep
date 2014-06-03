@@ -189,7 +189,7 @@ class CommandSetGlyphSize(CommandCurrentNew):
         self.setText('Graphic Size')
         self._set_glyph_size_method = None
         self._spin_box = None
-        self._glyph = glyph
+        self._glyph = glyph if type(glyph) is list else [glyph]
 
     def setSpinBox(self, spin_box):
         self._spin_box = spin_box
@@ -198,11 +198,13 @@ class CommandSetGlyphSize(CommandCurrentNew):
         self._set_glyph_size_method = method
 
     def redo(self):
-        self._set_glyph_size_method(self._glyph, self._new)
+        for glyph in self._glyph:
+            self._set_glyph_size_method(glyph, self._new)
         self._spin_box.setValue(self._new[0])
 
     def undo(self):
-        self._set_glyph_size_method(self._glyph, self._current)
+        for glyph in self._glyph:
+            self._set_glyph_size_method(glyph, self._current)
         self._spin_box.setValue(self._current[0])
 
 
@@ -231,7 +233,6 @@ class CommandNode(QtGui.QUndoCommand):
             if previous_location is None:
                 node_id = self._model.addNode(node_id, location, plane_attitude)
                 self._setNodeIdentifier(node_id)
-                self._status_end.setNodeIdentifier(node_id)
             else:
                 self._model.modifyNode(node_id, location, plane_attitude)
 
@@ -246,7 +247,6 @@ class CommandNode(QtGui.QUndoCommand):
             next_location = self._status_end.getLocation()
             if next_location is None:
                 node_id = self._model.addNode(node_id, location, plane_attitude)
-#                 self._status_start.setNodeIdentifier(node_id)
                 self._setNodeIdentifier(node_id)
             else:
                 self._model.modifyNode(node_id, location, plane_attitude)
@@ -297,13 +297,18 @@ class CommandPushPull(QtGui.QUndoCommand):
         self.setText('Push/Pull')
         self._rotation_point_start = None
         self._rotation_point_end = None
+        self._normal = None
         self._model = model
         self._selected = selected
         self._node_statuses = self._adjustNodeLocation(selected, scale)
         self._set_rotation_point_method = None
+        self._set_normal_method = None
 
     def setSetRotationPointMethod(self, set_rotation_point_method):
         self._set_rotation_point_method = set_rotation_point_method
+
+    def setSetNormalMethod(self, set_normal_method):
+        self._set_normal_method = set_normal_method
 
     def _adjustNodeLocation(self, selected, scale):
         '''
@@ -318,6 +323,7 @@ class CommandPushPull(QtGui.QUndoCommand):
             normal = plane_attitude.getNormal()
             point_on_plane = plane_attitude.getPoint()
             if self._rotation_point_start is None:
+                self._normal = normal
                 self._rotation_point_start = point_on_plane
             adjustment = mult(normal, scale)
 
@@ -344,11 +350,19 @@ class CommandPushPull(QtGui.QUndoCommand):
         self._model.setSelection(node_ids)
         self._updateNodeIdentifiers(node_ids)
         self._set_rotation_point_method(self._rotation_point_end)
+        self._set_normal_method(self._normal)
         fieldmodule.endChange()
 
     def undo(self):
+        region = self._model.getRegion()
+        fieldmodule = region.getFieldmodule()
+        fieldmodule.beginChange()
+
         self._model.removeNodes(self._node_statuses)
         self._model.setSelection(self._selected)
         self._set_rotation_point_method(self._rotation_point_start)
+        self._set_normal_method(self._normal)
+
+        fieldmodule.endChange()
 
 
