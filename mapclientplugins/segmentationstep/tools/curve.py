@@ -21,9 +21,9 @@ from PySide import QtGui
 
 from mapclientplugins.segmentationstep.tools.segmentation import SegmentationTool
 
-class SplineTool(SegmentationTool):
+class CurveTool(SegmentationTool):
 
     def __init__(self, plane, undo_redo_stack):
-        super(SplineTool, self).__init__('Spline', undo_redo_stack)
+        super(CurveTool, self).__init__('Curve', undo_redo_stack)
         self._icon = QtGui.QIcon(':/toolbar_icons/point.png')
         self._plane = plane
