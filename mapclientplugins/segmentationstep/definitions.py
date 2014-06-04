@@ -33,6 +33,7 @@ class ViewMode(object):
     SEGMENT_POINT = 1
     PLANE_NORMAL = 2
     PLANE_ROTATION = 4
+    SEGMENT_CURVE = 8
 
 class ViewType(object):
 

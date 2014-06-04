@@ -40,10 +40,4 @@ class SegmentationTab(QtGui.QWidget):
         self._handler_map[handler] = action
         self._handlers[handler.getModeType()] = handler
 
-    def changeHandler(self, tool):
-        if tool != self._active_handler:
-            old_action = self._handler_map[self._active_handler]
-            old_action.setChecked(False)
-            self._active_handler = tool
-
 

@@ -287,5 +287,6 @@ class SegmentationWidget(QtGui.QWidget):
         self._tools[ViewMode.SEGMENT_POINT] = point_tool
         self._tools[ViewMode.PLANE_NORMAL] = normal_tool
         self._tools[ViewMode.PLANE_ROTATION] = rotation_tool
+        self._tools[ViewMode.SEGMENT_CURVE] = curve_tool
 
 

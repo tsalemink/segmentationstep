@@ -29,7 +29,7 @@ class Curve(AbstractSelection):
 
     def __init__(self, plane, undo_redo_stack):
         super(Curve, self).__init__(plane, undo_redo_stack)
-        self._mode_type = ViewMode.SEGMENT_POINT
+        self._mode_type = ViewMode.SEGMENT_CURVE
         self._model = None
         self._scenviewer_filter = None
         self._sceneviewer_filter_orignal = None

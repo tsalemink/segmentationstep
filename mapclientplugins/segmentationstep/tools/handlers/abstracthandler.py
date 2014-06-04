@@ -44,6 +44,7 @@ class AbstractHandler(object):
         self._sceneviewer_filter_orignal = sceneviewer.getScenefilter()
         if self._scenviewer_filter is None:
             self._scenviewer_filter = self._createSceneviewerFilter()
+
         sceneviewer.setScenefilter(self._scenviewer_filter)
 
     def leave(self):
