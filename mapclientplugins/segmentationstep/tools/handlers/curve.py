@@ -21,7 +21,7 @@ from PySide import QtCore
 
 from mapclientplugins.segmentationstep.tools.handlers.abstractselection import AbstractSelection
 from mapclientplugins.segmentationstep.definitions import ViewMode
-from mapclientplugins.segmentationstep.undoredo import CommandNode
+from mapclientplugins.segmentationstep.undoredo import CommandCurveNode
 from mapclientplugins.segmentationstep.segmentpoint import SegmentPointStatus
 from mapclientplugins.segmentationstep.maths.algorithms import calculateLinePlaneIntersection
 
@@ -68,6 +68,8 @@ class Curve(AbstractSelection):
                 fieldmodule.beginChange()
                 node = self._model.createNode()
                 self._model.setNodeLocation(node, point_on_plane)
+                group = self._model.getCurveGroup()
+                group.addNode(node)
                 fieldmodule.endChange()
 
             self._node_status = SegmentPointStatus(node.getIdentifier(), node_location, plane_attitude)
@@ -80,13 +82,6 @@ class Curve(AbstractSelection):
             node = self._model.getNodeByIdentifier(self._node_status.getNodeIdentifier())
             point_on_plane = self._calculatePointOnPlane(event.x(), event.y())
             self._model.setNodeLocation(node, point_on_plane)
-            if self._streaming_create:
-                node_id = -1
-                plane_attitude = self._plane.getAttitude()
-                fake_status = SegmentPointStatus(node_id, None, None)
-                node_status = SegmentPointStatus(node_id, point_on_plane, plane_attitude)
-                c = CommandNode(self._model, fake_status, node_status)
-                self._undo_redo_stack.push(c)
         else:
             super(Curve, self).mouseMoveEvent(event)
 
@@ -100,7 +95,7 @@ class Curve(AbstractSelection):
             node_location = self._model.getNodeLocation(node)
             plane_attitude = self._plane.getAttitude()
             node_status = SegmentPointStatus(node_id, node_location, plane_attitude)
-            c = CommandNode(self._model, self._node_status, node_status)
+            c = CommandCurveNode(self._model, self._node_status, node_status)
             self._undo_redo_stack.push(c)
         else:
             super(Curve, self).mouseReleaseEvent(event)

@@ -24,14 +24,15 @@ from PySide import QtCore
 from mapclientplugins.segmentationstep.maths.vectorops import add, mult, cross, dot, sub, normalize, magnitude
 from mapclientplugins.segmentationstep.maths.algorithms import calculateCentroid
 from mapclientplugins.segmentationstep.undoredo import CommandChangeView
-from mapclientplugins.segmentationstep.definitions import IMAGE_PLANE_GRAPHIC_NAME, POINT_CLOUD_ON_PLANE_GRAPHIC_NAME, SELECTION_BOX_GRAPHIC_NAME_2D
+from mapclientplugins.segmentationstep.definitions import IMAGE_PLANE_GRAPHIC_NAME, POINT_CLOUD_ON_PLANE_GRAPHIC_NAME, SELECTION_BOX_2D_GRAPHIC_NAME, \
+    CURVE_ON_PLANE_GRAPHIC_NAME
 from mapclientplugins.segmentationstep.zincutils import createSelectionBox
 
 class Abstract2DHandler(object):
 
     def __init__(self, plane, undo_redo_stack):
         super(Abstract2DHandler, self).__init__(plane, undo_redo_stack)
-        self._selection_box = createSelectionBox(plane.getRegion(), SELECTION_BOX_GRAPHIC_NAME_2D)
+        self._selection_box = createSelectionBox(plane.getRegion(), SELECTION_BOX_2D_GRAPHIC_NAME)
 
     def mousePressEvent(self, event):
         self._start_position = None
@@ -87,22 +88,22 @@ class Abstract2DHandler(object):
         sceneviewer = self._zinc_view.getSceneviewer()
         scene = sceneviewer.getScene()
         filtermodule = scene.getScenefiltermodule()
-# #         node_filter = filtermodule.createScenefilterFieldDomainType(Field.DOMAIN_TYPE_NODES)
+
         visibility_filter = filtermodule.createScenefilterVisibilityFlags()
-        label_filter1 = filtermodule.createScenefilterGraphicsName(IMAGE_PLANE_GRAPHIC_NAME)
-        label_filter2 = filtermodule.createScenefilterGraphicsName(POINT_CLOUD_ON_PLANE_GRAPHIC_NAME)
-        label_filter3 = filtermodule.createScenefilterGraphicsName(SELECTION_BOX_GRAPHIC_NAME_2D)
-#         label_filter3.setInverse(True)
-#
-        label_filter = filtermodule.createScenefilterOperatorOr()
-        label_filter.appendOperand(label_filter1)
-        label_filter.appendOperand(label_filter2)
-        label_filter.appendOperand(label_filter3)
-#
+        name_filter1 = filtermodule.createScenefilterGraphicsName(IMAGE_PLANE_GRAPHIC_NAME)
+        name_filter2 = filtermodule.createScenefilterGraphicsName(POINT_CLOUD_ON_PLANE_GRAPHIC_NAME)
+        name_filter3 = filtermodule.createScenefilterGraphicsName(CURVE_ON_PLANE_GRAPHIC_NAME)
+        name_filter4 = filtermodule.createScenefilterGraphicsName(SELECTION_BOX_2D_GRAPHIC_NAME)
+
+        name_filter = filtermodule.createScenefilterOperatorOr()
+        name_filter.appendOperand(name_filter1)
+        name_filter.appendOperand(name_filter2)
+        name_filter.appendOperand(name_filter3)
+        name_filter.appendOperand(name_filter4)
+
         master_filter = filtermodule.createScenefilterOperatorAnd()
-# #         master_filter.appendOperand(node_filter)
         master_filter.appendOperand(visibility_filter)
-        master_filter.appendOperand(label_filter)
+        master_filter.appendOperand(name_filter)
 
         return master_filter
 

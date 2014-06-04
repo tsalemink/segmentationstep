@@ -21,7 +21,8 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
 from opencmiss.zinc.field import Field
 from opencmiss.zinc.glyph import Glyph
 from mapclientplugins.segmentationstep.definitions import DEFAULT_SEGMENTATION_POINT_SIZE, POINT_CLOUD_GRAPHIC_NAME, \
-    POINT_CLOUD_ON_PLANE_GRAPHIC_NAME
+    POINT_CLOUD_ON_PLANE_GRAPHIC_NAME, CURVE_GRAPHIC_NAME, \
+    CURVE_ON_PLANE_GRAPHIC_NAME
 
 class NodeScene(object):
     '''
@@ -39,10 +40,12 @@ class NodeScene(object):
     def _setupNodeVisualisation(self):
         region = self._model.getRegion()
         coordinate_field = self._model.getScaledCoordinateField()
-        self._segmentation_point_glyph = self._createNodeGraphics(region, coordinate_field)
-        self._segmentation_point_on_plane_glyph = self._createNodeOnPlaneGraphics(region, coordinate_field)
+        self._segmentation_point_glyph = self._createPointCloudGraphics(region, coordinate_field)
+        self._segmentation_point_on_plane_glyph = self._createPointCloudOnPlaneGraphics(region, coordinate_field)
+        self._curve_point_glyph = self._createCurveGraphics(region, coordinate_field)
+        self._curve_point_on_plane_glyph = self._createCurveOnPlaneGraphics(region, coordinate_field)
 
-    def _createNodeGraphics(self, region, finite_element_field):
+    def _createPointCloudGraphics(self, region, finite_element_field):
         scene = region.getScene()
         scene.beginChange()
 
@@ -54,6 +57,7 @@ class NodeScene(object):
         graphic.setCoordinateField(finite_element_field)
         graphic.setName(POINT_CLOUD_GRAPHIC_NAME)
         graphic.setSelectedMaterial(green_material)
+        graphic.setSubgroupField(self._model.getPointCloudGroupField())
         attributes = graphic.getGraphicspointattributes()
         attributes.setGlyphShapeType(Glyph.SHAPE_TYPE_SPHERE)
         attributes.setBaseSize(DEFAULT_SEGMENTATION_POINT_SIZE)
@@ -62,7 +66,7 @@ class NodeScene(object):
 
         return graphic
 
-    def _createNodeOnPlaneGraphics(self, region, finite_element_field):
+    def _createPointCloudOnPlaneGraphics(self, region, finite_element_field):
         scene = region.getScene()
         scene.beginChange()
 
@@ -74,7 +78,53 @@ class NodeScene(object):
         graphic.setCoordinateField(finite_element_field)
         graphic.setName(POINT_CLOUD_ON_PLANE_GRAPHIC_NAME)
         graphic.setSelectedMaterial(green_material)
-        graphic.setSubgroupField(self._model.getPlaneGroupField())
+        graphic.setSubgroupField(self._model.getOnPlanePointCloudField())
+        attributes = graphic.getGraphicspointattributes()
+        attributes.setGlyphShapeType(Glyph.SHAPE_TYPE_SPHERE)
+        attributes.setBaseSize(DEFAULT_SEGMENTATION_POINT_SIZE)
+
+        scene.endChange()
+
+        return graphic
+
+    def _createCurveGraphics(self, region, finite_element_field):
+        scene = region.getScene()
+        scene.beginChange()
+
+        materialmodule = scene.getMaterialmodule()
+        yellow_material = materialmodule.findMaterialByName('yellow')
+        red_material = materialmodule.findMaterialByName('red')
+
+        graphic = scene.createGraphicsPoints()
+        graphic.setFieldDomainType(Field.DOMAIN_TYPE_NODES)
+        graphic.setCoordinateField(finite_element_field)
+        graphic.setName(CURVE_GRAPHIC_NAME)
+        graphic.setMaterial(yellow_material)
+        graphic.setSelectedMaterial(red_material)
+        graphic.setSubgroupField(self._model.getCurveGroupField())
+        attributes = graphic.getGraphicspointattributes()
+        attributes.setGlyphShapeType(Glyph.SHAPE_TYPE_SPHERE)
+        attributes.setBaseSize(DEFAULT_SEGMENTATION_POINT_SIZE)
+
+        scene.endChange()
+
+        return graphic
+
+    def _createCurveOnPlaneGraphics(self, region, finite_element_field):
+        scene = region.getScene()
+        scene.beginChange()
+
+        materialmodule = scene.getMaterialmodule()
+        yellow_material = materialmodule.findMaterialByName('yellow')
+        red_material = materialmodule.findMaterialByName('red')
+
+        graphic = scene.createGraphicsPoints()
+        graphic.setFieldDomainType(Field.DOMAIN_TYPE_NODES)
+        graphic.setCoordinateField(finite_element_field)
+        graphic.setName(CURVE_ON_PLANE_GRAPHIC_NAME)
+        graphic.setMaterial(yellow_material)
+        graphic.setSelectedMaterial(red_material)
+        graphic.setSubgroupField(self._model.getOnPlaneCurveField())
         attributes = graphic.getGraphicspointattributes()
         attributes.setGlyphShapeType(Glyph.SHAPE_TYPE_SPHERE)
         attributes.setBaseSize(DEFAULT_SEGMENTATION_POINT_SIZE)

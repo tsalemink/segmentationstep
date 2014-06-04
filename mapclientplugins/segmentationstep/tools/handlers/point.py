@@ -21,7 +21,7 @@ from PySide import QtCore
 
 from mapclientplugins.segmentationstep.tools.handlers.abstractselection import AbstractSelection
 from mapclientplugins.segmentationstep.definitions import ViewMode
-from mapclientplugins.segmentationstep.undoredo import CommandNode
+from mapclientplugins.segmentationstep.undoredo import CommandPointCloudNode
 from mapclientplugins.segmentationstep.segmentpoint import SegmentPointStatus
 from mapclientplugins.segmentationstep.maths.algorithms import calculateLinePlaneIntersection
 
@@ -67,6 +67,8 @@ class Point(AbstractSelection):
                 fieldmodule = region.getFieldmodule()
                 fieldmodule.beginChange()
                 node = self._model.createNode()
+                group = self._model.getPointCloudGroup()
+                group.addNode(node)
                 self._model.setNodeLocation(node, point_on_plane)
                 fieldmodule.endChange()
 
@@ -84,7 +86,7 @@ class Point(AbstractSelection):
                 plane_attitude = self._plane.getAttitude()
                 fake_status = SegmentPointStatus(node_id, None, None)
                 node_status = SegmentPointStatus(node_id, point_on_plane, plane_attitude)
-                c = CommandNode(self._model, fake_status, node_status)
+                c = CommandPointCloudNode(self._model, fake_status, node_status)
                 self._undo_redo_stack.push(c)
         else:
             super(Point, self).mouseMoveEvent(event)
@@ -99,7 +101,7 @@ class Point(AbstractSelection):
             node_location = self._model.getNodeLocation(node)
             plane_attitude = self._plane.getAttitude()
             node_status = SegmentPointStatus(node_id, node_location, plane_attitude)
-            c = CommandNode(self._model, self._node_status, node_status)
+            c = CommandPointCloudNode(self._model, self._node_status, node_status)
             self._undo_redo_stack.push(c)
         else:
             super(Point, self).mouseReleaseEvent(event)

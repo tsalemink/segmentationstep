@@ -23,7 +23,7 @@ from mapclientplugins.segmentationstep.tools.handlers.abstracthandler import Abs
 from mapclientplugins.segmentationstep.zincutils import setGlyphSize, setGlyphOffset, COORDINATE_SYSTEM_LOCAL, \
     createSelectionBox
 from mapclientplugins.segmentationstep.undoredo import CommandSelection
-from mapclientplugins.segmentationstep.definitions import SELECTION_BOX_GRAPHIC_NAME_3D
+from mapclientplugins.segmentationstep.definitions import SELECTION_BOX_3D_GRAPHIC_NAME
 
 class SelectionMode(object):
 
@@ -35,7 +35,7 @@ class AbstractSelection(AbstractHandler):
 
     def __init__(self, plane, undo_redo_stack):
         super(AbstractSelection, self).__init__(plane, undo_redo_stack)
-        self._selection_box = createSelectionBox(plane.getRegion(), SELECTION_BOX_GRAPHIC_NAME_3D)
+        self._selection_box = createSelectionBox(plane.getRegion(), SELECTION_BOX_3D_GRAPHIC_NAME)
         self._selection_mode = SelectionMode.NONE
         self._selection_position_start = None
 

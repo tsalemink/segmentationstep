@@ -221,18 +221,33 @@ class CommandNode(QtGui.QUndoCommand):
         self._status_start.setNodeIdentifier(node_id)
         self._status_end.setNodeIdentifier(node_id)
 
+    def _removeNode(self, node_id):
+        self._model.removeNode(node_id)
+        self._setNodeIdentifier(-1)
+
+    def _addNode(self, node_id, location, plane_attitude):
+        node_id = self._model.addNode(node_id, location, plane_attitude)
+        self._addNodeToGroup(node_id)
+        self._setNodeIdentifier(node_id)
+
+
+class CommandPointCloudNode(CommandNode):
+
+    def _addNodeToGroup(self, node_id):
+        node = self._model.getNodeByIdentifier(node_id)
+        group = self._model.getPointCloudGroup()
+        group.addNode(node)
+
     def redo(self):
         node_id = self._status_end.getNodeIdentifier()
         location = self._status_end.getLocation()
         plane_attitude = self._status_end.getPlaneAttitude()
         if location is None:
-            self._model.removeNode(node_id)
-            self._setNodeIdentifier(-1)
+            self._removeNode(node_id)
         else:
             previous_location = self._status_start.getLocation()
             if previous_location is None:
-                node_id = self._model.addNode(node_id, location, plane_attitude)
-                self._setNodeIdentifier(node_id)
+                self._addNode(node_id, location, plane_attitude)
             else:
                 self._model.modifyNode(node_id, location, plane_attitude)
 
@@ -241,13 +256,45 @@ class CommandNode(QtGui.QUndoCommand):
         location = self._status_start.getLocation()
         plane_attitude = self._status_start.getPlaneAttitude()
         if location is None:
-            self._model.removeNode(node_id)
-            self._setNodeIdentifier(-1)
+            self._removeNode(node_id)
         else:
             next_location = self._status_end.getLocation()
             if next_location is None:
-                node_id = self._model.addNode(node_id, location, plane_attitude)
-                self._setNodeIdentifier(node_id)
+                self._addNode(node_id, location, plane_attitude)
+            else:
+                self._model.modifyNode(node_id, location, plane_attitude)
+
+
+class CommandCurveNode(CommandNode):
+
+    def _addNodeToGroup(self, node_id):
+        node = self._model.getNodeByIdentifier(node_id)
+        group = self._model.getCurveGroup()
+        group.addNode(node)
+
+    def redo(self):
+        node_id = self._status_end.getNodeIdentifier()
+        location = self._status_end.getLocation()
+        plane_attitude = self._status_end.getPlaneAttitude()
+        if location is None:
+            self._removeNode(node_id)
+        else:
+            previous_location = self._status_start.getLocation()
+            if previous_location is None:
+                self._addNode(node_id, location, plane_attitude)
+            else:
+                self._model.modifyNode(node_id, location, plane_attitude)
+
+    def undo(self):
+        node_id = self._status_start.getNodeIdentifier()
+        location = self._status_start.getLocation()
+        plane_attitude = self._status_start.getPlaneAttitude()
+        if location is None:
+            self._removeNode(node_id)
+        else:
+            next_location = self._status_end.getLocation()
+            if next_location is None:
+                self._addNode(node_id, location, plane_attitude)
             else:
                 self._model.modifyNode(node_id, location, plane_attitude)
 

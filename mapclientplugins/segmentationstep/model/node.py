@@ -31,7 +31,9 @@ class NodeModel(AbstractModel):
         self._plane_attitudes = {}
         self._nodes = {}
         self._setupNodeRegion()
-        self._setupPlaneConditionalField()
+        self._on_plane_conditional_field = self._createOnPlaneConditionalField()
+        self._on_plane_point_cloud_field = self._createOnPlanePointCloudField()
+        self._on_plane_curve_field = self._createOnPlaneCurveField()
 
     def _setupNodeRegion(self):
         self._region = self._context.getDefaultRegion().createChild('point_cloud')
@@ -39,18 +41,29 @@ class NodeModel(AbstractModel):
         self._coordinate_field = createFiniteElementField(self._region)
         fieldmodule = self._region.getFieldmodule()
         fieldmodule.beginChange()
+        nodeset = fieldmodule.findNodesetByName('nodes')
+
         self._scale_field = fieldmodule.createFieldConstant([1.0, 1.0, 1.0])
         self._scaled_coordinate_field = self._coordinate_field * self._scale_field
 
         # Setup the selection fields
         self._selection_group_field = fieldmodule.createFieldGroup()
-        nodeset = fieldmodule.findNodesetByName('nodes')
-        nodegroup = self._selection_group_field.createFieldNodeGroup(nodeset)
-        self._group = nodegroup.getNodesetGroup()
+        selectiongroup = self._selection_group_field.createFieldNodeGroup(nodeset)
+        self._group = selectiongroup.getNodesetGroup()
+
+        # Setup the point cloud fields
+        self._point_cloud_group_field = fieldmodule.createFieldGroup()
+        pointcloudgroup = self._point_cloud_group_field.createFieldNodeGroup(nodeset)
+        self._point_cloud_group = pointcloudgroup.getNodesetGroup()
+
+        # Setup the curve fields
+        self._curve_group_field = fieldmodule.createFieldGroup()
+        curvegroup = self._curve_group_field.createFieldNodeGroup(nodeset)
+        self._curve_group = curvegroup.getNodesetGroup()
 
         fieldmodule.endChange()
 
-    def _setupPlaneConditionalField(self):
+    def _createOnPlaneConditionalField(self):
         fieldmodule = self._region.getFieldmodule()
         fieldmodule.beginChange()
 
@@ -60,9 +73,28 @@ class NodeModel(AbstractModel):
         plane_equation_field = self._createPlaneEquationField(fieldmodule, self._scaled_coordinate_field, alias_normal_field, alias_point_field)
         tolerance_field = fieldmodule.createFieldConstant(0.5)
         abs_field = fieldmodule.createFieldAbs(plane_equation_field)
-        self._on_plane_field = fieldmodule.createFieldLessThan(abs_field, tolerance_field)
+        on_plane_field = fieldmodule.createFieldLessThan(abs_field, tolerance_field)
+        or_field = fieldmodule.createFieldOr(self._curve_group_field, self._point_cloud_group_field)
+        and_field = fieldmodule.createFieldAnd(on_plane_field, or_field)
 
         fieldmodule.endChange()
+        return and_field
+
+    def _createOnPlanePointCloudField(self):
+        fieldmodule = self._region.getFieldmodule()
+        fieldmodule.beginChange()
+        and_field = fieldmodule.createFieldAnd(self._on_plane_conditional_field, self._point_cloud_group_field)
+        fieldmodule.endChange()
+
+        return and_field
+
+    def _createOnPlaneCurveField(self):
+        fieldmodule = self._region.getFieldmodule()
+        fieldmodule.beginChange()
+        and_field = fieldmodule.createFieldAnd(self._on_plane_conditional_field, self._curve_group_field)
+        fieldmodule.endChange()
+
+        return and_field
 
     def _createPlaneEquationField(self, fieldmodule, coordinate_field, plane_normal_field, point_on_plane_field):
         d = fieldmodule.createFieldDotProduct(plane_normal_field, point_on_plane_field)
@@ -80,8 +112,23 @@ class NodeModel(AbstractModel):
         fieldcache = fieldmodule.createFieldcache()
         self._scale_field.assignReal(fieldcache, scale)
 
-    def getPlaneGroupField(self):
-        return self._on_plane_field
+    def getPointCloudGroupField(self):
+        return self._point_cloud_group_field
+
+    def getPointCloudGroup(self):
+        return self._point_cloud_group
+
+    def getCurveGroupField(self):
+        return self._curve_group_field
+
+    def getCurveGroup(self):
+        return self._curve_group
+
+    def getOnPlanePointCloudField(self):
+        return self._on_plane_point_cloud_field
+
+    def getOnPlaneCurveField(self):
+        return self._on_plane_curve_field
 
     def getSelectionGroupField(self):
         return self._selection_group_field

@@ -21,7 +21,12 @@ from PySide import QtCore
 
 from mapclientplugins.segmentationstep.zincutils import button_map, modifier_map, Sceneviewerinput
 from mapclientplugins.segmentationstep.undoredo import CommandChangeView
-from mapclientplugins.segmentationstep.definitions import SELECTION_BOX_GRAPHIC_NAME_2D
+from mapclientplugins.segmentationstep.definitions import \
+    IMAGE_PLANE_GRAPHIC_NAME, POINT_CLOUD_GRAPHIC_NAME, \
+    ELEMENT_OUTLINE_GRAPHIC_NAME, SELECTION_BOX_3D_GRAPHIC_NAME, \
+    ELEMENT_NODE_LABEL_GRAPHIC_NAME, CURVE_GRAPHIC_NAME, \
+    PLANE_MANIPULATION_SPHERE_GRAPHIC_NAME, \
+    PLANE_MANIPULATION_NORMAL_GRAPHIC_NAME
 
 class AbstractHandler(object):
 
@@ -108,13 +113,28 @@ class AbstractHandler(object):
         filtermodule = scene.getScenefiltermodule()
 
         visibility_filter = filtermodule.createScenefilterVisibilityFlags()
-        selection_box_2d_filter = filtermodule.createScenefilterGraphicsName(SELECTION_BOX_GRAPHIC_NAME_2D)
-        selection_box_2d_filter.setInverse(True)
+        name_filter1 = filtermodule.createScenefilterGraphicsName(IMAGE_PLANE_GRAPHIC_NAME)
+        name_filter2 = filtermodule.createScenefilterGraphicsName(POINT_CLOUD_GRAPHIC_NAME)
+        name_filter3 = filtermodule.createScenefilterGraphicsName(CURVE_GRAPHIC_NAME)
+        name_filter4 = filtermodule.createScenefilterGraphicsName(ELEMENT_OUTLINE_GRAPHIC_NAME)
+        name_filter5 = filtermodule.createScenefilterGraphicsName(ELEMENT_NODE_LABEL_GRAPHIC_NAME)
+        name_filter6 = filtermodule.createScenefilterGraphicsName(SELECTION_BOX_3D_GRAPHIC_NAME)
+        name_filter7 = filtermodule.createScenefilterGraphicsName(PLANE_MANIPULATION_NORMAL_GRAPHIC_NAME)
+        name_filter8 = filtermodule.createScenefilterGraphicsName(PLANE_MANIPULATION_SPHERE_GRAPHIC_NAME)
+
+        name_filter = filtermodule.createScenefilterOperatorOr()
+        name_filter.appendOperand(name_filter1)
+        name_filter.appendOperand(name_filter2)
+        name_filter.appendOperand(name_filter3)
+        name_filter.appendOperand(name_filter4)
+        name_filter.appendOperand(name_filter5)
+        name_filter.appendOperand(name_filter6)
+        name_filter.appendOperand(name_filter7)
+        name_filter.appendOperand(name_filter8)
 
         master_filter = filtermodule.createScenefilterOperatorAnd()
-
         master_filter.appendOperand(visibility_filter)
-        master_filter.appendOperand(selection_box_2d_filter)
+        master_filter.appendOperand(name_filter)
 
         return master_filter
 
