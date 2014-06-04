@@ -36,7 +36,8 @@ class AbstractHandler(object):
         self._plane = plane
         self._undo_redo_stack = undo_redo_stack
         self._get_dimension_method = None
-        self._scenviewer_filter = None
+        self._sceneviewer_filter = None
+        self._scenepicker_filter = None
 
     def setGetDimensionsMethod(self, get_dimensions_method):
         self._get_dimension_method = get_dimensions_method
@@ -47,14 +48,23 @@ class AbstractHandler(object):
     def enter(self):
         sceneviewer = self._zinc_view.getSceneviewer()
         self._sceneviewer_filter_orignal = sceneviewer.getScenefilter()
-        if self._scenviewer_filter is None:
-            self._scenviewer_filter = self._createSceneviewerFilter()
+        if self._sceneviewer_filter is None:
+            self._sceneviewer_filter = self._createSceneviewerFilter()
 
-        sceneviewer.setScenefilter(self._scenviewer_filter)
+        sceneviewer.setScenefilter(self._sceneviewer_filter)
+
+        scenepicker = self._zinc_view.getScenepicker()
+        self._scenepicker_filter_original = scenepicker.getScenefilter()
+        if self._scenepicker_filter is None:
+            self._scenepicker_filter = self._createScenepickerFilter()
+
+        scenepicker.setScenefilter(self._scenepicker_filter)
 
     def leave(self):
         sceneviewer = self._zinc_view.getSceneviewer()
         sceneviewer.setScenefilter(self._sceneviewer_filter_orignal)
+        scenepicker = self._zinc_view.getScenepicker()
+        scenepicker.setScenefilter(self._scenepicker_filter_original)
 
     def getModeType(self):
         return self._mode_type
@@ -137,5 +147,13 @@ class AbstractHandler(object):
         master_filter.appendOperand(name_filter)
 
         return master_filter
+
+    def _createScenepickerFilter(self):
+        sceneviewer = self._zinc_view.getSceneviewer()
+        scene = sceneviewer.getScene()
+        filtermodule = scene.getScenefiltermodule()
+        visibility_filter = filtermodule.createScenefilterVisibilityFlags()
+
+        return visibility_filter
 
 

@@ -20,7 +20,8 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
 from PySide import QtCore
 
 from mapclientplugins.segmentationstep.tools.handlers.abstractselection import AbstractSelection
-from mapclientplugins.segmentationstep.definitions import ViewMode
+from mapclientplugins.segmentationstep.definitions import ViewMode, \
+    POINT_CLOUD_GRAPHIC_NAME, POINT_CLOUD_ON_PLANE_GRAPHIC_NAME
 from mapclientplugins.segmentationstep.undoredo import CommandPointCloudNode
 from mapclientplugins.segmentationstep.segmentpoint import SegmentPointStatus
 from mapclientplugins.segmentationstep.maths.algorithms import calculateLinePlaneIntersection
@@ -31,8 +32,6 @@ class Point(AbstractSelection):
         super(Point, self).__init__(plane, undo_redo_stack)
         self._mode_type = ViewMode.SEGMENT_POINT
         self._model = None
-        self._scenviewer_filter = None
-        self._sceneviewer_filter_orignal = None
         self._streaming_create = False
 
     def setModel(self, model):
@@ -111,5 +110,18 @@ class Point(AbstractSelection):
         near_plane_point = self._zinc_view.unproject(x, -y, 1.0)
         point_on_plane = calculateLinePlaneIntersection(near_plane_point, far_plane_point, self._plane.getRotationPoint(), self._plane.getNormal())
         return point_on_plane
+
+    def _createScenepickerFilter(self):
+        sceneviewer = self._zinc_view.getSceneviewer()
+        scene = sceneviewer.getScene()
+        filtermodule = scene.getScenefiltermodule()
+        name_filter1 = filtermodule.createScenefilterGraphicsName(POINT_CLOUD_GRAPHIC_NAME)
+        name_filter2 = filtermodule.createScenefilterGraphicsName(POINT_CLOUD_ON_PLANE_GRAPHIC_NAME)
+
+        name_filter = filtermodule.createScenefilterOperatorOr()
+        name_filter.appendOperand(name_filter1)
+        name_filter.appendOperand(name_filter2)
+
+        return name_filter
 
 

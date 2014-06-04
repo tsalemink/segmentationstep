@@ -20,7 +20,8 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
 from PySide import QtCore
 
 from mapclientplugins.segmentationstep.tools.handlers.abstractselection import AbstractSelection
-from mapclientplugins.segmentationstep.definitions import ViewMode
+from mapclientplugins.segmentationstep.definitions import ViewMode, \
+    CURVE_ON_PLANE_GRAPHIC_NAME, CURVE_GRAPHIC_NAME
 from mapclientplugins.segmentationstep.undoredo import CommandCurveNode
 from mapclientplugins.segmentationstep.segmentpoint import SegmentPointStatus
 from mapclientplugins.segmentationstep.maths.algorithms import calculateLinePlaneIntersection
@@ -31,9 +32,7 @@ class Curve(AbstractSelection):
         super(Curve, self).__init__(plane, undo_redo_stack)
         self._mode_type = ViewMode.SEGMENT_CURVE
         self._model = None
-        self._scenviewer_filter = None
-        self._sceneviewer_filter_orignal = None
-        self._streaming_create = False
+        self._node_status = None
 
     def setModel(self, model):
         self._model = model
@@ -48,31 +47,39 @@ class Curve(AbstractSelection):
         super(Curve, self).leave()
 
     def mousePressEvent(self, event):
-        self._node_status = None
+        self._creating_curve = False
         if (event.modifiers() & QtCore.Qt.CTRL) and event.button() == QtCore.Qt.LeftButton:
-            node = self._zinc_view.getNearestNode(event.x(), event.y())
-            if node and node.isValid():
-                # node exists at this location so select it
-                group = self._model.getSelectionGroup()
-                group.removeAllNodes()
-                group.addNode(node)
+            if self._node_status is None:
+                node = self._zinc_view.getNearestNode(event.x(), event.y())
+                if node and node.isValid():
+                    # node exists at this location so select it
+                    group = self._model.getSelectionGroup()
+                    group.removeAllNodes()
+                    group.addNode(node)
 
-                node_location = self._model.getNodeLocation(node)
-                plane_attitude = self._model.getNodePlaneAttitude(node.getIdentifier())
-            else:
-                node_location = None
-                plane_attitude = None
-                point_on_plane = self._calculatePointOnPlane(event.x(), event.y())
-                region = self._model.getRegion()
-                fieldmodule = region.getFieldmodule()
-                fieldmodule.beginChange()
-                node = self._model.createNode()
-                self._model.setNodeLocation(node, point_on_plane)
-                group = self._model.getCurveGroup()
-                group.addNode(node)
-                fieldmodule.endChange()
+                    node_location = self._model.getNodeLocation(node)
+                    plane_attitude = self._model.getNodePlaneAttitude(node.getIdentifier())
+                else:
+                    node_location = None
+                    plane_attitude = None
+                    point_on_plane = self._calculatePointOnPlane(event.x(), event.y())
+                    region = self._model.getRegion()
+                    fieldmodule = region.getFieldmodule()
+                    fieldmodule.beginChange()
+                    node = self._model.createNode()
+                    self._model.setNodeLocation(node, point_on_plane)
+                    group = self._model.getCurveGroup()
+                    group.addNode(node)
+                    fieldmodule.endChange()
 
-            self._node_status = SegmentPointStatus(node.getIdentifier(), node_location, plane_attitude)
+                self._node_status = SegmentPointStatus(node.getIdentifier(), node_location, plane_attitude)
+        if (event.modifiers() & QtCore.Qt.CTRL) and event.button() == QtCore.Qt.RightButton:
+            if self._node_status:
+                node = self._model.getNodeByIdentifier(self._node_status.getNodeIdentifier())
+                nodeset = node.getNodeset()
+                nodeset.destroyNode(node)
+                self._node_status = None
+                self._zinc_view.setMouseTracking(False)
         else:
             super(Curve, self).mousePressEvent(event)
 
@@ -97,6 +104,14 @@ class Curve(AbstractSelection):
             node_status = SegmentPointStatus(node_id, node_location, plane_attitude)
             c = CommandCurveNode(self._model, self._node_status, node_status)
             self._undo_redo_stack.push(c)
+
+            node = self._model.createNode()
+            self._model.setNodeLocation(node, node_location)
+            group = self._model.getCurveGroup()
+            group.addNode(node)
+            self._node_status = SegmentPointStatus(node.getIdentifier(), None, None)
+            self._zinc_view.setMouseTracking(True)
+
         else:
             super(Curve, self).mouseReleaseEvent(event)
 
@@ -105,5 +120,18 @@ class Curve(AbstractSelection):
         near_plane_point = self._zinc_view.unproject(x, -y, 1.0)
         point_on_plane = calculateLinePlaneIntersection(near_plane_point, far_plane_point, self._plane.getRotationPoint(), self._plane.getNormal())
         return point_on_plane
+
+    def _createScenepickerFilter(self):
+        sceneviewer = self._zinc_view.getSceneviewer()
+        scene = sceneviewer.getScene()
+        filtermodule = scene.getScenefiltermodule()
+        name_filter1 = filtermodule.createScenefilterGraphicsName(CURVE_GRAPHIC_NAME)
+        name_filter2 = filtermodule.createScenefilterGraphicsName(CURVE_ON_PLANE_GRAPHIC_NAME)
+
+        name_filter = filtermodule.createScenefilterOperatorOr()
+        name_filter.appendOperand(name_filter1)
+        name_filter.appendOperand(name_filter2)
+
+        return name_filter
 
 
