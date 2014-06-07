@@ -18,6 +18,7 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
     along with MAP Client.  If not, see <http://www.gnu.org/licenses/>..
 '''
 from math import atan2, pi, sqrt, copysign
+import numpy as np
 
 from mapclientplugins.segmentationstep.maths.vectorops import add, cross, div, dot, normalize, sub, mult
 from mapclientplugins.segmentationstep.misc import checkRange
@@ -288,3 +289,80 @@ class WeiszfeldsAlgorithm(object):
 
         average = div(sum_xi, len(self._xi))
         return average
+
+def evaluatePolynomial(t, coeffs):
+    return ((coeffs[3] * t + coeffs[2]) * t + coeffs[1]) * t + coeffs[0]
+
+def createOpenFormTridiagonalMatrix(n):
+    # Create Tri-diagonal mx
+    mx = np.eye(n + 1) * 4
+    mx[0, 0] = mx[n, n] = 2.0
+    for i in xrange(n):
+        mx[i + 1, i] = 1.0
+        mx[i, i + 1] = 1.0
+
+    return mx
+
+def createClosedFormTridiagonalMatrix(n):
+    # Create Tri-diagonal mx
+    mx = np.eye(n + 1) * 4
+    mx[0, n] = mx[n, 0] = 1.0
+    for i in xrange(n):
+        mx[i + 1, i] = 1.0
+        mx[i, i + 1] = 1.0
+
+    return mx
+
+def createOpenFormB(X):
+    n = len(X) - 1
+    b = [3 * (X[i + 2] - X[i]) for i in xrange(n - 1)]
+    b = [3 * (X[1] - X[0])] + b + [3 * (X[n] - X[n - 1])]
+
+    return b
+
+def createClosedFormB(X):
+    n = len(X) - 1
+    b = [3 * (X[i + 2] - X[i]) for i in xrange(n - 1)]
+    b = [3 * (X[1] - X[n])] + b + [3 * (X[0] - X[n - 1])]
+
+    return b
+
+def calculateCoefficients(x_i, x_ip1, D_i, D_ip1):
+    a = x_i
+    b = D_i
+    c = 3 * (x_ip1 - x_i) - 2 * D_i - D_ip1
+    d = 2 * (x_i - x_ip1) + D_i + D_ip1
+
+    return [a, b, c, d]
+
+def paramerterizedSplines(data):
+    '''
+    Calculates the polynomial coefficients for piecewise cubic splines
+    over the data. 
+    '''
+    control_points = zip(*data)
+    np1 = len(data)
+    n = np1 - 1
+
+    closed_form = True
+    for dim in control_points:
+        if dim[0] != dim[-1]:
+            closed_form = False
+            break
+
+    if closed_form:
+        mx = createClosedFormTridiagonalMatrix(n)
+    else:
+        mx = createOpenFormTridiagonalMatrix(n)
+
+    out = []
+    for dim in control_points:
+        if closed_form:
+            b = createClosedFormB(dim)
+        else:
+            b = createOpenFormB(dim)
+        D = np.linalg.solve(mx, b)  # not D as in derivative just a paramertisation of polynomial coefficients.
+        out.append([calculateCoefficients(dim[i], dim[i + 1], D[i], D[i + 1]) for i in xrange(n)])
+
+    return zip(*out)
+

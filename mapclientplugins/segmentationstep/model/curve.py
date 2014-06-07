@@ -18,6 +18,8 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
     along with MAP Client.  If not, see <http://www.gnu.org/licenses/>..
 '''
 from mapclientplugins.segmentationstep.zincutils import create1DFiniteElement
+from mapclientplugins.segmentationstep.maths.algorithms import paramerterizedSplines, \
+    evaluatePolynomial
 
 class CurveModel(object):
 
@@ -26,6 +28,25 @@ class CurveModel(object):
         self._nodes = []
         self._elements = []
         self._closed = False
+
+    def calculate(self, interpolation_points=5):
+        data = [self._node_model.getNodeLocation(self._node_model.getNodeByIdentifier(node_id)) for node_id in self._nodes]
+        if self.isClosed():
+            data += [self._node_model.getNodeLocation(self._node_model.getNodeByIdentifier(self._nodes[0]))]
+        splines = paramerterizedSplines(data)
+        t = [float(i) / interpolation_points for i in xrange(1, interpolation_points)]  # range(interpolation_points)
+        locations = []
+        for pair in splines:
+            xt = pair[0][:]
+            yt = pair[1][:]
+            zt = pair[2][:]
+            for t_i in t:
+                x = evaluatePolynomial(t_i, xt)
+                y = evaluatePolynomial(t_i, yt)
+                z = evaluatePolynomial(t_i, zt)
+                locations.append([x, y, z])
+
+        return locations
 
     def addNode(self, node_id):
         if node_id not in self._nodes:
@@ -83,5 +104,11 @@ class CurveModel(object):
 
     def __eq__(self, other):
         return hash(self) == hash(other)
+
+    def __len__(self):
+        return len(self._nodes)
+
+    def __contains__(self, key):
+        return key in self._nodes
 
 

@@ -25,19 +25,13 @@ from opencmiss.zinc.graphics import Graphicslineattributes
 from mapclientplugins.segmentationstep.definitions import DEFAULT_SEGMENTATION_POINT_SIZE, POINT_CLOUD_GRAPHIC_NAME, \
     POINT_CLOUD_ON_PLANE_GRAPHIC_NAME, CURVE_GRAPHIC_NAME, \
     CURVE_ON_PLANE_GRAPHIC_NAME
-from opencmiss.zinc.selection import Selectioncallback
+from mapclientplugins.segmentationstep.zincutils import setGlyphPosition
 
 class NodeScene(object):
-    '''
-    classdocs
-    '''
-
 
     def __init__(self, model):
-        '''
-        Constructor
-        '''
         self._model = model
+        self._curve_interpolation_graphics = {}
         self._setupNodeVisualisation()
 
     def _setupNodeVisualisation(self):
@@ -146,6 +140,73 @@ class NodeScene(object):
         scene.endChange()
 
         return graphic
+
+    def createPointGraphics(self, location):
+        region = self._model.getRegion()
+        scene = region.getScene()
+
+        materialmodule = scene.getMaterialmodule()
+        blue_material = materialmodule.findMaterialByName('blue')
+
+        fm = region.getFieldmodule()
+        zero_field = fm.createFieldConstant(location)
+        graphic = scene.createGraphicsPoints()
+        graphic.setFieldDomainType(Field.DOMAIN_TYPE_POINT)
+        graphic.setName(CURVE_ON_PLANE_GRAPHIC_NAME)
+        graphic.setMaterial(blue_material)
+        graphic.setCoordinateField(zero_field)
+        attributes = graphic.getGraphicspointattributes()
+        attributes.setGlyphShapeType(Glyph.SHAPE_TYPE_SPHERE)
+        attributes.setBaseSize(DEFAULT_SEGMENTATION_POINT_SIZE)
+
+        return graphic
+
+    def replaceCurve(self, old, new):
+        '''
+        It may be that the old key doesn't exist currently as 
+        no interpolation points have been set yet.  The parameters
+        passed in a actually the hash of the old curve and the 
+        new curve and not the curve's themselves.
+        '''
+        if old in self._curve_interpolation_graphics:
+            self._curve_interpolation_graphics[new] = self._curve_interpolation_graphics[old]
+            del self._curve_interpolation_graphics[old]
+
+    def setInterpolationPoints(self, curve, locations):
+        region = self._model.getRegion()
+        scene = region.getScene()
+        scene.beginChange()
+
+        glyphs = self._curve_interpolation_graphics[hash(curve)] if hash(curve) in self._curve_interpolation_graphics else []
+        index = 0
+        for location in locations:
+            if index >= len(glyphs):
+                glyph = self.createPointGraphics(location)
+                glyphs.append(glyph)
+            else:
+                setGlyphPosition(glyphs[index], location)
+
+            index += 1
+
+        alive_glyphs = glyphs[:index]
+        dead_glyphs = glyphs[index:]
+        self._removeGlyphs(dead_glyphs)
+        scene.endChange()
+
+        self._curve_interpolation_graphics[hash(curve)] = alive_glyphs
+
+    def _removeGlyphs(self, glyphs):
+        region = self._model.getRegion()
+        scene = region.getScene()
+        scene.beginChange()
+        for glyph in glyphs:
+            scene.removeGraphics(glyph)
+        scene.endChange()
+
+    def clearInterpolationPoints(self, curve):
+        if hash(curve) in self._curve_interpolation_graphics:
+            self._removeGlyphs(self._curve_interpolation_graphics[hash(curve)])
+            self._curve_interpolation_graphics[hash(curve)] = []
 
     def getGraphic(self, name):
         graphic = None

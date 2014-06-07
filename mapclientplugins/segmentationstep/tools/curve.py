@@ -28,7 +28,7 @@ class CurveTool(SegmentationTool):
 
     def __init__(self, plane, undo_redo_stack):
         super(CurveTool, self).__init__('Curve', undo_redo_stack)
-        self._icon = QtGui.QIcon(':/toolbar_icons/point.png')
+        self._icon = QtGui.QIcon(':/toolbar_icons/curve.png')
         self._plane = plane
         self._handlers[ViewType.VIEW_2D] = Curve2D(plane, undo_redo_stack)
         self._handlers[ViewType.VIEW_3D] = Curve3D(plane, undo_redo_stack)
@@ -40,4 +40,9 @@ class CurveTool(SegmentationTool):
         self._model = model
         self._handlers[ViewType.VIEW_2D].setModel(model)
         self._handlers[ViewType.VIEW_3D].setModel(model)
+
+    def setScene(self, scene):
+        self._scene = scene
+        self._handlers[ViewType.VIEW_2D].setScene(scene)
+        self._handlers[ViewType.VIEW_3D].setScene(scene)
 

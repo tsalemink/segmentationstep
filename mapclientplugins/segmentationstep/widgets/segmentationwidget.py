@@ -275,6 +275,7 @@ class SegmentationWidget(QtGui.QWidget):
 
         curve_tool = curve.CurveTool(plane, undo_redo_stack)
         curve_tool.setModel(node_model)
+        curve_tool.setScene(node_scene)
         curve_tool.setGetDimensionsMethod(image_model.getDimensions)
 
         view_3d_tab.addHandler(point_tool.getName(), point_tool.getIcon(), point_tool.getHandler(ViewType.VIEW_3D))

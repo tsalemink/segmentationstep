@@ -269,10 +269,20 @@ class CommandPointCloudNode(CommandNode):
 
 class CommandCurveNode(CommandNode):
 
+    def setScene(self, scene):
+        self._scene = scene
+
     def _addNodeToGroup(self, node_id):
         node = self._model.getNodeByIdentifier(node_id)
         group = self._model.getCurveGroup()
         group.addNode(node)
+
+    def _updateInterpolationPoints(self, curve):
+        if len(curve) > 1:
+            locations = curve.calculate()
+            self._scene.setInterpolationPoints(curve, locations)
+        else:
+            self._scene.clearInterpolationPoints(curve)
 
     def redo(self):
         node_id = self._status_end.getNodeIdentifier()
@@ -280,17 +290,24 @@ class CommandCurveNode(CommandNode):
         plane_attitude = self._status_end.getPlaneAttitude()
         curve = self._status_end.getCurve()
         if location is None:
+            old = hash(curve)
             curve.removeNode(node_id)
             if not curve.closes(node_id):
                 self._removeNode(node_id)
+            self._scene.replaceCurve(old, hash(curve))
+            self._updateInterpolationPoints(curve)
         else:
             previous_location = self._status_start.getLocation()
             if previous_location is None:
                 if not curve.closes(node_id):
                     node_id = self._addNode(node_id, location, plane_attitude)
+                old = hash(curve)
                 curve.addNode(node_id)
+                self._scene.replaceCurve(old, hash(curve))
+                self._updateInterpolationPoints(curve)
             else:
                 self._model.modifyNode(node_id, location, plane_attitude)
+                self._updateInterpolationPoints(curve)
 
     def undo(self):
         node_id = self._status_start.getNodeIdentifier()
@@ -298,17 +315,24 @@ class CommandCurveNode(CommandNode):
         plane_attitude = self._status_start.getPlaneAttitude()
         curve = self._status_end.getCurve()
         if location is None:
+            old = hash(curve)
             curve.removeNode(node_id)
             if not curve.closes(node_id):
                 self._removeNode(node_id)
+            self._scene.replaceCurve(old, hash(curve))
+            self._updateInterpolationPoints(curve)
         else:
             next_location = self._status_end.getLocation()
             if next_location is None:
                 if not curve.closes(node_id):
                     node_id = self._addNode(node_id, location, plane_attitude)
+                old = hash(curve)
                 curve.addNode(node_id)
+                self._scene.replaceCurve(old, hash(curve))
+                self._updateInterpolationPoints(curve)
             else:
                 self._model.modifyNode(node_id, location, plane_attitude)
+                self._updateInterpolationPoints(curve)
 
 
 class CommandSelection(QtGui.QUndoCommand):

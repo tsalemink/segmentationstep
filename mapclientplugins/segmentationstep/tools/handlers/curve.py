@@ -32,10 +32,14 @@ class Curve(AbstractSelection):
         super(Curve, self).__init__(plane, undo_redo_stack)
         self._mode_type = ViewMode.SEGMENT_CURVE
         self._model = None
+        self._scene = None
         self._node_status = None
 
     def setModel(self, model):
         self._model = model
+
+    def setScene(self, scene):
+        self._scene = scene
 
     def enter(self):
         super(Curve, self).enter()
@@ -74,6 +78,7 @@ class Curve(AbstractSelection):
                 group.addNode(node)
 
                 node_id = node.getIdentifier()
+                self._active_curve = self._model.getCurveForNode(node_id)
                 node_location = self._model.getNodeLocation(node)
                 plane_attitude = self._model.getNodePlaneAttitude(node_id)
                 self._modifying_curve = True
@@ -108,7 +113,11 @@ class Curve(AbstractSelection):
             node = self._model.getNodeByIdentifier(self._node_status.getNodeIdentifier())
             point_on_plane = self._calculatePointOnPlane(event.x(), event.y())
             self._model.setNodeLocation(node, point_on_plane)
-            if not self._adding_to_curve or not self._finshing_curve:
+            if self._modifying_curve:
+                if len(self._active_curve) > 1:
+                    locations = self._active_curve.calculate()
+                    self._scene.setInterpolationPoints(self._active_curve, locations)
+            elif not self._adding_to_curve or not self._finshing_curve:
                 super(Curve, self).mouseMoveEvent(event)
         else:
             super(Curve, self).mouseMoveEvent(event)
@@ -126,6 +135,7 @@ class Curve(AbstractSelection):
             node_status = ControlPointStatus(node_id, node_location, plane_attitude)
             node_status.setCurve(self._active_curve)
             c = CommandCurveNode(self._model, self._node_status, node_status)
+            c.setScene(self._scene)
             self._undo_redo_stack.push(c)
 
             if self._active_curve.closes(node_id):
@@ -142,7 +152,7 @@ class Curve(AbstractSelection):
 
             self._zinc_view.setMouseTracking(True)
         elif self._finshing_curve:
-            pass
+            self._active_curve = None
         elif self._modifying_curve:
             node_id = self._node_status.getNodeIdentifier()
             node = self._model.getNodeByIdentifier(node_id)
@@ -151,6 +161,7 @@ class Curve(AbstractSelection):
             node_status = ControlPointStatus(node_id, node_location, plane_attitude)
             node_status.setCurve(self._active_curve)
             c = CommandCurveNode(self._model, self._node_status, node_status)
+            c.setScene(self._scene)
             group = self._model.getSelectionGroup()
             group.removeNode(node)
             self._node_status = None

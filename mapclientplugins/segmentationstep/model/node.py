@@ -201,6 +201,13 @@ class NodeModel(AbstractModel):
 
         return c
 
+    def getCurveForNode(self, node_id):
+        for curve in self._curves:
+            if node_id in curve:
+                return curve
+
+        return None
+
     def addNode(self, node_id, location, plane_attitude):
         if node_id is -1:
             node = self._createNodeAtLocation(location)
