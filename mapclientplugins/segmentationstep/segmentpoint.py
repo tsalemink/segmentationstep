@@ -43,3 +43,16 @@ class SegmentPointStatus(object):
         self._plane_attitude = plane_attitude
 
 
+class ControlPointStatus(SegmentPointStatus):
+
+    def __init__(self, node_id, location, plane_attitude):
+        super(ControlPointStatus, self).__init__(node_id, location, plane_attitude)
+        self._curve = None
+
+    def setCurve(self, curve):
+        self._curve = curve
+
+    def getCurve(self):
+        return self._curve
+
+

@@ -20,9 +20,12 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
 
 from opencmiss.zinc.field import Field
 from opencmiss.zinc.glyph import Glyph
+from opencmiss.zinc.graphics import Graphicslineattributes
+
 from mapclientplugins.segmentationstep.definitions import DEFAULT_SEGMENTATION_POINT_SIZE, POINT_CLOUD_GRAPHIC_NAME, \
     POINT_CLOUD_ON_PLANE_GRAPHIC_NAME, CURVE_GRAPHIC_NAME, \
     CURVE_ON_PLANE_GRAPHIC_NAME
+from opencmiss.zinc.selection import Selectioncallback
 
 class NodeScene(object):
     '''
@@ -44,6 +47,17 @@ class NodeScene(object):
         self._segmentation_point_on_plane_glyph = self._createPointCloudOnPlaneGraphics(region, coordinate_field)
         self._curve_point_glyph = self._createCurveGraphics(region, coordinate_field)
         self._curve_point_on_plane_glyph = self._createCurveOnPlaneGraphics(region, coordinate_field)
+
+        scene = region.getScene()
+        scene.beginChange()
+        self._lines = scene.createGraphicsLines()
+        self._lines.setCoordinateField(coordinate_field)
+        self._lines.setName(CURVE_ON_PLANE_GRAPHIC_NAME)
+        attributes = self._lines.getGraphicslineattributes()
+        attributes.setShapeType(Graphicslineattributes.SHAPE_TYPE_CIRCLE_EXTRUSION)
+        attributes.setBaseSize(0.2)
+
+        scene.endChange()
 
     def _createPointCloudGraphics(self, region, finite_element_field):
         scene = region.getScene()

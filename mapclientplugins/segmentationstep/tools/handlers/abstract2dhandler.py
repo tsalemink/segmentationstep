@@ -81,6 +81,9 @@ class Abstract2DHandler(object):
             c = CommandChangeView(self._start_view_parameters, end_view_parameters)
             c.setCallbackMethod(self._zinc_view.setViewParameters)
             self._undo_redo_stack.push(c)
+            # Reset start position for when we are tracking the
+            # mouse movement even when a button is not pressed.
+            self._start_position = None
         else:
             super(Abstract2DHandler, self).mouseReleaseEvent(event)
 

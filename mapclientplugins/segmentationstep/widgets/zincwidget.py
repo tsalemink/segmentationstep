@@ -180,8 +180,8 @@ class ZincWidget(QtOpenGL.QGLWidget):
     #         self._selection_notifier = scene.createSelectionnotifier()
     #         self._selection_notifier.setCallback(self._zincSelectionEvent)
 
-            self._scene_viewer_notifier = self._sceneviewer.createSceneviewernotifier()
-            self._scene_viewer_notifier.setCallback(self._zincSceneviewerEvent)
+            self._sceneviewernotifier = self._sceneviewer.createSceneviewernotifier()
+            self._sceneviewernotifier.setCallback(self._zincSceneviewerEvent)
 
             self.graphicsInitialized.emit()
             # initializeGL end

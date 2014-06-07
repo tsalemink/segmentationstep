@@ -65,6 +65,29 @@ def createFiniteElementField(region):
 
     return finite_element_field
 
+def create1DFiniteElement(finite_element_field, node1, node2):
+    # Use a 3D mesh to to create the 3D finite element.
+    fieldmodule = finite_element_field.getFieldmodule()
+    mesh = fieldmodule.findMeshByDimension(1)
+    element_template = mesh.createElementtemplate()
+    element_template.setElementShapeType(Element.SHAPE_TYPE_LINE)
+    element_node_count = 2
+    element_template.setNumberOfNodes(element_node_count)
+    # Specify the dimension and the interpolation function for the element basis function
+    linear_basis = fieldmodule.createElementbasis(1, Elementbasis.FUNCTION_TYPE_LINEAR_LAGRANGE)
+    # the indecies of the nodes in the node template we want to use.
+    node_indexes = [1, 2]
+
+    # Define a nodally interpolated element field or field component in the
+    # element_template
+    element_template.defineFieldSimpleNodal(finite_element_field, -1, linear_basis, node_indexes)
+    element_template.setNode(1, node1)
+    element_template.setNode(2, node2)
+
+    element = mesh.createElement(-1, element_template)
+
+    return element
+
 def create3DFiniteElement(fieldmodule, finite_element_field, node_coordinate_set):
     '''
     Create a single finite element using the supplied 

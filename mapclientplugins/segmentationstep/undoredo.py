@@ -230,6 +230,8 @@ class CommandNode(QtGui.QUndoCommand):
         self._addNodeToGroup(node_id)
         self._setNodeIdentifier(node_id)
 
+        return node_id
+
 
 class CommandPointCloudNode(CommandNode):
 
@@ -276,12 +278,17 @@ class CommandCurveNode(CommandNode):
         node_id = self._status_end.getNodeIdentifier()
         location = self._status_end.getLocation()
         plane_attitude = self._status_end.getPlaneAttitude()
+        curve = self._status_end.getCurve()
         if location is None:
-            self._removeNode(node_id)
+            curve.removeNode(node_id)
+            if not curve.closes(node_id):
+                self._removeNode(node_id)
         else:
             previous_location = self._status_start.getLocation()
             if previous_location is None:
-                self._addNode(node_id, location, plane_attitude)
+                if not curve.closes(node_id):
+                    node_id = self._addNode(node_id, location, plane_attitude)
+                curve.addNode(node_id)
             else:
                 self._model.modifyNode(node_id, location, plane_attitude)
 
@@ -289,12 +296,17 @@ class CommandCurveNode(CommandNode):
         node_id = self._status_start.getNodeIdentifier()
         location = self._status_start.getLocation()
         plane_attitude = self._status_start.getPlaneAttitude()
+        curve = self._status_end.getCurve()
         if location is None:
-            self._removeNode(node_id)
+            curve.removeNode(node_id)
+            if not curve.closes(node_id):
+                self._removeNode(node_id)
         else:
             next_location = self._status_end.getLocation()
             if next_location is None:
-                self._addNode(node_id, location, plane_attitude)
+                if not curve.closes(node_id):
+                    node_id = self._addNode(node_id, location, plane_attitude)
+                curve.addNode(node_id)
             else:
                 self._model.modifyNode(node_id, location, plane_attitude)
 

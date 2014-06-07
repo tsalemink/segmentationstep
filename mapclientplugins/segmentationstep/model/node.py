@@ -22,6 +22,7 @@ from opencmiss.zinc.status import OK
 from mapclientplugins.segmentationstep.model.abstractmodel import AbstractModel
 from mapclientplugins.segmentationstep.zincutils import createFiniteElementField
 from mapclientplugins.segmentationstep.segmentpoint import SegmentPointStatus
+from mapclientplugins.segmentationstep.model.curve import CurveModel
 
 class NodeModel(AbstractModel):
 
@@ -30,6 +31,7 @@ class NodeModel(AbstractModel):
         self._plane = plane
         self._plane_attitudes = {}
         self._nodes = {}
+        self._curves = []
         self._setupNodeRegion()
         self._on_plane_conditional_field = self._createOnPlaneConditionalField()
         self._on_plane_point_cloud_field = self._createOnPlanePointCloudField()
@@ -186,6 +188,19 @@ class NodeModel(AbstractModel):
         if len(self._plane_attitudes[plane_attitude]) == 0:
             del self._plane_attitudes[plane_attitude]
 
+    def getElementByIdentifier(self, element_id):
+        fieldmodule = self._region.getFieldmodule()
+        mesh = fieldmodule.findMeshByDimension(1)
+        if element_id is None:
+            element_id = -1
+        return mesh.findElementByIdentifier(element_id)
+
+    def createCurve(self):
+        c = CurveModel(self)
+        self._curves.append(c)
+
+        return c
+
     def addNode(self, node_id, location, plane_attitude):
         if node_id is -1:
             node = self._createNodeAtLocation(location)
@@ -225,6 +240,14 @@ class NodeModel(AbstractModel):
 
         return None
 
+    def removeElement(self, element_id):
+        fieldmodule = self._region.getFieldmodule()
+        fieldmodule.beginChange()
+        mesh = fieldmodule.findMeshByDimension(1)
+        element = mesh.findElementByIdentifier(element_id)
+        mesh.destroyElement(element)
+        fieldmodule.endChange()
+
     def removeNodes(self, node_statuses):
         fieldmodule = self._region.getFieldmodule()
         fieldmodule.beginChange()
@@ -235,9 +258,11 @@ class NodeModel(AbstractModel):
         fieldmodule.endChange()
 
     def removeNode(self, node_id):
-        plane_attitude = self._nodes[node_id]
-        self._removeId(plane_attitude, node_id)
-        del self._nodes[node_id]
+        if node_id in self._nodes:
+            plane_attitude = self._nodes[node_id]
+            self._removeId(plane_attitude, node_id)
+            del self._nodes[node_id]
+
         node = self.getNodeByIdentifier(node_id)
         nodeset = node.getNodeset()
         nodeset.destroyNode(node)

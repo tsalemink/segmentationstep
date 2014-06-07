@@ -23,7 +23,7 @@ from mapclientplugins.segmentationstep.tools.handlers.abstractselection import A
 from mapclientplugins.segmentationstep.definitions import ViewMode, \
     CURVE_ON_PLANE_GRAPHIC_NAME, CURVE_GRAPHIC_NAME
 from mapclientplugins.segmentationstep.undoredo import CommandCurveNode
-from mapclientplugins.segmentationstep.segmentpoint import SegmentPointStatus
+from mapclientplugins.segmentationstep.segmentpoint import ControlPointStatus
 from mapclientplugins.segmentationstep.maths.algorithms import calculateLinePlaneIntersection
 
 class Curve(AbstractSelection):
@@ -37,9 +37,6 @@ class Curve(AbstractSelection):
     def setModel(self, model):
         self._model = model
 
-    def setStreamingCreate(self, state):
-        self._streaming_create = state
-
     def enter(self):
         super(Curve, self).enter()
 
@@ -47,40 +44,62 @@ class Curve(AbstractSelection):
         super(Curve, self).leave()
 
     def mousePressEvent(self, event):
-        self._creating_curve = False
-        if (event.modifiers() & QtCore.Qt.CTRL) and event.button() == QtCore.Qt.LeftButton:
-            if self._node_status is None:
-                node = self._zinc_view.getNearestNode(event.x(), event.y())
-                if node and node.isValid():
-                    # node exists at this location so select it
-                    group = self._model.getSelectionGroup()
-                    group.removeAllNodes()
-                    group.addNode(node)
-
-                    node_location = self._model.getNodeLocation(node)
-                    plane_attitude = self._model.getNodePlaneAttitude(node.getIdentifier())
-                else:
-                    node_location = None
-                    plane_attitude = None
-                    point_on_plane = self._calculatePointOnPlane(event.x(), event.y())
-                    region = self._model.getRegion()
-                    fieldmodule = region.getFieldmodule()
-                    fieldmodule.beginChange()
-                    node = self._model.createNode()
-                    self._model.setNodeLocation(node, point_on_plane)
-                    group = self._model.getCurveGroup()
-                    group.addNode(node)
-                    fieldmodule.endChange()
-
-                self._node_status = SegmentPointStatus(node.getIdentifier(), node_location, plane_attitude)
-        if (event.modifiers() & QtCore.Qt.CTRL) and event.button() == QtCore.Qt.RightButton:
-            if self._node_status:
-                node = self._model.getNodeByIdentifier(self._node_status.getNodeIdentifier())
-                nodeset = node.getNodeset()
-                nodeset.destroyNode(node)
+        self._finshing_curve = False
+        self._adding_to_curve = False
+        self._modifying_curve = False
+        if self._node_status:
+            if (event.modifiers() & QtCore.Qt.CTRL) and event.button() == QtCore.Qt.RightButton:
+                node_id = self._node_status.getNodeIdentifier()
+                self._active_curve.removeNode(node_id)
+                self._model.removeNode(node_id)
                 self._node_status = None
                 self._zinc_view.setMouseTracking(False)
-        else:
+                self._finshing_curve = True
+            elif (event.modifiers() & QtCore.Qt.CTRL) and event.button() == QtCore.Qt.LeftButton:
+                node = self._zinc_view.getNearestNode(event.x(), event.y())
+                if node and node.isValid():
+                    self._closing_curve_node_id = self._node_status.getNodeIdentifier()
+                    self._node_status.setNodeIdentifier(node.getIdentifier())
+                self._adding_to_curve = True
+            else:
+                super(Curve, self).mousePressEvent(event)
+        elif (event.modifiers() & QtCore.Qt.CTRL) and event.button() == QtCore.Qt.LeftButton:
+            # The start of a new curve
+            self._active_curve = None
+            node = self._zinc_view.getNearestNode(event.x(), event.y())
+            if node and node.isValid():
+                # node exists at this location so select it
+                group = self._model.getSelectionGroup()
+                group.removeAllNodes()
+                group.addNode(node)
+
+                node_id = node.getIdentifier()
+                node_location = self._model.getNodeLocation(node)
+                plane_attitude = self._model.getNodePlaneAttitude(node_id)
+                self._modifying_curve = True
+            else:
+                # The start of a new curve
+                self._active_curve = self._model.createCurve()
+                node_location = None
+                plane_attitude = None
+                point_on_plane = self._calculatePointOnPlane(event.x(), event.y())
+                region = self._model.getRegion()
+                fieldmodule = region.getFieldmodule()
+                fieldmodule.beginChange()
+                node = self._model.createNode()
+                self._model.setNodeLocation(node, point_on_plane)
+                group = self._model.getCurveGroup()
+                group.addNode(node)
+                node_id = node.getIdentifier()
+                fieldmodule.endChange()
+                self._adding_to_curve = True
+                self._active_curve.addNode(node_id)
+
+#             curve =   # create1DFiniteElement(fieldmodule, finite_element_field, node1, node2)
+
+            self._node_status = ControlPointStatus(node_id, node_location, plane_attitude)
+            self._node_status.setCurve(self._active_curve)
+        elif self._node_status is None:
             super(Curve, self).mousePressEvent(event)
 
 
@@ -89,30 +108,54 @@ class Curve(AbstractSelection):
             node = self._model.getNodeByIdentifier(self._node_status.getNodeIdentifier())
             point_on_plane = self._calculatePointOnPlane(event.x(), event.y())
             self._model.setNodeLocation(node, point_on_plane)
+            if not self._adding_to_curve or not self._finshing_curve:
+                super(Curve, self).mouseMoveEvent(event)
         else:
             super(Curve, self).mouseMoveEvent(event)
 
     def mouseReleaseEvent(self, event):
-        if self._node_status is not None:
+        if self._node_status is not None and self._adding_to_curve:
             # do undo redo command for adding a node or moving a node
             node_id = self._node_status.getNodeIdentifier()
-            node = self._model.getNodeByIdentifier(node_id)
+            node1 = self._model.getNodeByIdentifier(node_id)
+
             group = self._model.getSelectionGroup()
-            group.removeNode(node)
-            node_location = self._model.getNodeLocation(node)
+            group.removeNode(node1)
+            node_location = self._model.getNodeLocation(node1)
             plane_attitude = self._plane.getAttitude()
-            node_status = SegmentPointStatus(node_id, node_location, plane_attitude)
+            node_status = ControlPointStatus(node_id, node_location, plane_attitude)
+            node_status.setCurve(self._active_curve)
             c = CommandCurveNode(self._model, self._node_status, node_status)
             self._undo_redo_stack.push(c)
 
-            node = self._model.createNode()
-            self._model.setNodeLocation(node, node_location)
-            group = self._model.getCurveGroup()
-            group.addNode(node)
-            self._node_status = SegmentPointStatus(node.getIdentifier(), None, None)
-            self._zinc_view.setMouseTracking(True)
+            if self._active_curve.closes(node_id):
+                node2 = self._model.getNodeByIdentifier(self._closing_curve_node_id)
+            else:
+                node2 = self._model.createNode()
+                self._model.setNodeLocation(node2, node_location)
+                group = self._model.getCurveGroup()
+                group.addNode(node2)
 
-        else:
+            node_id = node2.getIdentifier()
+            self._node_status = ControlPointStatus(node_id, None, None)
+            self._node_status.setCurve(self._active_curve)
+
+            self._zinc_view.setMouseTracking(True)
+        elif self._finshing_curve:
+            pass
+        elif self._modifying_curve:
+            node_id = self._node_status.getNodeIdentifier()
+            node = self._model.getNodeByIdentifier(node_id)
+            node_location = self._model.getNodeLocation(node)
+            plane_attitude = self._plane.getAttitude()
+            node_status = ControlPointStatus(node_id, node_location, plane_attitude)
+            node_status.setCurve(self._active_curve)
+            c = CommandCurveNode(self._model, self._node_status, node_status)
+            group = self._model.getSelectionGroup()
+            group.removeNode(node)
+            self._node_status = None
+            self._undo_redo_stack.push(c)
+        elif not self._adding_to_curve:
             super(Curve, self).mouseReleaseEvent(event)
 
     def _calculatePointOnPlane(self, x, y):
