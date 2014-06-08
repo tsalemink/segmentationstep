@@ -24,6 +24,7 @@ from opencmiss.zinc.element import Element, Elementbasis
 from opencmiss.zinc.field import Field
 from opencmiss.zinc.glyph import Glyph
 from opencmiss.zinc.scenecoordinatesystem import SCENECOORDINATESYSTEM_LOCAL, SCENECOORDINATESYSTEM_WINDOW_PIXEL_TOP_LEFT
+from opencmiss.zinc.graphics import Graphics
 
 COORDINATE_SYSTEM_LOCAL = SCENECOORDINATESYSTEM_LOCAL
 COORDINATE_SYSTEM_WINDOW_PIXEL_TOP_LEFT = SCENECOORDINATESYSTEM_WINDOW_PIXEL_TOP_LEFT
@@ -246,5 +247,27 @@ def createPlaneNormalIndicator(region, plane_normal_field):
     scene.endChange()
 
     return plane_normal_indicator
+
+def createInterpolationPointAtLocation(region, name, size, location, subgroupfield=None):
+    scene = region.getScene()
+
+    materialmodule = scene.getMaterialmodule()
+    blue_material = materialmodule.findMaterialByName('blue')
+
+    fm = region.getFieldmodule()
+    zero_field = fm.createFieldConstant(location)
+    graphic = scene.createGraphicsPoints()
+    graphic.setFieldDomainType(Field.DOMAIN_TYPE_POINT)
+    graphic.setName(name)
+    graphic.setMaterial(blue_material)
+    graphic.setCoordinateField(zero_field)
+    graphic.setSelectMode(Graphics.SELECT_MODE_OFF)
+    if subgroupfield is not None:
+        graphic.setSubgroupField(subgroupfield)
+    attributes = graphic.getGraphicspointattributes()
+    attributes.setGlyphShapeType(Glyph.SHAPE_TYPE_SPHERE)
+    attributes.setBaseSize(size)
+
+    return graphic
 
 

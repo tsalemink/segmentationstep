@@ -34,7 +34,7 @@ class CurveModel(object):
         if self.isClosed():
             data += [self._node_model.getNodeLocation(self._node_model.getNodeByIdentifier(self._nodes[0]))]
         splines = paramerterizedSplines(data)
-        t = [float(i) / interpolation_points for i in xrange(1, interpolation_points)]  # range(interpolation_points)
+        t = [float(i) / (interpolation_points + 1) for i in xrange(1, interpolation_points + 1)]  # range(interpolation_points)
         locations = []
         for pair in splines:
             xt = pair[0][:]

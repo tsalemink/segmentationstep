@@ -54,7 +54,17 @@ class Curve(AbstractSelection):
         if self._node_status:
             if (event.modifiers() & QtCore.Qt.CTRL) and event.button() == QtCore.Qt.RightButton:
                 node_id = self._node_status.getNodeIdentifier()
+#                 print(hash(self._active_curve))
+#                 self._scene.clearInterpolationPoints(self._active_curve)
+                old = hash(self._active_curve)
                 self._active_curve.removeNode(node_id)
+                self._scene.replaceCurve(old, hash(self._active_curve))
+                if len(self._active_curve) > 1:
+                    locations = self._active_curve.calculate()
+                    self._scene.setInterpolationPoints(self._active_curve, locations)
+                else:
+                    self._scene.clearInterpolationPoints(self._active_curve)
+
                 self._model.removeNode(node_id)
                 self._node_status = None
                 self._zinc_view.setMouseTracking(False)
@@ -100,8 +110,6 @@ class Curve(AbstractSelection):
                 self._adding_to_curve = True
                 self._active_curve.addNode(node_id)
 
-#             curve =   # create1DFiniteElement(fieldmodule, finite_element_field, node1, node2)
-
             self._node_status = ControlPointStatus(node_id, node_location, plane_attitude)
             self._node_status.setCurve(self._active_curve)
         elif self._node_status is None:
@@ -113,10 +121,12 @@ class Curve(AbstractSelection):
             node = self._model.getNodeByIdentifier(self._node_status.getNodeIdentifier())
             point_on_plane = self._calculatePointOnPlane(event.x(), event.y())
             self._model.setNodeLocation(node, point_on_plane)
+
+            if len(self._active_curve) > 1:
+                locations = self._active_curve.calculate()
+                self._scene.setInterpolationPoints(self._active_curve, locations)
             if self._modifying_curve:
-                if len(self._active_curve) > 1:
-                    locations = self._active_curve.calculate()
-                    self._scene.setInterpolationPoints(self._active_curve, locations)
+                pass
             elif not self._adding_to_curve or not self._finshing_curve:
                 super(Curve, self).mouseMoveEvent(event)
         else:
@@ -133,10 +143,8 @@ class Curve(AbstractSelection):
             node_location = self._model.getNodeLocation(node1)
             plane_attitude = self._plane.getAttitude()
             node_status = ControlPointStatus(node_id, node_location, plane_attitude)
-            node_status.setCurve(self._active_curve)
             c = CommandCurveNode(self._model, self._node_status, node_status)
             c.setScene(self._scene)
-            self._undo_redo_stack.push(c)
 
             if self._active_curve.closes(node_id):
                 node2 = self._model.getNodeByIdentifier(self._closing_curve_node_id)
@@ -147,6 +155,16 @@ class Curve(AbstractSelection):
                 group.addNode(node2)
 
             node_id = node2.getIdentifier()
+#             old = hash(self._active_curve)
+            self._scene.clearInterpolationPoints(self._active_curve)
+#             self._scene.clearInterpolationPoints(self._active_curve)
+            self._active_curve.addNode(node_id)
+#             self._scene.replaceCurve(old, hash(self._active_curve))
+            node_status.setCurve(self._active_curve)
+            self._node_status.setCurve(self._active_curve)
+            self._undo_redo_stack.push(c)
+            locations = self._active_curve.calculate()
+            self._scene.setInterpolationPoints(self._active_curve, locations)
             self._node_status = ControlPointStatus(node_id, None, None)
             self._node_status.setCurve(self._active_curve)
 

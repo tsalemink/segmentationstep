@@ -302,6 +302,7 @@ class CommandCurveNode(CommandNode):
                 if not curve.closes(node_id):
                     node_id = self._addNode(node_id, location, plane_attitude)
                 old = hash(curve)
+#                 self._scene.clearInterpolationPoints(curve)
                 curve.addNode(node_id)
                 self._scene.replaceCurve(old, hash(curve))
                 self._updateInterpolationPoints(curve)
@@ -327,6 +328,7 @@ class CommandCurveNode(CommandNode):
                 if not curve.closes(node_id):
                     node_id = self._addNode(node_id, location, plane_attitude)
                 old = hash(curve)
+#                 self._scene.clearInterpolationPoints(curve)
                 curve.addNode(node_id)
                 self._scene.replaceCurve(old, hash(curve))
                 self._updateInterpolationPoints(curve)

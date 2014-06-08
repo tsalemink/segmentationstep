@@ -20,18 +20,17 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
 
 from opencmiss.zinc.field import Field
 from opencmiss.zinc.glyph import Glyph
-from opencmiss.zinc.graphics import Graphicslineattributes
+from opencmiss.zinc.graphics import Graphics
 
 from mapclientplugins.segmentationstep.definitions import DEFAULT_SEGMENTATION_POINT_SIZE, POINT_CLOUD_GRAPHIC_NAME, \
-    POINT_CLOUD_ON_PLANE_GRAPHIC_NAME, CURVE_GRAPHIC_NAME, \
-    CURVE_ON_PLANE_GRAPHIC_NAME
-from mapclientplugins.segmentationstep.zincutils import setGlyphPosition
+    POINT_CLOUD_ON_PLANE_GRAPHIC_NAME, CURVE_GRAPHIC_NAME, CURVE_ON_PLANE_GRAPHIC_NAME
 
 class NodeScene(object):
 
     def __init__(self, model):
         self._model = model
         self._curve_interpolation_graphics = {}
+        self._curve_interpolation_on_plane_graphics = {}
         self._setupNodeVisualisation()
 
     def _setupNodeVisualisation(self):
@@ -41,17 +40,19 @@ class NodeScene(object):
         self._segmentation_point_on_plane_glyph = self._createPointCloudOnPlaneGraphics(region, coordinate_field)
         self._curve_point_glyph = self._createCurveGraphics(region, coordinate_field)
         self._curve_point_on_plane_glyph = self._createCurveOnPlaneGraphics(region, coordinate_field)
+        self._interpolation_point_glyph = self._createInterpolationPointGraphics(region, coordinate_field)
+        self._interpolation_point_on_plane_glyph = self._createInterpolationPointOnPlaneGraphics(region, coordinate_field)
 
-        scene = region.getScene()
-        scene.beginChange()
-        self._lines = scene.createGraphicsLines()
-        self._lines.setCoordinateField(coordinate_field)
-        self._lines.setName(CURVE_ON_PLANE_GRAPHIC_NAME)
-        attributes = self._lines.getGraphicslineattributes()
-        attributes.setShapeType(Graphicslineattributes.SHAPE_TYPE_CIRCLE_EXTRUSION)
-        attributes.setBaseSize(0.2)
-
-        scene.endChange()
+#         scene = region.getScene()
+#         scene.beginChange()
+#         self._lines = scene.createGraphicsLines()
+#         self._lines.setCoordinateField(coordinate_field)
+#         self._lines.setName(CURVE_ON_PLANE_GRAPHIC_NAME)
+#         attributes = self._lines.getGraphicslineattributes()
+#         attributes.setShapeType(Graphicslineattributes.SHAPE_TYPE_CIRCLE_EXTRUSION)
+#         attributes.setBaseSize(0.2)
+#
+#         scene.endChange()
 
     def _createPointCloudGraphics(self, region, finite_element_field):
         scene = region.getScene()
@@ -141,23 +142,47 @@ class NodeScene(object):
 
         return graphic
 
-    def createPointGraphics(self, location):
-        region = self._model.getRegion()
+    def _createInterpolationPointOnPlaneGraphics(self, region, finite_element_field):
         scene = region.getScene()
+        scene.beginChange()
 
         materialmodule = scene.getMaterialmodule()
         blue_material = materialmodule.findMaterialByName('blue')
 
-        fm = region.getFieldmodule()
-        zero_field = fm.createFieldConstant(location)
         graphic = scene.createGraphicsPoints()
-        graphic.setFieldDomainType(Field.DOMAIN_TYPE_POINT)
+        graphic.setFieldDomainType(Field.DOMAIN_TYPE_DATAPOINTS)
+        graphic.setCoordinateField(finite_element_field)
         graphic.setName(CURVE_ON_PLANE_GRAPHIC_NAME)
         graphic.setMaterial(blue_material)
-        graphic.setCoordinateField(zero_field)
+        graphic.setSelectMode(Graphics.SELECT_MODE_OFF)
+        graphic.setSubgroupField(self._model.getOnPlaneSegmentationPointField())
         attributes = graphic.getGraphicspointattributes()
         attributes.setGlyphShapeType(Glyph.SHAPE_TYPE_SPHERE)
         attributes.setBaseSize(DEFAULT_SEGMENTATION_POINT_SIZE)
+
+        scene.endChange()
+
+        return graphic
+
+    def _createInterpolationPointGraphics(self, region, finite_element_field):
+        scene = region.getScene()
+        scene.beginChange()
+
+        materialmodule = scene.getMaterialmodule()
+        blue_material = materialmodule.findMaterialByName('blue')
+
+        graphic = scene.createGraphicsPoints()
+        graphic.setFieldDomainType(Field.DOMAIN_TYPE_DATAPOINTS)
+        graphic.setCoordinateField(finite_element_field)
+        graphic.setName(CURVE_GRAPHIC_NAME)
+        graphic.setMaterial(blue_material)
+        graphic.setSelectMode(Graphics.SELECT_MODE_OFF)
+#         graphic.setSubgroupField(self._model.getOnPlaneSegmentationPointField())
+        attributes = graphic.getGraphicspointattributes()
+        attributes.setGlyphShapeType(Glyph.SHAPE_TYPE_SPHERE)
+        attributes.setBaseSize(DEFAULT_SEGMENTATION_POINT_SIZE)
+
+        scene.endChange()
 
         return graphic
 
@@ -181,10 +206,10 @@ class NodeScene(object):
         index = 0
         for location in locations:
             if index >= len(glyphs):
-                glyph = self.createPointGraphics(location)
+                glyph = self._model.createDatapoint(location)
                 glyphs.append(glyph)
             else:
-                setGlyphPosition(glyphs[index], location)
+                self._model.setNodeLocation(glyphs[index], location)
 
             index += 1
 
@@ -200,13 +225,13 @@ class NodeScene(object):
         scene = region.getScene()
         scene.beginChange()
         for glyph in glyphs:
-            scene.removeGraphics(glyph)
+            self._model.removeDatapoint(glyph)
         scene.endChange()
 
     def clearInterpolationPoints(self, curve):
         if hash(curve) in self._curve_interpolation_graphics:
             self._removeGlyphs(self._curve_interpolation_graphics[hash(curve)])
-            self._curve_interpolation_graphics[hash(curve)] = []
+            del self._curve_interpolation_graphics[hash(curve)]
 
     def getGraphic(self, name):
         graphic = None

@@ -36,6 +36,7 @@ class NodeModel(AbstractModel):
         self._on_plane_conditional_field = self._createOnPlaneConditionalField()
         self._on_plane_point_cloud_field = self._createOnPlanePointCloudField()
         self._on_plane_curve_field = self._createOnPlaneCurveField()
+        self._on_plane_interpolation_point_field = self._createOnPlaneInterpolation()
 
     def _setupNodeRegion(self):
         self._region = self._context.getDefaultRegion().createChild('point_cloud')
@@ -63,6 +64,11 @@ class NodeModel(AbstractModel):
         curvegroup = self._curve_group_field.createFieldNodeGroup(nodeset)
         self._curve_group = curvegroup.getNodesetGroup()
 
+        datapointset = fieldmodule.findNodesetByName('datapoints')
+        self._interpolation_point_group_field = fieldmodule.createFieldGroup()
+        segmentationpointgroup = self._curve_group_field.createFieldNodeGroup(datapointset)
+        self._interpolation_point_group = segmentationpointgroup.getNodesetGroup()
+
         fieldmodule.endChange()
 
     def _createOnPlaneConditionalField(self):
@@ -76,11 +82,9 @@ class NodeModel(AbstractModel):
         tolerance_field = fieldmodule.createFieldConstant(0.5)
         abs_field = fieldmodule.createFieldAbs(plane_equation_field)
         on_plane_field = fieldmodule.createFieldLessThan(abs_field, tolerance_field)
-        or_field = fieldmodule.createFieldOr(self._curve_group_field, self._point_cloud_group_field)
-        and_field = fieldmodule.createFieldAnd(on_plane_field, or_field)
 
         fieldmodule.endChange()
-        return and_field
+        return on_plane_field
 
     def _createOnPlanePointCloudField(self):
         fieldmodule = self._region.getFieldmodule()
@@ -94,6 +98,14 @@ class NodeModel(AbstractModel):
         fieldmodule = self._region.getFieldmodule()
         fieldmodule.beginChange()
         and_field = fieldmodule.createFieldAnd(self._on_plane_conditional_field, self._curve_group_field)
+        fieldmodule.endChange()
+
+        return and_field
+
+    def _createOnPlaneInterpolation(self):
+        fieldmodule = self._region.getFieldmodule()
+        fieldmodule.beginChange()
+        and_field = fieldmodule.createFieldAnd(self._on_plane_conditional_field, self._interpolation_point_group_field)
         fieldmodule.endChange()
 
         return and_field
@@ -126,11 +138,20 @@ class NodeModel(AbstractModel):
     def getCurveGroup(self):
         return self._curve_group
 
+    def getInterpolationPointGroup(self):
+        return self._interpolation_point_group
+
     def getOnPlanePointCloudField(self):
         return self._on_plane_point_cloud_field
 
+    def getOnPlaneInterpolationField(self):
+        return self._on_plane_conditional_field
+
     def getOnPlaneCurveField(self):
         return self._on_plane_curve_field
+
+    def getOnPlaneSegmentationPointField(self):
+        return self._on_plane_conditional_field
 
     def getSelectionGroupField(self):
         return self._selection_group_field
@@ -255,6 +276,13 @@ class NodeModel(AbstractModel):
         mesh.destroyElement(element)
         fieldmodule.endChange()
 
+    def createDatapoint(self, location=None):
+        return self._createNodeAtLocation(location, 'datapoints')
+
+    def removeDatapoint(self, datapoint):
+        nodeset = datapoint.getNodeset()
+        nodeset.destroyNode(datapoint)
+
     def removeNodes(self, node_statuses):
         fieldmodule = self._region.getFieldmodule()
         fieldmodule.beginChange()
@@ -310,7 +338,7 @@ class NodeModel(AbstractModel):
 
         return node
 
-    def _createNodeAtLocation(self, location):
+    def _createNodeAtLocation(self, location, dataset='nodes'):
         '''
         Creates a node at the given location without
         adding it to the current selection.
@@ -318,7 +346,7 @@ class NodeModel(AbstractModel):
         fieldmodule = self._region.getFieldmodule()
         fieldmodule.beginChange()
 
-        nodeset = fieldmodule.findNodesetByName('nodes')
+        nodeset = fieldmodule.findNodesetByName(dataset)
         template = nodeset.createNodetemplate()
         template.defineField(self._coordinate_field)
         node = nodeset.createNode(-1, template)

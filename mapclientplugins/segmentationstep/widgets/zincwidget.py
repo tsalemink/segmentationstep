@@ -334,7 +334,7 @@ class ZincWidget(QtOpenGL.QGLWidget):
         repaint required event all other events are ignored.
         '''
         if event.getChangeFlags() & Sceneviewerevent.CHANGE_FLAG_REPAINT_REQUIRED:
-            self.updateGL()
+            QtCore.QTimer.singleShot(0, self.updateGL)
 
 #  Not applicable at the current point in time.
 #     def _zincSelectionEvent(self, event):
