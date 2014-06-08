@@ -210,16 +210,22 @@ class SegmentationWidget(QtGui.QWidget):
         if keyevent.key() == 68 and not self._debug_print:
             self._debug_print = True
 
+    def _changeHandler(self, handler_type):
+        undo_redo_stack = self._model.getUndoRedoStack()
+        undo_redo_stack.beginMacro('Change Handler')
+        self._tabs[ViewType.VIEW_2D].setActiveHandler(handler_type)
+        self._tabs[ViewType.VIEW_3D].setActiveHandler(handler_type)
+        undo_redo_stack.endMacro()
+
     def keyReleaseEvent(self, keyevent):
         if keyevent.key() == 49 and keyevent.modifiers() & QtCore.Qt.CTRL and not keyevent.isAutoRepeat():
-            self._tabs[ViewType.VIEW_2D].setActiveHandler(ViewMode.SEGMENT_POINT)
-            self._tabs[ViewType.VIEW_3D].setActiveHandler(ViewMode.SEGMENT_POINT)
+            self._changeHandler(ViewMode.SEGMENT_POINT)
         if keyevent.key() == 50 and keyevent.modifiers() & QtCore.Qt.CTRL and not keyevent.isAutoRepeat():
-            self._tabs[ViewType.VIEW_2D].setActiveHandler(ViewMode.PLANE_NORMAL)
-            self._tabs[ViewType.VIEW_3D].setActiveHandler(ViewMode.PLANE_NORMAL)
+            self._changeHandler(ViewMode.SEGMENT_CURVE)
         if keyevent.key() == 51 and keyevent.modifiers() & QtCore.Qt.CTRL and not keyevent.isAutoRepeat():
-            self._tabs[ViewType.VIEW_2D].setActiveHandler(ViewMode.PLANE_ROTATION)
-            self._tabs[ViewType.VIEW_3D].setActiveHandler(ViewMode.PLANE_ROTATION)
+            self._changeHandler(ViewMode.PLANE_NORMAL)
+        if keyevent.key() == 52 and keyevent.modifiers() & QtCore.Qt.CTRL and not keyevent.isAutoRepeat():
+            self._changeHandler(ViewMode.PLANE_ROTATION)
 
         if keyevent.key() == 68 and not keyevent.isAutoRepeat():
             self._debug_print = False
