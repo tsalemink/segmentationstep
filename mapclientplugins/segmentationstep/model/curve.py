@@ -17,24 +17,38 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
     You should have received a copy of the GNU General Public License
     along with MAP Client.  If not, see <http://www.gnu.org/licenses/>..
 '''
-from mapclientplugins.segmentationstep.zincutils import create1DFiniteElement
+# from mapclientplugins.segmentationstep.zincutils import create1DFiniteElement
 from mapclientplugins.segmentationstep.maths.algorithms import paramerterizedSplines, \
     evaluatePolynomial
+from mapclientplugins.segmentationstep.definitions import DEFAULT_INTERPOLATION_COUNT
 
 class CurveModel(object):
 
     def __init__(self, node_model):
         self._node_model = node_model
         self._nodes = []
-        self._elements = []
+#         self._elements = []
         self._closed = False
+        self._interpolation_count = DEFAULT_INTERPOLATION_COUNT
 
-    def calculate(self, interpolation_points=5):
+    def getNodes(self):
+        return self._nodes
+
+    def setNodes(self, node_ids):
+        self._nodes = node_ids
+
+    def getInterpolationCount(self):
+        return self._interpolation_count
+
+    def setInterpolationCount(self, count):
+        self._interpolation_count = count
+
+    def calculate(self):
         data = [self._node_model.getNodeLocation(self._node_model.getNodeByIdentifier(node_id)) for node_id in self._nodes]
         if self.isClosed():
             data += [self._node_model.getNodeLocation(self._node_model.getNodeByIdentifier(self._nodes[0]))]
         splines = paramerterizedSplines(data)
-        t = [float(i) / (interpolation_points + 1) for i in xrange(1, interpolation_points + 1)]  # range(interpolation_points)
+        t = [float(i) / (self._interpolation_count + 1) for i in xrange(1, self._interpolation_count + 1)]  # range(interpolation_point_count)
         locations = []
         for pair in splines:
             xt = pair[0][:]
@@ -50,26 +64,30 @@ class CurveModel(object):
 
     def addNode(self, node_id):
         if node_id not in self._nodes:
-            if self._nodes:
-                first_node_id = self._nodes[-1]
-                self._elements.append(self._createElement(first_node_id, node_id))
+#             if self._nodes:
+#                 first_node_id = self._nodes[-1]
+#                 self._elements.append(self._createElement(first_node_id, node_id))
             self._nodes.append(node_id)
         elif self.closes(node_id):
-            first_node_id = self._nodes[-1]
-            self._elements.append(self._createElement(first_node_id, node_id))
+#             first_node_id = self._nodes[-1]
+#             self._elements.append(self._createElement(first_node_id, node_id))
             self._closed = True
 
     def removeNode(self, node_id):
         if node_id in self._nodes:
-            if self.isClosed() and node_id == self._nodes[0]:
-                self._removeElement(self._elements[-1])
-                del self._elements[-1]
-            else:
+#             if self.isClosed() and node_id == self._nodes[0]:
+#                 self._removeElement(self._elements[-1])
+#                 del self._elements[-1]
+#             else:
                 index = self._nodes.index(node_id)
-                [self._removeElement(element_id) for element_id in self._elements[(index - 1):]]
-                del self._elements[(index - 1):]
+#                 [self._removeElement(element_id) for element_id in self._elements[(index - 1):]]
+#                 del self._elements[(index - 1):]
                 del self._nodes[index:]
                 self._closed = False
+
+    def removeAllNodes(self):
+        self._nodes = []
+        self._closed = False
 
     def closes(self, node_id):
         cl = False
@@ -81,29 +99,19 @@ class CurveModel(object):
     def isClosed(self):
         return self._closed
 
-    def _removeElement(self, element_id):
-        region = self._node_model.getRegion()
-        fieldmodule = region.getFieldmodule()
-        mesh = fieldmodule.findMeshByDimension(1)
-        element = mesh.findElementByIdentifier(element_id)
-        mesh.destroyElement(element)
-
-    def _createElement(self, node_id1, node_id2):
-        node1 = self._node_model.getNodeByIdentifier(node_id1)
-        node2 = self._node_model.getNodeByIdentifier(node_id2)
-        element = create1DFiniteElement(self._node_model.getCoordinateField(), node1, node2)
-
-        return element.getIdentifier()
-
-    def __hash__(self, *args, **kwargs):
-        p = [str(v) for v in self._nodes]
-        if self._closed:
-            p.append(str(self._nodes[0]))
-        str_repr = ''.join(p)
-        return hash(str_repr)
-
-    def __eq__(self, other):
-        return hash(self) == hash(other)
+#     def _removeElement(self, element_id):
+#         region = self._node_model.getRegion()
+#         fieldmodule = region.getFieldmodule()
+#         mesh = fieldmodule.findMeshByDimension(1)
+#         element = mesh.findElementByIdentifier(element_id)
+#         mesh.destroyElement(element)
+#
+#     def _createElement(self, node_id1, node_id2):
+#         node1 = self._node_model.getNodeByIdentifier(node_id1)
+#         node2 = self._node_model.getNodeByIdentifier(node_id2)
+#         element = create1DFiniteElement(self._node_model.getCoordinateField(), node1, node2)
+#
+#         return element.getIdentifier()
 
     def __len__(self):
         return len(self._nodes)

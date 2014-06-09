@@ -22,7 +22,6 @@ from opencmiss.zinc.status import OK
 from mapclientplugins.segmentationstep.model.abstractmodel import AbstractModel
 from mapclientplugins.segmentationstep.zincutils import createFiniteElementField
 from mapclientplugins.segmentationstep.segmentpoint import SegmentPointStatus
-from mapclientplugins.segmentationstep.model.curve import CurveModel
 
 class NodeModel(AbstractModel):
 
@@ -31,7 +30,7 @@ class NodeModel(AbstractModel):
         self._plane = plane
         self._plane_attitudes = {}
         self._nodes = {}
-        self._curves = []
+        self._curves = {}
         self._setupNodeRegion()
         self._on_plane_conditional_field = self._createOnPlaneConditionalField()
         self._on_plane_point_cloud_field = self._createOnPlanePointCloudField()
@@ -216,14 +215,34 @@ class NodeModel(AbstractModel):
             element_id = -1
         return mesh.findElementByIdentifier(element_id)
 
-    def createCurve(self):
-        c = CurveModel(self)
-        self._curves.append(c)
+    def getCurveCount(self):
+        return len(self._curves)
 
-        return c
+    def insertCurve(self, curve_identifier, curve):
+        self._curves[curve_identifier] = curve
+
+    def popCurve(self, curve_identifier):
+        if curve_identifier in self._curves:
+            curve = self._curves[curve_identifier]
+            del self._curves[curve_identifier]
+            node_ids = curve.getNodes()
+            for node_id in node_ids:
+                self.removeNode(node_id)
+            curve.removeAllNodes()
+
+    def getCurveIndex(self, curve):
+        for curve_identifier in self._curves:
+            if curve == self._curves[curve_identifier]:
+                return curve_identifier
+
+        return None
+
+    def getCurveAtIndex(self, index):
+        return self._curves[index]
 
     def getCurveForNode(self, node_id):
-        for curve in self._curves:
+        for curve_identifier in self._curves:
+            curve = self._curves[curve_identifier]
             if node_id in curve:
                 return curve
 
@@ -237,6 +256,17 @@ class NodeModel(AbstractModel):
         self._nodes[node_id] = plane_attitude
 
         return node_id
+
+    def addNodes(self, node_statuses):
+        fieldmodule = self._region.getFieldmodule()
+        fieldmodule.beginChange()
+
+        node_ids = []
+        for node_status in node_statuses:
+            node_id = self.addNode(node_status.getNodeIdentifier(), node_status.getLocation(), node_status.getPlaneAttitude())
+            node_ids.append(node_id)
+
+        fieldmodule.endChange()
 
     def modifyNode(self, node_id, location, plane_attitude):
         current_plane_attitude = self._nodes[node_id]
@@ -302,13 +332,14 @@ class NodeModel(AbstractModel):
         nodeset = node.getNodeset()
         nodeset.destroyNode(node)
 
-    def createNodes(self, node_statuses):
+    def createNodes(self, node_statuses, group=None):
         node_ids = []
         for node_status in node_statuses:
             location = node_status.getLocation()
-            node = self._createNodeAtLocation(location)
-            node_id = node.getIdentifier()
-            node = self.addNode(node_id, location, node_status.getPlaneAttitude())
+            node_id = self.addNode(-1, location, node_status.getPlaneAttitude())
+            if group is not None:
+                node = self.getNodeByIdentifier(node_id)
+                group.addNode(node)
             node_ids.append(node_id)
 
         return node_ids

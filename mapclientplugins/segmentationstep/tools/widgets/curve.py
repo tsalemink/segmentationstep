@@ -19,9 +19,9 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
 '''
 from PySide import QtGui
 
-from mapclientplugins.segmentationstep.tools.resources.ui_point import Ui_PropertiesWidget
+from mapclientplugins.segmentationstep.tools.resources.ui_curve import Ui_PropertiesWidget
 from mapclientplugins.segmentationstep.definitions import DEFAULT_SEGMENTATION_POINT_SIZE, \
-    DEFAULT_PUSH_PULL_STEP_SIZE
+    DEFAULT_PUSH_PULL_STEP_SIZE, DEFAULT_INTERPOLATION_COUNT
 
 class PropertiesWidget(QtGui.QWidget):
 
@@ -32,6 +32,7 @@ class PropertiesWidget(QtGui.QWidget):
 
         self._ui._doubleSpinBoxPointSize.setValue(DEFAULT_SEGMENTATION_POINT_SIZE)
         self._ui._doubleSpinBoxStepSize.setValue(DEFAULT_PUSH_PULL_STEP_SIZE)
+        self._ui._spinBoxInterpolationCount.setValue(DEFAULT_INTERPOLATION_COUNT)
 
         self._tool = tool
 
@@ -40,7 +41,7 @@ class PropertiesWidget(QtGui.QWidget):
     def _makeConnections(self):
         self._ui._doubleSpinBoxPointSize.valueChanged.connect(self._tool.pointSizeChanged)
         self._ui._doubleSpinBoxStepSize.valueChanged.connect(self._tool.stepSizeChanged)
-        self._ui._checkBoxStreamingCreate.stateChanged.connect(self._tool.streamingCreateChanged)
+        self._ui._spinBoxInterpolationCount.valueChanged.connect(self._tool.interpolationCountChanged)
         self._ui._pushButtonDelete.clicked.connect(self._tool.deleteClicked)
         self._ui._pushButtonPullUp.clicked.connect(self._tool.pullUpClicked)
         self._ui._pushButtonPushDown.clicked.connect(self._tool.pushDownClicked)

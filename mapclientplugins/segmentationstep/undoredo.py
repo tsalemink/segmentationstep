@@ -21,6 +21,7 @@ from PySide import QtGui
 
 from mapclientplugins.segmentationstep.plane import PlaneAttitude
 from mapclientplugins.segmentationstep.maths.vectorops import mult, add
+from mapclientplugins.segmentationstep.model.curve import CurveModel
 
 class CommandMovePlane(QtGui.QUndoCommand):
 
@@ -278,33 +279,30 @@ class CommandCurveNode(CommandNode):
         group.addNode(node)
 
     def _updateInterpolationPoints(self, curve):
+        curve_index = self._model.getCurveIndex(curve)
         if len(curve) > 1:
             locations = curve.calculate()
-            self._scene.setInterpolationPoints(curve, locations)
+            self._scene.setInterpolationPoints(curve_index, locations)
         else:
-            self._scene.clearInterpolationPoints(curve)
+            self._scene.clearInterpolationPoints(curve_index)
 
     def redo(self):
         node_id = self._status_end.getNodeIdentifier()
         location = self._status_end.getLocation()
         plane_attitude = self._status_end.getPlaneAttitude()
-        curve = self._status_end.getCurve()
+        curve_index = self._status_end.getCurveIndex()
+        curve = self._model.getCurveAtIndex(curve_index)
         if location is None:
-            old = hash(curve)
             curve.removeNode(node_id)
             if not curve.closes(node_id):
                 self._removeNode(node_id)
-            self._scene.replaceCurve(old, hash(curve))
             self._updateInterpolationPoints(curve)
         else:
             previous_location = self._status_start.getLocation()
             if previous_location is None:
                 if not curve.closes(node_id):
                     node_id = self._addNode(node_id, location, plane_attitude)
-                old = hash(curve)
-#                 self._scene.clearInterpolationPoints(curve)
                 curve.addNode(node_id)
-                self._scene.replaceCurve(old, hash(curve))
                 self._updateInterpolationPoints(curve)
             else:
                 self._model.modifyNode(node_id, location, plane_attitude)
@@ -314,23 +312,19 @@ class CommandCurveNode(CommandNode):
         node_id = self._status_start.getNodeIdentifier()
         location = self._status_start.getLocation()
         plane_attitude = self._status_start.getPlaneAttitude()
-        curve = self._status_end.getCurve()
+        curve_index = self._status_end.getCurveIndex()
+        curve = self._model.getCurveAtIndex(curve_index)
         if location is None:
-            old = hash(curve)
             curve.removeNode(node_id)
             if not curve.closes(node_id):
                 self._removeNode(node_id)
-            self._scene.replaceCurve(old, hash(curve))
             self._updateInterpolationPoints(curve)
         else:
             next_location = self._status_end.getLocation()
             if next_location is None:
                 if not curve.closes(node_id):
                     node_id = self._addNode(node_id, location, plane_attitude)
-                old = hash(curve)
-#                 self._scene.clearInterpolationPoints(curve)
                 curve.addNode(node_id)
-                self._scene.replaceCurve(old, hash(curve))
                 self._updateInterpolationPoints(curve)
             else:
                 self._model.modifyNode(node_id, location, plane_attitude)
@@ -364,15 +358,84 @@ class CommandDelete(QtGui.QUndoCommand):
             self._node_statuses.append(model.getNodeStatus(node_id))
 
     def redo(self):
+        region = self._model.getRegion()
+        scene = region.getScene()
+
+        scene.beginChange()
         self._model.removeNodes(self._node_statuses)
+
+        scene.endChange()
 
     def undo(self):
         region = self._model.getRegion()
-        fieldmodule = region.getFieldmodule()
-        fieldmodule.beginChange()
-        node_ids = self._model.createNodes(self._node_statuses)
+        scene = region.getScene()
+        scene.beginChange()
+
+        node_ids = self._model.createNodes(self._node_statuses, group=self._model.getPointCloudGroup())
         self._model.setSelection(node_ids)
-        fieldmodule.endChange()
+
+        scene.endChange()
+
+
+class CommandDeleteCurve(QtGui.QUndoCommand):
+
+    def __init__(self, model, selected):
+        super(CommandDeleteCurve, self).__init__()
+        self.setText('Delete')
+        self._model = model
+        self._node_statuses = {}
+        self._curves = {}
+        self._interpolation_counts = {}
+        self._selected = selected
+        self._scene = None
+        different_curves = []
+        for node_id in selected:
+            curve = self._model.getCurveForNode(node_id)
+            curve_identifier = self._model.getCurveIndex(curve)
+            if curve_identifier not in different_curves:
+                different_curves.append(curve_identifier)
+                self._curves[curve_identifier] = curve
+                self._interpolation_counts[curve_identifier] = curve.getInterpolationCount()
+                self._node_statuses[curve_identifier] = []
+                for node_id in curve.getNodes():
+                    self._node_statuses[curve_identifier].append(model.getNodeStatus(node_id))
+
+    def setScene(self, scene):
+        self._scene = scene
+
+    def redo(self):
+        region = self._model.getRegion()
+        scene = region.getScene()
+        scene.beginChange()
+
+        for curve_identifier in self._curves:
+            self._scene.clearInterpolationPoints(curve_identifier)
+            self._model.popCurve(curve_identifier)
+            self._curves[curve_identifier] = None
+
+        scene.endChange()
+
+    def undo(self):
+        region = self._model.getRegion()
+        scene = region.getScene()
+        scene.beginChange()
+
+        node_ids = []
+        for curve_identifier in self._curves:
+            if self._curves[curve_identifier] is None:
+                curve = CurveModel(self._model)
+                self._model.insertCurve(curve_identifier, curve)
+                curve.setInterpolationCount(self._interpolation_counts[curve_identifier])
+                node_ids = self._model.createNodes(self._node_statuses[curve_identifier], group=self._model.getCurveGroup())
+                curve.setNodes(node_ids)
+                self._curves[curve_identifier] = curve
+                if len(curve) > 1:
+                    locations = curve.calculate()
+                    self._scene.setInterpolationPoints(curve_identifier, locations)
+
+        self._model.setSelection(self._selected)
+
+        scene.endChange()
 
 
 class CommandPushPull(QtGui.QUndoCommand):
@@ -429,25 +492,27 @@ class CommandPushPull(QtGui.QUndoCommand):
 
     def redo(self):
         region = self._model.getRegion()
-        fieldmodule = region.getFieldmodule()
-        fieldmodule.beginChange()
-        node_ids = self._model.createNodes(self._node_statuses)
+        scene = region.getScene()
+        scene.beginChange()
+
+        node_ids = self._model.createNodes(self._node_statuses, group=self._model.getPointCloudGroup())
         self._model.setSelection(node_ids)
         self._updateNodeIdentifiers(node_ids)
         self._set_rotation_point_method(self._rotation_point_end)
         self._set_normal_method(self._normal)
-        fieldmodule.endChange()
+
+        scene.endChange()
 
     def undo(self):
         region = self._model.getRegion()
-        fieldmodule = region.getFieldmodule()
-        fieldmodule.beginChange()
+        scene = region.getScene()
+        scene.beginChange()
 
         self._model.removeNodes(self._node_statuses)
         self._model.setSelection(self._selected)
         self._set_rotation_point_method(self._rotation_point_start)
         self._set_normal_method(self._normal)
 
-        fieldmodule.endChange()
+        scene.endChange()
 
 

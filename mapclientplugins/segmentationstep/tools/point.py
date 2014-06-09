@@ -20,11 +20,11 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
 from PySide import QtGui
 
 from mapclientplugins.segmentationstep.definitions import ViewType, \
-    POINT_CLOUD_ON_PLANE_GRAPHIC_NAME
+    POINT_CLOUD_ON_PLANE_GRAPHIC_NAME, DEFAULT_PUSH_PULL_STEP_SIZE
 from mapclientplugins.segmentationstep.tools.segmentation import SegmentationTool
 from mapclientplugins.segmentationstep.tools.handlers.point2d import Point2D
 from mapclientplugins.segmentationstep.tools.handlers.point3d import Point3D
-from mapclientplugins.segmentationstep.tools.widgets.point import PropertiesWidget, DEFAULT_STEP_SIZE
+from mapclientplugins.segmentationstep.tools.widgets.point import PropertiesWidget
 from mapclientplugins.segmentationstep.zincutils import getGlyphSize, setGlyphSize
 from mapclientplugins.segmentationstep.undoredo import CommandSetGlyphSize, CommandSetSingleParameterMethod, CommandDelete, CommandPushPull
 from mapclientplugins.segmentationstep.definitions import POINT_CLOUD_GRAPHIC_NAME
@@ -39,7 +39,7 @@ class PointTool(SegmentationTool):
         self._widget = PropertiesWidget(self)
         self._model = None
         self._plane = plane
-        self._step_size = DEFAULT_STEP_SIZE
+        self._step_size = DEFAULT_PUSH_PULL_STEP_SIZE
 
     def setGetDimensionsMethod(self, get_dimensions_method):
         self._handlers[ViewType.VIEW_2D].setGetDimensionsMethod(get_dimensions_method)
@@ -92,9 +92,22 @@ class PointTool(SegmentationTool):
         self._widget._ui._checkBoxStreamingCreate.setChecked(state)
         self._widget._ui._checkBoxStreamingCreate.blockSignals(False)
 
+    def _filterNodes(self, node_ids):
+        point_cloud_nodes = []
+        group = self._model.getPointCloudGroup()
+        for node_id in node_ids:
+            node = self._model.getNodeByIdentifier(node_id)
+            if group.containsNode(node):
+                point_cloud_nodes.append(node_id)
+
+        return point_cloud_nodes
+
     def deleteClicked(self):
-        c = CommandDelete(self._model, self._model.getCurrentSelection())
-        self._undo_redo_stack.push(c)
+        selection_point_cloud = self._filterNodes(self._model.getCurrentSelection())
+
+        if selection_point_cloud:
+            c = CommandDelete(self._model, selection_point_cloud)
+            self._undo_redo_stack.push(c)
 
     def pushDownClicked(self):
         self._pushPullNodes(-1.0)
@@ -103,7 +116,7 @@ class PointTool(SegmentationTool):
         self._pushPullNodes(1.0)
 
     def _pushPullNodes(self, direction):
-        current_selection = self._model.getCurrentSelection()
+        current_selection = self._filterNodes(self._model.getCurrentSelection())
         if current_selection:
             value = self._widget._ui._doubleSpinBoxStepSize.value()
             scale = value * direction

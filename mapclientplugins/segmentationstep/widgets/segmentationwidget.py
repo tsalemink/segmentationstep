@@ -283,6 +283,8 @@ class SegmentationWidget(QtGui.QWidget):
         curve_tool.setModel(node_model)
         curve_tool.setScene(node_scene)
         curve_tool.setGetDimensionsMethod(image_model.getDimensions)
+        w = curve_tool.getPropertiesWidget()
+        self._ui._toolTab.addItem(w, curve_tool.getName())
 
         view_3d_tab.addHandler(point_tool.getName(), point_tool.getIcon(), point_tool.getHandler(ViewType.VIEW_3D))
         view_3d_tab.addHandler(curve_tool.getName(), curve_tool.getIcon(), curve_tool.getHandler(ViewType.VIEW_3D))
