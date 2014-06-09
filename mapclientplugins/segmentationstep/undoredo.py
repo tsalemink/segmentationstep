@@ -279,7 +279,7 @@ class CommandCurveNode(CommandNode):
         group.addNode(node)
 
     def _updateInterpolationPoints(self, curve):
-        curve_index = self._model.getCurveIndex(curve)
+        curve_index = self._model.getCurveIdentifier(curve)
         if len(curve) > 1:
             locations = curve.calculate()
             self._scene.setInterpolationPoints(curve_index, locations)
@@ -290,8 +290,8 @@ class CommandCurveNode(CommandNode):
         node_id = self._status_end.getNodeIdentifier()
         location = self._status_end.getLocation()
         plane_attitude = self._status_end.getPlaneAttitude()
-        curve_index = self._status_end.getCurveIndex()
-        curve = self._model.getCurveAtIndex(curve_index)
+        curve_index = self._status_end.getCurveIdentifier()
+        curve = self._model.getCurveWithIdentifier(curve_index)
         if location is None:
             curve.removeNode(node_id)
             if not curve.closes(node_id):
@@ -312,8 +312,8 @@ class CommandCurveNode(CommandNode):
         node_id = self._status_start.getNodeIdentifier()
         location = self._status_start.getLocation()
         plane_attitude = self._status_start.getPlaneAttitude()
-        curve_index = self._status_end.getCurveIndex()
-        curve = self._model.getCurveAtIndex(curve_index)
+        curve_index = self._status_end.getCurveIdentifier()
+        curve = self._model.getCurveWithIdentifier(curve_index)
         if location is None:
             curve.removeNode(node_id)
             if not curve.closes(node_id):
@@ -391,7 +391,7 @@ class CommandDeleteCurve(QtGui.QUndoCommand):
         different_curves = []
         for node_id in selected:
             curve = self._model.getCurveForNode(node_id)
-            curve_identifier = self._model.getCurveIndex(curve)
+            curve_identifier = self._model.getCurveIdentifier(curve)
             if curve_identifier not in different_curves:
                 different_curves.append(curve_identifier)
                 self._curves[curve_identifier] = curve
@@ -529,7 +529,7 @@ class CommandPushPullCurve(AbstractCommandPushPull):
         different_curves = []
         for node_id in selected:
             curve = self._model.getCurveForNode(node_id)
-            curve_identifier = self._model.getCurveIndex(curve)
+            curve_identifier = self._model.getCurveIdentifier(curve)
             if curve_identifier not in different_curves:
                 different_curves.append(curve_identifier)
                 self._curves[curve_identifier] = curve_identifier

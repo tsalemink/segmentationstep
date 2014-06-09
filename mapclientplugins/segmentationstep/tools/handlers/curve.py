@@ -61,7 +61,7 @@ class Curve(AbstractSelection):
             if (event.modifiers() & QtCore.Qt.CTRL) and event.button() == QtCore.Qt.RightButton:
                 node_id = self._node_status.getNodeIdentifier()
                 self._active_curve.removeNode(node_id)
-                curve_index = self._model.getCurveIndex(self._active_curve)
+                curve_index = self._model.getCurveIdentifier(self._active_curve)
                 if len(self._active_curve) > 1:
                     locations = self._active_curve.calculate()
                     self._scene.setInterpolationPoints(curve_index, locations)
@@ -116,7 +116,7 @@ class Curve(AbstractSelection):
                 self._active_curve.addNode(node_id)
 
             self._node_status = ControlPointStatus(node_id, node_location, plane_attitude)
-            curve_index = self._model.getCurveIndex(self._active_curve)
+            curve_index = self._model.getCurveIdentifier(self._active_curve)
             self._node_status.setCurveIndex(curve_index)
         elif self._node_status is None:
             super(Curve, self).mousePressEvent(event)
@@ -127,7 +127,7 @@ class Curve(AbstractSelection):
             node = self._model.getNodeByIdentifier(self._node_status.getNodeIdentifier())
             point_on_plane = self._calculatePointOnPlane(event.x(), event.y())
             self._model.setNodeLocation(node, point_on_plane)
-            curve_index = self._model.getCurveIndex(self._active_curve)
+            curve_index = self._model.getCurveIdentifier(self._active_curve)
             if len(self._active_curve) > 1:
                 locations = self._active_curve.calculate()
                 self._scene.setInterpolationPoints(curve_index, locations)
@@ -160,7 +160,7 @@ class Curve(AbstractSelection):
                 group.addNode(node2)
 
             node_id = node2.getIdentifier()
-            curve_index = self._model.getCurveIndex(self._active_curve)
+            curve_index = self._model.getCurveIdentifier(self._active_curve)
             self._scene.clearInterpolationPoints(curve_index)
             self._active_curve.addNode(node_id)
             node_status.setCurveIndex(curve_index)
@@ -180,7 +180,7 @@ class Curve(AbstractSelection):
             node_location = self._model.getNodeLocation(node)
             plane_attitude = self._plane.getAttitude()
             node_status = ControlPointStatus(node_id, node_location, plane_attitude)
-            curve_index = self._model.getCurveIndex(self._active_curve)
+            curve_index = self._model.getCurveIdentifier(self._active_curve)
             node_status.setCurveIndex(curve_index)
             c = CommandCurveNode(self._model, self._node_status, node_status)
             c.setScene(self._scene)

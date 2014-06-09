@@ -230,14 +230,14 @@ class NodeModel(AbstractModel):
                 self.removeNode(node_id)
             curve.removeAllNodes()
 
-    def getCurveIndex(self, curve):
+    def getCurveIdentifier(self, curve):
         for curve_identifier in self._curves:
             if curve == self._curves[curve_identifier]:
                 return curve_identifier
 
         return None
 
-    def getCurveAtIndex(self, index):
+    def getCurveWithIdentifier(self, index):
         return self._curves[index]
 
     def getCurveForNode(self, node_id):

@@ -52,7 +52,7 @@ class ControlPointStatus(SegmentPointStatus):
     def setCurveIndex(self, index):
         self._curve_index = index
 
-    def getCurveIndex(self):
+    def getCurveIdentifier(self):
         return self._curve_index
 
 
