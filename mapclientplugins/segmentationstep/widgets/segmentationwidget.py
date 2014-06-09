@@ -30,18 +30,6 @@ from mapclientplugins.segmentationstep.zincutils import getGlyphSize, setGlyphSi
 from mapclientplugins.segmentationstep.widgets.sceneviewertab import SceneviewerTab
 from mapclientplugins.segmentationstep.scene.master import MasterScene
 
-class FakeMouseEvent(object):
-
-    def __init__(self, x, y):
-        self._x = x
-        self._y = y
-
-    def x(self):
-        return self._x
-
-    def y(self):
-        return self._y
-
 class SegmentationWidget(QtGui.QWidget):
     '''
     About dialog to display program about information.
@@ -67,11 +55,6 @@ class SegmentationWidget(QtGui.QWidget):
 
         self._debug_print = False
 
-        self._timer = QtCore.QTimer()
-#         self._timer.timeout.connect(self.falsifyMouseEvents)
-#         self._timer.start(1000)
-        self._counter = 0
-
         self._viewstate = None
 
         self._setupUi()
@@ -86,6 +69,9 @@ class SegmentationWidget(QtGui.QWidget):
         self._ui._checkBoxCoordinateLabels.clicked.connect(self._graphicVisibilityChanged)
         self._ui._checkBoxImageOutline.clicked.connect(self._graphicVisibilityChanged)
         self._ui._checkBoxImagePlane.clicked.connect(self._graphicVisibilityChanged)
+
+        self._ui._pushButtonSave.clicked.connect(self._saveState)
+        self._ui._pushButtonSave.clicked.connect(self._loadState)
 
     def _setupUi(self):
         dbl_validator = QtGui.QDoubleValidator()
@@ -102,6 +88,12 @@ class SegmentationWidget(QtGui.QWidget):
     def _resetViewClicked(self):
         self._loadViewState()
         self._undoRedoStack.clear()
+
+    def _saveState(self):
+        pass
+
+    def _loadState(self):
+        pass
 
     def _saveViewState(self):
         eye, lookat, up, angle = self._ui._sceneviewer3d.getViewParameters()
