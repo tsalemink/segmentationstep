@@ -17,7 +17,8 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
     You should have received a copy of the GNU General Public License
     along with MAP Client.  If not, see <http://www.gnu.org/licenses/>..
 '''
-# from mapclientplugins.segmentationstep.zincutils import create1DFiniteElement
+import json
+
 from mapclientplugins.segmentationstep.maths.algorithms import paramerterizedSplines, \
     evaluatePolynomial
 from mapclientplugins.segmentationstep.definitions import DEFAULT_INTERPOLATION_COUNT
@@ -29,6 +30,17 @@ class CurveModel(object):
         self._nodes = []
         self._closed = False
         self._interpolation_count = DEFAULT_INTERPOLATION_COUNT
+
+    def serialize(self):
+        str_rep = '{"_nodes":' + json.dumps(self._nodes) + ', ' \
+            + '"_closed":' + json.dumps(self._closed) + ', ' \
+            + '"_interpolation_count":' + json.dumps(self._interpolation_count) + '}'
+
+        return str_rep
+
+    def deserialize(self, str_rep):
+        d = json.loads(str_rep)
+        self.__dict__.update(d)
 
     def getNodes(self):
         return self._nodes

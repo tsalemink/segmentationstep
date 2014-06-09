@@ -71,7 +71,7 @@ class SegmentationWidget(QtGui.QWidget):
         self._ui._checkBoxImagePlane.clicked.connect(self._graphicVisibilityChanged)
 
         self._ui._pushButtonSave.clicked.connect(self._saveState)
-        self._ui._pushButtonSave.clicked.connect(self._loadState)
+        self._ui._pushButtonLoad.clicked.connect(self._loadState)
 
     def _setupUi(self):
         dbl_validator = QtGui.QDoubleValidator()
@@ -90,10 +90,17 @@ class SegmentationWidget(QtGui.QWidget):
         self._undoRedoStack.clear()
 
     def _saveState(self):
-        pass
+#         import json
+        node_model = self._model.getNodeModel()
+        str_model = node_model.serialize()
+        f = open('saved_state.seg', 'w')
+        f.write(str_model)
 
     def _loadState(self):
-        pass
+        node_model = self._model.getNodeModel()
+        f = open('saved_state.seg', 'r')
+        str_model = f.read()
+        node_model.deserialize(str_model)
 
     def _saveViewState(self):
         eye, lookat, up, angle = self._ui._sceneviewer3d.getViewParameters()

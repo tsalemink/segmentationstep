@@ -17,6 +17,8 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
     You should have received a copy of the GNU General Public License
     along with MAP Client.  If not, see <http://www.gnu.org/licenses/>..
 '''
+import json
+
 from mapclientplugins.segmentationstep.observed import event
 
 class Plane(object):
@@ -32,6 +34,17 @@ class Plane(object):
     def _createRotationPointField(self, fieldmodule):
         point_on_plane_field = fieldmodule.createFieldConstant([0, 0, 0])
         return point_on_plane_field
+
+    def serialize(self):
+        tmp = '{ "normal":' + json.dumps(self.getNormal()) + ',' \
+        + '"point":' + json.dumps(self.getRotationPoint()) + '}'
+
+        return tmp
+
+    def deserialize(self, str_rep):
+        d = json.loads(str_rep)
+        self.setNormal(d['normal'])
+        self.setRotationPoint(d['point'])
 
     @event
     def notifyChange(self):
@@ -100,6 +113,12 @@ class PlaneAttitude(object):
     def __init__(self, point, normal):
         self._point = point
         self._normal = normal
+
+    def serialize(self):
+        return json.dumps(self.__dict__)
+
+    def deserialize(self, str_rep):
+        self.__dict__ = json.loads(str_rep)
 
     def getNormal(self):
         return self._normal

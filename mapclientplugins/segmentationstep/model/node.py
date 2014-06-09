@@ -17,17 +17,23 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
     You should have received a copy of the GNU General Public License
     along with MAP Client.  If not, see <http://www.gnu.org/licenses/>..
 '''
+import json
+
 from opencmiss.zinc.status import OK
 
 from mapclientplugins.segmentationstep.model.abstractmodel import AbstractModel
 from mapclientplugins.segmentationstep.zincutils import createFiniteElementField
 from mapclientplugins.segmentationstep.segmentpoint import SegmentPointStatus
+from mapclientplugins.segmentationstep.model.curve import CurveModel
+from mapclientplugins.segmentationstep.plane import PlaneAttitude
 
 class NodeModel(AbstractModel):
 
     def __init__(self, context, plane):
         super(NodeModel, self).__init__(context)
+        self._attributes_that_auto_serialize = [ "_nodes", "_plane_attitudes"]
         self._plane = plane
+        self._plane_attitude_store = []
         self._plane_attitudes = {}
         self._nodes = {}
         self._curves = {}
@@ -36,6 +42,107 @@ class NodeModel(AbstractModel):
         self._on_plane_point_cloud_field = self._createOnPlanePointCloudField()
         self._on_plane_curve_field = self._createOnPlaneCurveField()
         self._on_plane_interpolation_point_field = self._createOnPlaneInterpolation()
+
+    def _serializeNodeset(self, group):
+        str_rep = ''
+        ni = group.createNodeiterator()
+        node = ni.next()
+        while node.isValid():
+            str_rep += '"' + str(node.getIdentifier()) + '":' + json.dumps(self.getNodeLocation(node))
+            node = ni.next()
+            if node.isValid():
+                str_rep += ','
+
+        return str_rep
+
+    def _serializeSelection(self):
+        node_ids = []
+        ni = self._group.createNodeiterator()
+        node = ni.next()
+        while node.isValid():
+            node_ids.append(node.getIdentifier())
+            node = ni.next()
+
+        return json.dumps(node_ids)
+
+    def serialize(self):
+        str_rep = '{'
+        str_rep += '"_basic_points":{' + self._serializeNodeset(self._point_cloud_group)
+        str_rep += '},'
+        str_rep += '"_curve_points":{' + self._serializeNodeset(self._curve_group)
+        str_rep += '},'
+        str_rep += '"_interpolation_points":{' + self._serializeNodeset(self._interpolation_point_group)
+        str_rep += '},'
+        str_rep += '"_selection":' + self._serializeSelection()
+        str_rep += ','
+        str_rep += '"_plane":' + self._plane.serialize() + ','
+        str_rep += '"_curves":{ '  # this space after the curly bracket is very important do not remove it.
+        for curve_index in self._curves:
+            str_rep += '"' + str(curve_index) + '":' + self._curves[curve_index].serialize() + ','
+        str_rep = str_rep[:-1] + '},'
+        str_rep += '"_plane_attitude_store":['
+        for plane_attitude in self._plane_attitude_store:
+            str_rep += plane_attitude.serialize()
+            if plane_attitude != self._plane_attitude_store[-1]:
+                str_rep += ', '
+        str_rep += '],'
+
+        for attr in self._attributes_that_auto_serialize:
+            str_rep += '"' + attr + '":' + json.dumps(getattr(self, attr))
+            if attr != self._attributes_that_auto_serialize[-1]:
+                str_rep += ','
+
+        str_rep += '}'
+        print(str_rep)
+        return str_rep
+
+    def _deserializeNodeset(self, group, data):
+        print(group.getName())
+        for node_id in data:
+            node = self._createNodeAtLocation(data[node_id], group.getName(), int(node_id))
+            group.addNode(node)
+
+    def _deserializeSelection(self, data):
+        print(data)
+        for node_id in data:
+            node = self.getNodeByIdentifier(node_id)
+            self._group.addNode(node)
+
+    def deserialize(self, str_rep):
+        scene = self._region.getScene()
+        scene.beginChange()
+        master_nodeset = self._point_cloud_group.getMasterNodeset()  # removeAllNodes()
+        master_nodeset.destroyAllNodes()
+        master_nodeset = self._interpolation_point_group.getMasterNodeset()
+        master_nodeset.destroyAllNodes()
+        self.setSelection([])
+
+        d = json.loads(str_rep)
+
+        self._deserializeNodeset(self._point_cloud_group, d['_basic_points'])
+        self._deserializeNodeset(self._curve_group, d['_curve_points'])
+        self._deserializeNodeset(self._interpolation_point_group, d['_interpolation_points'])
+        self.setSelection(d['_selection'])
+        self._plane.deserialize(json.dumps(d['_plane']))
+        print(self._serializeSelection(), d['_selection'])
+        del d['_plane']
+        self._curves = {}
+        curves = d['_curves']
+        for curve_index in curves:
+            c = CurveModel(self)
+            c.deserialize(json.dumps(curves[curve_index]))
+            self._curves[int(curve_index)] = c
+        del d['_curves']
+        self._plane_attitude_store = []
+        plane_attitude_store = d['_plane_attitude_store']
+        for plane_attitude in plane_attitude_store:
+            p = PlaneAttitude(None, None)
+            p.deserialize(json.dumps(plane_attitude))
+            self._plane_attitude_store.append(p)
+        del d['_plane_attitude_store']
+
+        self.__dict__.update(d)
+        scene.endChange()
 
     def _setupNodeRegion(self):
         self._region = self._context.getDefaultRegion().createChild('point_cloud')
@@ -173,7 +280,7 @@ class NodeModel(AbstractModel):
 
     def setSelection(self, selection):
         fieldmodule = self._region.getFieldmodule()
-        nodeset = fieldmodule.findNodesetByName('nodes')
+        nodeset = self._group.getMasterNodeset()  # fieldmodule.findNodesetByName('nodes')
         fieldmodule.beginChange()
         self._selection_group_field.clear()
         for node_id in selection:
@@ -189,7 +296,7 @@ class NodeModel(AbstractModel):
         return node
 
     def getNodePlaneAttitude(self, node_id):
-        return self._nodes[node_id]
+        return self._plane_attitude_store[self._nodes[str(node_id)]]
 
     def getNodeStatus(self, node_id):
         node = self.getNodeByIdentifier(node_id)
@@ -197,16 +304,26 @@ class NodeModel(AbstractModel):
         return node_status
 
     def _addId(self, plane_attitude, node_id):
-        if plane_attitude in self._plane_attitudes:
-            self._plane_attitudes[plane_attitude].append(node_id)
+        if plane_attitude in self._plane_attitude_store:
+            index = self._plane_attitude_store.index(plane_attitude)
+            self._plane_attitudes[str(index)].append(node_id)
         else:
-            self._plane_attitudes[plane_attitude] = [node_id]
+            if None in self._plane_attitude_store:
+                index = self._plane_attitude_store.index(None)
+                self._plane_attitude_store[index] = plane_attitude
+            else:
+                index = len(self._plane_attitude_store)
+                self._plane_attitude_store.append(plane_attitude)
+
+            self._plane_attitudes[str(index)] = [node_id]
 
     def _removeId(self, plane_attitude, node_id):
-        index = self._plane_attitudes[plane_attitude].index(node_id)
-        del self._plane_attitudes[plane_attitude][index]
-        if len(self._plane_attitudes[plane_attitude]) == 0:
-            del self._plane_attitudes[plane_attitude]
+        plane_attitude_index = self._plane_attitude_store.index(plane_attitude)
+        index = self._plane_attitudes[str(plane_attitude_index)].index(node_id)
+        del self._plane_attitudes[str(plane_attitude_index)][index]
+        if len(self._plane_attitudes[str(plane_attitude_index)]) == 0:
+            del self._plane_attitudes[str(plane_attitude_index)]
+            self._plane_attitude_store[plane_attitude_index] = None
 
     def getElementByIdentifier(self, element_id):
         fieldmodule = self._region.getFieldmodule()
@@ -253,7 +370,7 @@ class NodeModel(AbstractModel):
             node = self._createNodeAtLocation(location)
             node_id = node.getIdentifier()
         self._addId(plane_attitude, node_id)
-        self._nodes[node_id] = plane_attitude
+        self._nodes[str(node_id)] = self._plane_attitude_store.index(plane_attitude)
 
         return node_id
 
@@ -269,13 +386,13 @@ class NodeModel(AbstractModel):
         fieldmodule.endChange()
 
     def modifyNode(self, node_id, location, plane_attitude):
-        current_plane_attitude = self._nodes[node_id]
+        current_plane_attitude = self._plane_attitude_store[self._nodes[str(node_id)]]
         node = self.getNodeByIdentifier(node_id)
         self.setNodeLocation(node, location)
         if current_plane_attitude != plane_attitude:
             self._removeId(current_plane_attitude, node_id)
             self._addId(plane_attitude, node_id)
-            self._nodes[node_id] = plane_attitude
+            self._nodes[str(node_id)] = self._plane_attitude_store.index(plane_attitude)
 
     def setNodeLocation(self, node, location):
         fieldmodule = self._region.getFieldmodule()
@@ -307,7 +424,9 @@ class NodeModel(AbstractModel):
         fieldmodule.endChange()
 
     def createDatapoint(self, location=None):
-        return self._createNodeAtLocation(location, 'datapoints')
+        node = self._createNodeAtLocation(location, 'datapoints')
+        self._interpolation_point_group.addNode(node)
+        return node
 
     def removeDatapoint(self, datapoint):
         nodeset = datapoint.getNodeset()
@@ -323,10 +442,10 @@ class NodeModel(AbstractModel):
         fieldmodule.endChange()
 
     def removeNode(self, node_id):
-        if node_id in self._nodes:
-            plane_attitude = self._nodes[node_id]
+        if str(node_id) in self._nodes:
+            plane_attitude = self._plane_attitude_store[self._nodes[str(node_id)]]
             self._removeId(plane_attitude, node_id)
-            del self._nodes[node_id]
+            del self._nodes[str(node_id)]
 
         node = self.getNodeByIdentifier(node_id)
         nodeset = node.getNodeset()
@@ -368,7 +487,7 @@ class NodeModel(AbstractModel):
 
         return node
 
-    def _createNodeAtLocation(self, location, dataset='nodes'):
+    def _createNodeAtLocation(self, location, dataset='nodes', node_id=-1):
         '''
         Creates a node at the given location without
         adding it to the current selection.
@@ -379,7 +498,7 @@ class NodeModel(AbstractModel):
         nodeset = fieldmodule.findNodesetByName(dataset)
         template = nodeset.createNodetemplate()
         template.defineField(self._coordinate_field)
-        node = nodeset.createNode(-1, template)
+        node = nodeset.createNode(node_id, template)
         self.setNodeLocation(node, location)
         fieldmodule.endChange()
 
