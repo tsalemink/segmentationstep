@@ -217,15 +217,33 @@ class SegmentationWidget(QtGui.QWidget):
         self._tabs[ViewType.VIEW_3D].setActiveHandler(handler_type)
         undo_redo_stack.endMacro()
 
+    def _deleteClicked(self):
+        if self._tools[ViewMode.SEGMENT_POINT].willDelete():
+            self._tools[ViewMode.SEGMENT_POINT].deleteClicked()
+        elif self._tools[ViewMode.SEGMENT_CURVE].willDelete():
+            self._tools[ViewMode.SEGMENT_CURVE].deleteClicked()
+
     def keyReleaseEvent(self, keyevent):
-        if keyevent.key() == 49 and keyevent.modifiers() & QtCore.Qt.CTRL and not keyevent.isAutoRepeat():
+        '''
+        Special Keys:
+        To provide the expected behavior for Qt applications on Mac OS X,
+        the Qt::Meta, Qt::MetaModifier, and Qt::META enum values correspond
+        to the Control keys on the standard Macintosh keyboard, and the
+        Qt::Control, Qt::ControlModifier, and Qt::CTRL enum values 
+        correspond to the Command keys.
+        '''
+        if keyevent.key() == QtCore.Qt.Key_1 and keyevent.modifiers() & QtCore.Qt.CTRL and not keyevent.isAutoRepeat():
             self._changeHandler(ViewMode.SEGMENT_POINT)
-        if keyevent.key() == 50 and keyevent.modifiers() & QtCore.Qt.CTRL and not keyevent.isAutoRepeat():
+        if keyevent.key() == QtCore.Qt.Key_2 and keyevent.modifiers() & QtCore.Qt.CTRL and not keyevent.isAutoRepeat():
             self._changeHandler(ViewMode.SEGMENT_CURVE)
-        if keyevent.key() == 51 and keyevent.modifiers() & QtCore.Qt.CTRL and not keyevent.isAutoRepeat():
+        if keyevent.key() == QtCore.Qt.Key_3 and keyevent.modifiers() & QtCore.Qt.CTRL and not keyevent.isAutoRepeat():
             self._changeHandler(ViewMode.PLANE_NORMAL)
-        if keyevent.key() == 52 and keyevent.modifiers() & QtCore.Qt.CTRL and not keyevent.isAutoRepeat():
+        if keyevent.key() == QtCore.Qt.Key_4 and keyevent.modifiers() & QtCore.Qt.CTRL and not keyevent.isAutoRepeat():
             self._changeHandler(ViewMode.PLANE_ROTATION)
+        if keyevent.key() == QtCore.Qt.Key_Delete and not keyevent.isAutoRepeat():
+            self._deleteClicked()
+        if keyevent.key() == QtCore.Qt.Key_Backspace and not keyevent.isAutoRepeat():
+            self._deleteClicked()
 
         if keyevent.key() == 68 and not keyevent.isAutoRepeat():
             self._debug_print = False

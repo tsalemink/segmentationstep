@@ -335,8 +335,7 @@ class NodeModel(AbstractModel):
     def createNodes(self, node_statuses, group=None):
         node_ids = []
         for node_status in node_statuses:
-            location = node_status.getLocation()
-            node_id = self.addNode(-1, location, node_status.getPlaneAttitude())
+            node_id = self.addNode(-1, node_status.getLocation(), node_status.getPlaneAttitude())
             if group is not None:
                 node = self.getNodeByIdentifier(node_id)
                 group.addNode(node)

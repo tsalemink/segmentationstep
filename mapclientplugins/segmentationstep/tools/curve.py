@@ -30,7 +30,7 @@ from mapclientplugins.segmentationstep.tools.widgets.curve import PropertiesWidg
 from mapclientplugins.segmentationstep.zincutils import getGlyphSize, \
     setGlyphSize
 from mapclientplugins.segmentationstep.undoredo import CommandSetGlyphSize, \
-    CommandSetSingleParameterMethod, CommandPushPull, CommandDeleteCurve
+    CommandSetSingleParameterMethod, CommandPushPullCurve, CommandDeleteCurve
 
 class CurveTool(SegmentationTool):
 
@@ -129,9 +129,10 @@ class CurveTool(SegmentationTool):
         if current_selection:
             value = self._widget._ui._doubleSpinBoxStepSize.value()
             scale = value * direction
-            c = CommandPushPull(self._model, current_selection, scale)
+            c = CommandPushPullCurve(self._model, current_selection, scale)
             c.setSetRotationPointMethod(self._plane.setRotationPoint)
             c.setSetNormalMethod(self._plane.setNormal)
+            c.setScene(self._scene)
             self._undo_redo_stack.push(c)
 
 

@@ -437,11 +437,10 @@ class CommandDeleteCurve(QtGui.QUndoCommand):
 
         scene.endChange()
 
-
-class CommandPushPull(QtGui.QUndoCommand):
+class AbstractCommandPushPull(QtGui.QUndoCommand):
 
     def __init__(self, model, selected, scale):
-        super(CommandPushPull, self).__init__()
+        super(AbstractCommandPushPull, self).__init__()
         self.setText('Push/Pull')
         self._rotation_point_start = None
         self._rotation_point_end = None
@@ -486,9 +485,12 @@ class CommandPushPull(QtGui.QUndoCommand):
 
         return node_statuses
 
-    def _updateNodeIdentifiers(self, node_ids):
-        for i, node_status in enumerate(self._node_statuses):
-            node_status.setNodeIdentifier(node_ids[i])
+def _updateNodeIdentifiers(node_statuses, node_ids):
+    for i, node_status in enumerate(node_statuses):
+        node_status.setNodeIdentifier(node_ids[i])
+
+
+class CommandPushPull(AbstractCommandPushPull):
 
     def redo(self):
         region = self._model.getRegion()
@@ -497,7 +499,7 @@ class CommandPushPull(QtGui.QUndoCommand):
 
         node_ids = self._model.createNodes(self._node_statuses, group=self._model.getPointCloudGroup())
         self._model.setSelection(node_ids)
-        self._updateNodeIdentifiers(node_ids)
+        _updateNodeIdentifiers(self._node_statuses, node_ids)
         self._set_rotation_point_method(self._rotation_point_end)
         self._set_normal_method(self._normal)
 
@@ -509,6 +511,71 @@ class CommandPushPull(QtGui.QUndoCommand):
         scene.beginChange()
 
         self._model.removeNodes(self._node_statuses)
+        self._model.setSelection(self._selected)
+        self._set_rotation_point_method(self._rotation_point_start)
+        self._set_normal_method(self._normal)
+
+        scene.endChange()
+
+
+class CommandPushPullCurve(AbstractCommandPushPull):
+
+    def __init__(self, model, selected, scale):
+        super(CommandPushPullCurve, self).__init__(model, selected, scale)
+        self._scene = None
+        self._node_statuses = {}
+        self._curves = {}
+        self._interpolation_counts = {}
+        different_curves = []
+        for node_id in selected:
+            curve = self._model.getCurveForNode(node_id)
+            curve_identifier = self._model.getCurveIndex(curve)
+            if curve_identifier not in different_curves:
+                different_curves.append(curve_identifier)
+                self._curves[curve_identifier] = curve_identifier
+                self._interpolation_counts[curve_identifier] = curve.getInterpolationCount()
+                self._node_statuses[curve_identifier] = self._adjustNodeLocation(curve.getNodes(), scale)
+
+    def setScene(self, scene):
+        self._scene = scene
+
+    def redo(self):
+        region = self._model.getRegion()
+        scene = region.getScene()
+        scene.beginChange()
+
+        selection_node_ids = []
+        for curve_identifier in self._curves:
+            node_statuses = self._node_statuses[curve_identifier]
+            node_ids = self._model.createNodes(node_statuses, group=self._model.getCurveGroup())
+            _updateNodeIdentifiers(node_statuses, node_ids)
+            curve = CurveModel(self._model)
+            curve_count = self._model.getCurveCount()
+            self._model.insertCurve(curve_count, curve)
+            curve.setInterpolationCount(self._interpolation_counts[curve_identifier])
+            curve.setNodes(node_ids)
+            self._curves[curve_identifier] = curve_count
+            if len(curve) > 1:
+                locations = curve.calculate()
+                self._scene.setInterpolationPoints(curve_count, locations)
+            selection_node_ids += node_ids
+
+        self._model.setSelection(selection_node_ids)
+        self._set_rotation_point_method(self._rotation_point_end)
+        self._set_normal_method(self._normal)
+
+        scene.endChange()
+
+    def undo(self):
+        region = self._model.getRegion()
+        scene = region.getScene()
+        scene.beginChange()
+
+        for old_curve_identifier in self._curves:
+            new_curve_identifier = self._curves[old_curve_identifier]
+            self._scene.clearInterpolationPoints(new_curve_identifier)
+            self._model.popCurve(new_curve_identifier)
+
         self._model.setSelection(self._selected)
         self._set_rotation_point_method(self._rotation_point_start)
         self._set_normal_method(self._normal)

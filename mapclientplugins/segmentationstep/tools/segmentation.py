@@ -61,4 +61,12 @@ class SegmentationTool(object):
     def setScene(self, scene):
         raise NotImplementedError()
 
+    def willDelete(self):
+        selection_curve = self._filterNodes(self._model.getCurrentSelection())
+
+        if selection_curve:
+            return True
+
+        return False
+
 
