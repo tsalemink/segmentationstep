@@ -27,7 +27,7 @@ from mapclientplugins.segmentationstep.model.node import NodeModel
 
 class SegmentationModel(object):
 
-    def __init__(self, dataIn):
+    def __init__(self):
         self._context = Context('Segmentation')
         self._undo_redo_stack = QtGui.QUndoStack()
 
@@ -35,8 +35,16 @@ class SegmentationModel(object):
         self._createModeMaterials()
         self.defineStandardGlyphs()
 
-        self._image_model = ImageModel(self._context, dataIn)
-        self._node_model = NodeModel(self._context, self._image_model.getPlane())
+        self._image_model = ImageModel(self._context)
+        self._node_model = NodeModel(self._context)
+
+    def loadImages(self, dataIn):
+        self._image_model.loadImages(dataIn)
+
+    def initialize(self):
+        self._image_model.initialize()
+        self._node_model.setPlane(self._image_model.getPlane())
+        self._node_model.initialize()
 
     def getContext(self):
         return self._context
@@ -97,11 +105,5 @@ class SegmentationModel(object):
         '''
         self._image_model.setScale(scale)
         self._node_model.setScale(scale)
-
-
-class NodeSelection(object):
-
-    def __init__(self):
-        pass
 
 

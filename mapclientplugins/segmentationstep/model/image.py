@@ -33,13 +33,20 @@ class ImageModel(AbstractModel):
     an iso surface.
     '''
 
-    def __init__(self, context, dataIn):
+    def __init__(self, context):
         super(ImageModel, self).__init__(context)
 
         self._dimensions_px = [0, 0, 0]
 
         self._createImageRegion()
+        self._image_field = None
+        self._material = None
+        self._plane = None
+
+    def loadImages(self, dataIn):
         self._image_field = self._createImageField(dataIn)
+
+    def initialize(self):
         self._material = self._createMaterialUsingImageField(self._image_field)
         self._plane = self._createPlane()
         self._setupImageRegion()
@@ -182,6 +189,7 @@ class ImageModel(AbstractModel):
 
         # Load images onto an invidual texture blocks.
         directory = dataIn
+        print(dataIn)
         files = os.listdir(directory)
         files.sort(key=alphanum_key)
         for filename in files:

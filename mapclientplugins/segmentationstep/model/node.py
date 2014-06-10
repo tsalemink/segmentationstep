@@ -29,14 +29,23 @@ from mapclientplugins.segmentationstep.plane import PlaneAttitude
 
 class NodeModel(AbstractModel):
 
-    def __init__(self, context, plane):
+    def __init__(self, context):
         super(NodeModel, self).__init__(context)
         self._attributes_that_auto_serialize = [ "_nodes", "_plane_attitudes"]
-        self._plane = plane
+        self._plane = None
         self._plane_attitude_store = []
         self._plane_attitudes = {}
         self._nodes = {}
         self._curves = {}
+        self._on_plane_conditional_field = None
+        self._on_plane_point_cloud_field = None
+        self._on_plane_curve_field = None
+        self._on_plane_interpolation_point_field = None
+
+    def setPlane(self, plane):
+        self._plane = plane
+
+    def initialize(self):
         self._setupNodeRegion()
         self._on_plane_conditional_field = self._createOnPlaneConditionalField()
         self._on_plane_point_cloud_field = self._createOnPlanePointCloudField()

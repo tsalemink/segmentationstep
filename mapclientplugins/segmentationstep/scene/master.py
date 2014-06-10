@@ -22,15 +22,8 @@ from mapclientplugins.segmentationstep.scene.image import ImageScene
 from mapclientplugins.segmentationstep.scene.node import NodeScene
 
 class MasterScene(object):
-    '''
-    classdocs
-    '''
-
 
     def __init__(self, model):
-        '''
-        Constructor
-        '''
         self._model = model
         self._image = ImageScene(model.getImageModel())
         self._node = NodeScene(model.getNodeModel())

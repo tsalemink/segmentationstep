@@ -88,7 +88,9 @@ class SegmentationStep(WorkflowStepMountPoint):
 
     def execute(self):
         if not self._view:
-            self._view = SegmentationWidget(self._model, self._dataIn)
+            self._model.loadImages(self._dataIn)
+            self._model.initialize()
+            self._view = SegmentationWidget(self._model)
             self._view._ui.doneButton.clicked.connect(self._doneExecution)
 
         self._setCurrentUndoRedoStack(self._model.getUndoRedoStack())
