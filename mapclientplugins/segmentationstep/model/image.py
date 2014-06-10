@@ -188,14 +188,18 @@ class ImageModel(AbstractModel):
 #        stream_information.setAttributeInteger(stream_information.IMAGE_ATTRIBUTE_, self.number_of_images)
 
         # Load images onto an invidual texture blocks.
-        directory = dataIn
-        print(dataIn)
+        directory = dataIn.location()
         files = os.listdir(directory)
         files.sort(key=alphanum_key)
         for filename in files:
             # We are reading in a file from the local disk so our resource is a file.
             absolute_filename = os.path.join(directory, filename)
             if os.path.isfile(absolute_filename):
+                # SWIG cannot handle unicode strings or rather the Zinc interface
+                # files cannot handle unicode strings so we convert them to ascii
+                # here.
+                if isinstance(absolute_filename, unicode):
+                    absolute_filename = absolute_filename.encode('ascii', 'ignore')
                 stream_information.createStreamresourceFile(absolute_filename)
 
         # Actually read in the image file into the image field.

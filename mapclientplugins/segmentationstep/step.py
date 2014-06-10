@@ -80,7 +80,7 @@ class SegmentationStep(WorkflowStepMountPoint):
         d = ConfigureDialog(self._state)
         self._configured = d.validate()
 
-    def setPortOutput(self, portId, dataIn):
+    def setPortData(self, portId, dataIn):
         self._dataIn = dataIn
 
     def getPortOutput(self, portId):
