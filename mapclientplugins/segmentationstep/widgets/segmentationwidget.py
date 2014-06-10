@@ -29,6 +29,7 @@ from mapclientplugins.segmentationstep.widgets.segmentationstate import Segmenta
 from mapclientplugins.segmentationstep.zincutils import getGlyphSize, setGlyphSize
 from mapclientplugins.segmentationstep.widgets.sceneviewertab import SceneviewerTab
 from mapclientplugins.segmentationstep.scene.master import MasterScene
+import os
 
 class SegmentationWidget(QtGui.QWidget):
     '''
@@ -49,6 +50,7 @@ class SegmentationWidget(QtGui.QWidget):
 
         self._model = model
         self._scene = MasterScene(self._model)
+        self._serialization_location = None
 
         self._setupTabs()
         self._setupTools()
@@ -85,20 +87,28 @@ class SegmentationWidget(QtGui.QWidget):
         self._ui._labelmageHeight.setText(str(dimensions[1]) + ' px')
         self._ui._labelmageDepth.setText(str(dimensions[2]) + ' px')
 
+    def setSerializationLocation(self, location):
+        self._serialization_location = location
+
     def _resetViewClicked(self):
         self._loadViewState()
         self._undoRedoStack.clear()
+
+    def _getNodeFilename(self):
+        return os.path.join(self._serialization_location, 'node_state.json')
 
     def _saveState(self):
 #         import json
         node_model = self._model.getNodeModel()
         str_model = node_model.serialize()
-        f = open('saved_state.seg', 'w')
+        node_filename = self._getNodeFilename()
+        f = open(node_filename, 'w')
         f.write(str_model)
 
     def _loadState(self):
         node_model = self._model.getNodeModel()
-        f = open('saved_state.seg', 'r')
+        node_filename = self._getNodeFilename()
+        f = open(node_filename, 'r')
         str_model = f.read()
         node_model.deserialize(str_model)
 

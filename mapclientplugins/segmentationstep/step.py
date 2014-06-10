@@ -65,8 +65,11 @@ class SegmentationStep(WorkflowStepMountPoint):
     def setIdentifier(self, identifier):
         self._state.setIdentifier(identifier)
 
-    def serialize(self, location):
+    def _setStepLocation(self, location):
         self._step_location = os.path.join(location, self._state.identifier())
+
+    def serialize(self, location):
+        self._setStepLocation(location)
         if not os.path.exists(self._step_location):
             os.mkdir(self._step_location)
 
@@ -74,7 +77,7 @@ class SegmentationStep(WorkflowStepMountPoint):
         self._state.save(s)
 
     def deserialize(self, location):
-        self._step_location = os.path.join(location, self._state.identifier())
+        self._setStepLocation(location)
         s = QtCore.QSettings(os.path.join(self._step_location, STEP_SERIALISATION_FILENAME), QtCore.QSettings.IniFormat)
         self._state.load(s)
         d = ConfigureDialog(self._state)
@@ -91,6 +94,7 @@ class SegmentationStep(WorkflowStepMountPoint):
             self._model.loadImages(self._dataIn)
             self._model.initialize()
             self._view = SegmentationWidget(self._model)
+            self._view.setSerializationLocation(self._step_location)
             self._view._ui.doneButton.clicked.connect(self._doneExecution)
 
         self._setCurrentUndoRedoStack(self._model.getUndoRedoStack())
