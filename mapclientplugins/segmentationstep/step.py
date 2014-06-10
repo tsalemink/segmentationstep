@@ -83,7 +83,7 @@ class SegmentationStep(WorkflowStepMountPoint):
     def setPortData(self, portId, dataIn):
         self._dataIn = dataIn
 
-    def getPortOutput(self, portId):
+    def getPortData(self, portId):
         return self._model.getPointCloud()
 
     def execute(self):
