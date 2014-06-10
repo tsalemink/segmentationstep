@@ -43,6 +43,24 @@ class NodeModel(AbstractModel):
         self._on_plane_curve_field = self._createOnPlaneCurveField()
         self._on_plane_interpolation_point_field = self._createOnPlaneInterpolation()
 
+    def getPointCloud(self):
+        cloud = []
+        node_nodeset = self._point_cloud_group.getMasterNodeset()
+        datapoint_nodeset = self._interpolation_point_group.getMasterNodeset()
+        def _getLocations(nodeset):
+            locations = []
+            ni = nodeset.createNodeiterator()
+            node = ni.next()
+            while node.isValid():
+                locations.append(self.getNodeLocation(node))
+                node = ni.next()
+
+            return locations
+
+        cloud += _getLocations(node_nodeset)
+        cloud += _getLocations(datapoint_nodeset)
+        return cloud
+
     def _serializeNodeset(self, group):
         str_rep = ''
         ni = group.createNodeiterator()

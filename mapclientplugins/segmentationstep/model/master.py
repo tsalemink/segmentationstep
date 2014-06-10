@@ -42,7 +42,7 @@ class SegmentationModel(object):
         return self._context
 
     def getPointCloud(self):
-        return None
+        return self._node_model.getPointCloud()
 
     def getUndoRedoStack(self):
         return self._undo_redo_stack
