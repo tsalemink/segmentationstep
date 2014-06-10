@@ -93,17 +93,14 @@ class NodeModel(AbstractModel):
                 str_rep += ','
 
         str_rep += '}'
-        print(str_rep)
         return str_rep
 
     def _deserializeNodeset(self, group, data):
-        print(group.getName())
         for node_id in data:
             node = self._createNodeAtLocation(data[node_id], group.getName(), int(node_id))
             group.addNode(node)
 
     def _deserializeSelection(self, data):
-        print(data)
         for node_id in data:
             node = self.getNodeByIdentifier(node_id)
             self._group.addNode(node)
@@ -120,11 +117,12 @@ class NodeModel(AbstractModel):
         d = json.loads(str_rep)
 
         self._deserializeNodeset(self._point_cloud_group, d['_basic_points'])
+        del d['_basic_points']
         self._deserializeNodeset(self._curve_group, d['_curve_points'])
+        del d['_curve_points']
         self._deserializeNodeset(self._interpolation_point_group, d['_interpolation_points'])
-        self.setSelection(d['_selection'])
+        del d['_interpolation_points']
         self._plane.deserialize(json.dumps(d['_plane']))
-        print(self._serializeSelection(), d['_selection'])
         del d['_plane']
         self._curves = {}
         curves = d['_curves']
@@ -140,8 +138,14 @@ class NodeModel(AbstractModel):
             p.deserialize(json.dumps(plane_attitude))
             self._plane_attitude_store.append(p)
         del d['_plane_attitude_store']
+        selection = d['_selection']
+        selection_field = scene.getSelectionField()
+        if not selection_field.isValid():
+            scene.setSelectionField(self._selection_group_field)
+        del d['_selection']
 
         self.__dict__.update(d)
+        self.setSelection(selection)
         scene.endChange()
 
     def _setupNodeRegion(self):
@@ -286,6 +290,9 @@ class NodeModel(AbstractModel):
         for node_id in selection:
             node = nodeset.findNodeByIdentifier(node_id)
             self._group.addNode(node)
+            if node_id == selection[0]:
+                plane_attitude = self.getNodePlaneAttitude(node_id)
+                self._plane.setPlaneEquation(plane_attitude.getNormal(), plane_attitude.getPoint())
 
         fieldmodule.endChange()
 

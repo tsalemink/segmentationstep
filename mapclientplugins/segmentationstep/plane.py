@@ -138,4 +138,7 @@ class PlaneAttitude(object):
     def __eq__(self, other):
         return hash(self) == hash(other)
 
+    def __ne__(self, other):
+        return hash(self) != hash(other)
+
 

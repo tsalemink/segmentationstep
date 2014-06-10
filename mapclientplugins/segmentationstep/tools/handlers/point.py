@@ -22,7 +22,7 @@ from PySide import QtCore
 from mapclientplugins.segmentationstep.tools.handlers.abstractselection import AbstractSelection
 from mapclientplugins.segmentationstep.definitions import ViewMode, \
     POINT_CLOUD_GRAPHIC_NAME, POINT_CLOUD_ON_PLANE_GRAPHIC_NAME
-from mapclientplugins.segmentationstep.undoredo import CommandPointCloudNode
+from mapclientplugins.segmentationstep.undoredo import CommandPointCloudNode, CommandMovePlane
 from mapclientplugins.segmentationstep.segmentpoint import SegmentPointStatus
 from mapclientplugins.segmentationstep.maths.algorithms import calculateLinePlaneIntersection
 
@@ -48,6 +48,7 @@ class Point(AbstractSelection):
 
     def mousePressEvent(self, event):
         self._node_status = None
+        self._start_plane_attitude = None
         if (event.modifiers() & QtCore.Qt.CTRL) and event.button() == QtCore.Qt.LeftButton:
             node = self._zinc_view.getNearestNode(event.x(), event.y())
             if node and node.isValid():
@@ -58,6 +59,7 @@ class Point(AbstractSelection):
 
                 node_location = self._model.getNodeLocation(node)
                 plane_attitude = self._model.getNodePlaneAttitude(node.getIdentifier())
+                self._start_plane_attitude = self._plane.getAttitude()
             else:
                 node_location = None
                 plane_attitude = None
@@ -77,6 +79,7 @@ class Point(AbstractSelection):
 
     def mouseMoveEvent(self, event):
         if self._node_status is not None:
+            self._start_plane_attitude = None
             node = self._model.getNodeByIdentifier(self._node_status.getNodeIdentifier())
             point_on_plane = self._calculatePointOnPlane(event.x(), event.y())
             self._model.setNodeLocation(node, point_on_plane)
@@ -91,7 +94,14 @@ class Point(AbstractSelection):
             super(Point, self).mouseMoveEvent(event)
 
     def mouseReleaseEvent(self, event):
-        if self._node_status is not None:
+        if self._start_plane_attitude is not None and self._node_status is not None:
+            group = self._model.getSelectionGroup()
+            group.removeAllNodes()
+            target_plane_attitude = self._node_status.getPlaneAttitude()
+            if target_plane_attitude != self._start_plane_attitude:
+                c = CommandMovePlane(self._plane, self._start_plane_attitude, target_plane_attitude)
+                self._undo_redo_stack.push(c)
+        elif self._node_status is not None:
             # do undo redo command for adding a node or moving a node
             node_id = self._node_status.getNodeIdentifier()
             node = self._model.getNodeByIdentifier(node_id)

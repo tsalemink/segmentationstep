@@ -99,6 +99,9 @@ class CurveModel(object):
     def isClosed(self):
         return self._closed
 
+    def isEnd(self, node_id):
+        return self._nodes[-1] == node_id
+
     def __len__(self):
         return len(self._nodes)
 

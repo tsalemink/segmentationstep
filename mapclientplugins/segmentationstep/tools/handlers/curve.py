@@ -22,7 +22,8 @@ from PySide import QtCore
 from mapclientplugins.segmentationstep.tools.handlers.abstractselection import AbstractSelection
 from mapclientplugins.segmentationstep.definitions import ViewMode, \
     CURVE_ON_PLANE_GRAPHIC_NAME, CURVE_GRAPHIC_NAME, DEFAULT_INTERPOLATION_COUNT
-from mapclientplugins.segmentationstep.undoredo import CommandCurveNode
+from mapclientplugins.segmentationstep.undoredo import CommandCurveNode, \
+    CommandMovePlane
 from mapclientplugins.segmentationstep.segmentpoint import ControlPointStatus
 from mapclientplugins.segmentationstep.maths.algorithms import calculateLinePlaneIntersection
 from mapclientplugins.segmentationstep.model.curve import CurveModel
@@ -54,6 +55,7 @@ class Curve(AbstractSelection):
         super(Curve, self).leave()
 
     def mousePressEvent(self, event):
+        self._start_plane_attitude = None
         self._finshing_curve = False
         self._adding_to_curve = False
         self._modifying_curve = False
@@ -94,6 +96,7 @@ class Curve(AbstractSelection):
                 self._active_curve = self._model.getCurveForNode(node_id)
                 node_location = self._model.getNodeLocation(node)
                 plane_attitude = self._model.getNodePlaneAttitude(node_id)
+                self._start_plane_attitude = self._plane.getAttitude()
                 self._modifying_curve = True
             else:
                 # The start of a new curve
@@ -124,6 +127,7 @@ class Curve(AbstractSelection):
 
     def mouseMoveEvent(self, event):
         if self._node_status is not None:
+            self._start_plane_attitude = None
             node = self._model.getNodeByIdentifier(self._node_status.getNodeIdentifier())
             point_on_plane = self._calculatePointOnPlane(event.x(), event.y())
             self._model.setNodeLocation(node, point_on_plane)
@@ -139,7 +143,15 @@ class Curve(AbstractSelection):
             super(Curve, self).mouseMoveEvent(event)
 
     def mouseReleaseEvent(self, event):
-        if self._node_status is not None and self._adding_to_curve:
+        if self._start_plane_attitude is not None and self._node_status is not None:
+            group = self._model.getSelectionGroup()
+            group.removeAllNodes()
+            target_plane_attitude = self._node_status.getPlaneAttitude()
+            if target_plane_attitude != self._start_plane_attitude:
+                c = CommandMovePlane(self._plane, self._start_plane_attitude, target_plane_attitude)
+                self._undo_redo_stack.push(c)
+            self._node_status = None
+        elif self._node_status is not None and self._adding_to_curve:
             node_id = self._node_status.getNodeIdentifier()
             node1 = self._model.getNodeByIdentifier(node_id)
 
