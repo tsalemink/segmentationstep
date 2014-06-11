@@ -21,7 +21,7 @@ from PySide import QtCore
 
 from mapclientplugins.segmentationstep.tools.handlers.abstractselection import AbstractSelection
 from mapclientplugins.segmentationstep.definitions import ViewMode, \
-    CURVE_ON_PLANE_GRAPHIC_NAME, CURVE_GRAPHIC_NAME, DEFAULT_INTERPOLATION_COUNT
+    DEFAULT_INTERPOLATION_COUNT
 from mapclientplugins.segmentationstep.undoredo import CommandCurveNode, \
     CommandMovePlane
 from mapclientplugins.segmentationstep.segmentpoint import ControlPointStatus
@@ -55,6 +55,11 @@ class Curve(AbstractSelection):
         super(Curve, self).leave()
 
     def mousePressEvent(self, event):
+        if self._active_button != QtCore.Qt.NoButton:
+            return
+
+        self._active_button = event.button()
+
         self._start_plane_attitude = None
         self._finshing_curve = False
         self._adding_to_curve = False
@@ -143,6 +148,9 @@ class Curve(AbstractSelection):
             super(Curve, self).mouseMoveEvent(event)
 
     def mouseReleaseEvent(self, event):
+        if self._active_button != event.button():
+            return
+
         if self._start_plane_attitude is not None and self._node_status is not None:
             group = self._model.getSelectionGroup()
             group.removeAllNodes()
@@ -204,23 +212,12 @@ class Curve(AbstractSelection):
         elif not self._adding_to_curve:
             super(Curve, self).mouseReleaseEvent(event)
 
+        self._active_button = QtCore.Qt.NoButton
+
     def _calculatePointOnPlane(self, x, y):
         far_plane_point = self._zinc_view.unproject(x, -y, -1.0)
         near_plane_point = self._zinc_view.unproject(x, -y, 1.0)
         point_on_plane = calculateLinePlaneIntersection(near_plane_point, far_plane_point, self._plane.getRotationPoint(), self._plane.getNormal())
         return point_on_plane
-
-    def _createScenepickerFilter(self):
-        sceneviewer = self._zinc_view.getSceneviewer()
-        scene = sceneviewer.getScene()
-        filtermodule = scene.getScenefiltermodule()
-        name_filter1 = filtermodule.createScenefilterGraphicsName(CURVE_GRAPHIC_NAME)
-        name_filter2 = filtermodule.createScenefilterGraphicsName(CURVE_ON_PLANE_GRAPHIC_NAME)
-
-        name_filter = filtermodule.createScenefilterOperatorOr()
-        name_filter.appendOperand(name_filter1)
-        name_filter.appendOperand(name_filter2)
-
-        return name_filter
 
 
