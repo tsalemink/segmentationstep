@@ -114,8 +114,9 @@ class SegmentationWidget(QtGui.QWidget):
         node_scene.clearAllInterpolationPoints()
         for curve_identifier in node_model.getCurveIdentifiers():
             curve = node_model.getCurveWithIdentifier(curve_identifier)
-            locations = curve.calculate()
-            node_scene.setInterpolationPoints(curve_identifier, locations)
+            if len(curve) > 1:
+                locations = curve.calculate()
+                node_scene.setInterpolationPoints(curve_identifier, locations)
 
     def _saveViewState(self):
         eye, lookat, up, angle = self._ui._sceneviewer3d.getViewParameters()

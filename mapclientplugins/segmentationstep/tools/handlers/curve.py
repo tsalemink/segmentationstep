@@ -125,7 +125,7 @@ class Curve(AbstractSelection):
 
             self._node_status = ControlPointStatus(node_id, node_location, plane_attitude)
             curve_index = self._model.getCurveIdentifier(self._active_curve)
-            self._node_status.setCurveIndex(curve_index)
+            self._node_status.setCurveIdentifier(curve_index)
         elif self._node_status is None:
             super(Curve, self).mousePressEvent(event)
 
@@ -183,13 +183,13 @@ class Curve(AbstractSelection):
             curve_index = self._model.getCurveIdentifier(self._active_curve)
             self._scene.clearInterpolationPoints(curve_index)
             self._active_curve.addNode(node_id)
-            node_status.setCurveIndex(curve_index)
-            self._node_status.setCurveIndex(curve_index)
+            node_status.setCurveIdentifier(curve_index)
+            self._node_status.setCurveIdentifier(curve_index)
             self._undo_redo_stack.push(c)
             locations = self._active_curve.calculate()
             self._scene.setInterpolationPoints(curve_index, locations)
             self._node_status = ControlPointStatus(node_id, None, None)
-            self._node_status.setCurveIndex(curve_index)
+            self._node_status.setCurveIdentifier(curve_index)
 
             self._zinc_view.setMouseTracking(True)
         elif self._finshing_curve:
@@ -201,7 +201,7 @@ class Curve(AbstractSelection):
             plane_attitude = self._plane.getAttitude()
             node_status = ControlPointStatus(node_id, node_location, plane_attitude)
             curve_index = self._model.getCurveIdentifier(self._active_curve)
-            node_status.setCurveIndex(curve_index)
+            node_status.setCurveIdentifier(curve_index)
             c = CommandCurveNode(self._model, self._node_status, node_status)
             c.setScene(self._scene)
 

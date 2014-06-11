@@ -49,7 +49,7 @@ class ControlPointStatus(SegmentPointStatus):
         super(ControlPointStatus, self).__init__(node_id, location, plane_attitude)
         self._curve_index = None
 
-    def setCurveIndex(self, index):
+    def setCurveIdentifier(self, index):
         self._curve_index = index
 
     def getCurveIdentifier(self):

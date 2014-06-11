@@ -273,6 +273,10 @@ class CommandCurveNode(CommandNode):
     def setScene(self, scene):
         self._scene = scene
 
+    def _setCurveIdentifier(self, curve_id):
+        self._status_start.setCurveIdentifier(curve_id)
+        self._status_end.setCurveIdentifier(curve_id)
+
     def _addNodeToGroup(self, node_id):
         node = self._model.getNodeByIdentifier(node_id)
         group = self._model.getCurveGroup()
@@ -286,17 +290,34 @@ class CommandCurveNode(CommandNode):
         else:
             self._scene.clearInterpolationPoints(curve_index)
 
+    def _removeCurve(self, curve_id):
+        self._model.popCurve(curve_id)
+        self._setCurveIdentifier(-1)
+
+    def _createCurve(self):
+        curve = CurveModel(self._model)
+        curve_id = self._model.getNextCurveIdentifier()
+        self._model.insertCurve(curve_id, curve)
+        self._setCurveIdentifier(curve_id)
+
+        return curve
+
     def redo(self):
         node_id = self._status_end.getNodeIdentifier()
         location = self._status_end.getLocation()
         plane_attitude = self._status_end.getPlaneAttitude()
         curve_index = self._status_end.getCurveIdentifier()
-        curve = self._model.getCurveWithIdentifier(curve_index)
+        if curve_index == -1:
+            curve = self._createCurve()
+        else:
+            curve = self._model.getCurveWithIdentifier(curve_index)
         if location is None:
             curve.removeNode(node_id)
             if not curve.closes(node_id):
                 self._removeNode(node_id)
             self._updateInterpolationPoints(curve)
+            if len(curve) == 0:
+                self._removeCurve(curve_index)
         else:
             previous_location = self._status_start.getLocation()
             if previous_location is None:
@@ -313,12 +334,17 @@ class CommandCurveNode(CommandNode):
         location = self._status_start.getLocation()
         plane_attitude = self._status_start.getPlaneAttitude()
         curve_index = self._status_end.getCurveIdentifier()
-        curve = self._model.getCurveWithIdentifier(curve_index)
+        if curve_index == -1:
+            curve = self._createCurve()
+        else:
+            curve = self._model.getCurveWithIdentifier(curve_index)
         if location is None:
             curve.removeNode(node_id)
             if not curve.closes(node_id):
                 self._removeNode(node_id)
             self._updateInterpolationPoints(curve)
+            if len(curve) == 0:
+                self._removeCurve(curve_index)
         else:
             next_location = self._status_end.getLocation()
             if next_location is None:
@@ -550,14 +576,14 @@ class CommandPushPullCurve(AbstractCommandPushPull):
             node_ids = self._model.createNodes(node_statuses, group=self._model.getCurveGroup())
             _updateNodeIdentifiers(node_statuses, node_ids)
             curve = CurveModel(self._model)
-            curve_count = self._model.getNextCurveIdentifier()
-            self._model.insertCurve(curve_count, curve)
+            curve_identifier = self._model.getNextCurveIdentifier()
+            self._model.insertCurve(curve_identifier, curve)
             curve.setInterpolationCount(self._interpolation_counts[curve_identifier])
             curve.setNodes(node_ids)
-            self._curves[curve_identifier] = curve_count
+            self._curves[curve_identifier] = curve_identifier
             if len(curve) > 1:
                 locations = curve.calculate()
-                self._scene.setInterpolationPoints(curve_count, locations)
+                self._scene.setInterpolationPoints(curve_identifier, locations)
             selection_node_ids += node_ids
 
         self._model.setSelection(selection_node_ids)

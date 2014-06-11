@@ -209,7 +209,6 @@ class NodeScene(object):
         if curve_index in self._curve_interpolation_graphics:
             self._removeGlyphs(self._curve_interpolation_graphics[curve_index])
             self._curve_interpolation_graphics.pop(curve_index)
-#             del self._curve_interpolation_graphics[curve_index]
 
     def _removeGlyphs(self, glyphs):
         region = self._model.getRegion()
