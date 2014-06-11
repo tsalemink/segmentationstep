@@ -106,7 +106,7 @@ class Curve(AbstractSelection):
             else:
                 # The start of a new curve
                 self._active_curve = CurveModel(self._model)
-                self._model.insertCurve(self._model.getCurveCount(), self._active_curve)
+                self._model.insertCurve(self._model.getNextCurveIdentifier(), self._active_curve)
                 self._active_curve.setInterpolationCount(self._interpolation_count)
                 node_location = None
                 plane_attitude = None

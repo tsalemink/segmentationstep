@@ -98,7 +98,6 @@ class SegmentationWidget(QtGui.QWidget):
         return os.path.join(self._serialization_location, 'node_state.json')
 
     def _saveState(self):
-#         import json
         node_model = self._model.getNodeModel()
         str_model = node_model.serialize()
         node_filename = self._getNodeFilename()
@@ -111,6 +110,12 @@ class SegmentationWidget(QtGui.QWidget):
         f = open(node_filename, 'r')
         str_model = f.read()
         node_model.deserialize(str_model)
+        node_scene = self._scene.getNodeScene()
+        node_scene.clearAllInterpolationPoints()
+        for curve_identifier in node_model.getCurveIdentifiers():
+            curve = node_model.getCurveWithIdentifier(curve_identifier)
+            locations = curve.calculate()
+            node_scene.setInterpolationPoints(curve_identifier, locations)
 
     def _saveViewState(self):
         eye, lookat, up, angle = self._ui._sceneviewer3d.getViewParameters()

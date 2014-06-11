@@ -18,13 +18,15 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
     along with MAP Client.  If not, see <http://www.gnu.org/licenses/>..
 '''
 from mapclientplugins.segmentationstep.widgets.zincwidget import ZincWidget
-from mapclientplugins.segmentationstep.maths.vectorops import add
+from mapclientplugins.segmentationstep.maths.vectorops import add, sub, \
+    magnitude, mult
 
 class ZincWidgetState(ZincWidget):
 
     def __init__(self, parent=None, shared=None):
         super(ZincWidgetState, self).__init__(parent, shared)
 
+        self._initialized_view = False
         self._active_handler = None
         self._handlers = {}
 
@@ -73,10 +75,13 @@ class ZincWidgetState(ZincWidget):
         if self._sceneviewer is not None:
             normal = self._plane.getNormal()
             centre = self._plane.getRotationPoint()
-            _, _, up, angle = self.getViewParameters()
+            eye, lookat, up, angle = self.getViewParameters()
+            scale = magnitude(sub(eye, lookat))
             self._sceneviewer.beginChange()
-            self.setViewParameters(add(normal, centre), centre, up, angle)
-            self._sceneviewer.viewAll()
+            self.setViewParameters(add(mult(normal, scale), centre), centre, up, angle)
+            if not self._initialized_view:
+                self._sceneviewer.viewAll()
+                self._initialized_view = True
             self._sceneviewer.endChange()
 
 

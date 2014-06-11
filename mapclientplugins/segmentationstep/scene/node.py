@@ -44,17 +44,6 @@ class NodeScene(object):
         self._interpolation_point_glyph = self._createInterpolationPointGraphics(region, coordinate_field)
         self._interpolation_point_on_plane_glyph = self._createInterpolationPointOnPlaneGraphics(region, coordinate_field)
 
-#         scene = region.getScene()
-#         scene.beginChange()
-#         self._lines = scene.createGraphicsLines()
-#         self._lines.setCoordinateField(coordinate_field)
-#         self._lines.setName(CURVE_ON_PLANE_GRAPHIC_NAME)
-#         attributes = self._lines.getGraphicslineattributes()
-#         attributes.setShapeType(Graphicslineattributes.SHAPE_TYPE_CIRCLE_EXTRUSION)
-#         attributes.setBaseSize(0.2)
-#
-#         scene.endChange()
-
     def _createPointCloudGraphics(self, region, finite_element_field):
         scene = region.getScene()
         scene.beginChange()
@@ -210,10 +199,17 @@ class NodeScene(object):
 
         self._curve_interpolation_graphics[curve_index] = alive_glyphs
 
+    def clearAllInterpolationPoints(self):
+        for curve_index in self._curve_interpolation_graphics:
+            self._removeGlyphs(self._curve_interpolation_graphics[curve_index])
+
+        self._curve_interpolation_graphics = {}
+
     def clearInterpolationPoints(self, curve_index):
         if curve_index in self._curve_interpolation_graphics:
             self._removeGlyphs(self._curve_interpolation_graphics[curve_index])
-            del self._curve_interpolation_graphics[curve_index]
+            self._curve_interpolation_graphics.pop(curve_index)
+#             del self._curve_interpolation_graphics[curve_index]
 
     def _removeGlyphs(self, glyphs):
         region = self._model.getRegion()

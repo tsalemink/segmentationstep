@@ -18,7 +18,7 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
     along with MAP Client.  If not, see <http://www.gnu.org/licenses/>..
 '''
 from mapclientplugins.segmentationstep.tools.handlers.curve import Curve
-from mapclientplugins.segmentationstep.definitions import CURVE_ON_PLANE_GRAPHIC_NAME, CURVE_GRAPHIC_NAME
+from mapclientplugins.segmentationstep.definitions import CURVE_GRAPHIC_NAME
 
 class Curve3D(Curve):
     pass
@@ -28,11 +28,9 @@ class Curve3D(Curve):
         scene = sceneviewer.getScene()
         filtermodule = scene.getScenefiltermodule()
         name_filter1 = filtermodule.createScenefilterGraphicsName(CURVE_GRAPHIC_NAME)
-        name_filter2 = filtermodule.createScenefilterGraphicsName(CURVE_ON_PLANE_GRAPHIC_NAME)
 
         name_filter = filtermodule.createScenefilterOperatorOr()
         name_filter.appendOperand(name_filter1)
-        name_filter.appendOperand(name_filter2)
 
         return name_filter
 

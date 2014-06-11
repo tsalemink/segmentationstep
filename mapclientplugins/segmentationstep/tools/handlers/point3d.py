@@ -18,8 +18,7 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
     along with MAP Client.  If not, see <http://www.gnu.org/licenses/>..
 '''
 from mapclientplugins.segmentationstep.tools.handlers.point import Point
-from mapclientplugins.segmentationstep.definitions import POINT_CLOUD_GRAPHIC_NAME, \
-    POINT_CLOUD_ON_PLANE_GRAPHIC_NAME
+from mapclientplugins.segmentationstep.definitions import POINT_CLOUD_GRAPHIC_NAME
 
 class Point3D(Point):
     pass
@@ -29,11 +28,9 @@ class Point3D(Point):
         scene = sceneviewer.getScene()
         filtermodule = scene.getScenefiltermodule()
         name_filter1 = filtermodule.createScenefilterGraphicsName(POINT_CLOUD_GRAPHIC_NAME)
-        name_filter2 = filtermodule.createScenefilterGraphicsName(POINT_CLOUD_ON_PLANE_GRAPHIC_NAME)
 
         name_filter = filtermodule.createScenefilterOperatorOr()
         name_filter.appendOperand(name_filter1)
-        name_filter.appendOperand(name_filter2)
 
         return name_filter
 

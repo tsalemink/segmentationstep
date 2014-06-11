@@ -550,7 +550,7 @@ class CommandPushPullCurve(AbstractCommandPushPull):
             node_ids = self._model.createNodes(node_statuses, group=self._model.getCurveGroup())
             _updateNodeIdentifiers(node_statuses, node_ids)
             curve = CurveModel(self._model)
-            curve_count = self._model.getCurveCount()
+            curve_count = self._model.getNextCurveIdentifier()
             self._model.insertCurve(curve_count, curve)
             curve.setInterpolationCount(self._interpolation_counts[curve_identifier])
             curve.setNodes(node_ids)
