@@ -20,8 +20,7 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
 from PySide import QtCore
 
 from mapclientplugins.segmentationstep.tools.handlers.abstractselection import AbstractSelection
-from mapclientplugins.segmentationstep.definitions import ViewMode, \
-    POINT_CLOUD_GRAPHIC_NAME, POINT_CLOUD_ON_PLANE_GRAPHIC_NAME
+from mapclientplugins.segmentationstep.definitions import ViewMode
 from mapclientplugins.segmentationstep.undoredo import CommandPointCloudNode, CommandMovePlane
 from mapclientplugins.segmentationstep.segmentpoint import SegmentPointStatus
 from mapclientplugins.segmentationstep.maths.algorithms import calculateLinePlaneIntersection
@@ -47,6 +46,11 @@ class Point(AbstractSelection):
         super(Point, self).leave()
 
     def mousePressEvent(self, event):
+        if self._active_button != QtCore.Qt.NoButton:
+            return
+
+        self._active_button = event.button()
+
         self._node_status = None
         self._start_plane_attitude = None
         if (event.modifiers() & QtCore.Qt.CTRL) and event.button() == QtCore.Qt.LeftButton:
@@ -94,6 +98,9 @@ class Point(AbstractSelection):
             super(Point, self).mouseMoveEvent(event)
 
     def mouseReleaseEvent(self, event):
+        if self._active_button != event.button():
+            return
+
         if self._start_plane_attitude is not None and self._node_status is not None:
             group = self._model.getSelectionGroup()
             group.removeAllNodes()
@@ -115,23 +122,12 @@ class Point(AbstractSelection):
         else:
             super(Point, self).mouseReleaseEvent(event)
 
+        self._active_button = QtCore.Qt.NoButton
+
     def _calculatePointOnPlane(self, x, y):
         far_plane_point = self._zinc_view.unproject(x, -y, -1.0)
         near_plane_point = self._zinc_view.unproject(x, -y, 1.0)
         point_on_plane = calculateLinePlaneIntersection(near_plane_point, far_plane_point, self._plane.getRotationPoint(), self._plane.getNormal())
         return point_on_plane
-
-    def _createScenepickerFilter(self):
-        sceneviewer = self._zinc_view.getSceneviewer()
-        scene = sceneviewer.getScene()
-        filtermodule = scene.getScenefiltermodule()
-        name_filter1 = filtermodule.createScenefilterGraphicsName(POINT_CLOUD_GRAPHIC_NAME)
-        name_filter2 = filtermodule.createScenefilterGraphicsName(POINT_CLOUD_ON_PLANE_GRAPHIC_NAME)
-
-        name_filter = filtermodule.createScenefilterOperatorOr()
-        name_filter.appendOperand(name_filter1)
-        name_filter.appendOperand(name_filter2)
-
-        return name_filter
 
 

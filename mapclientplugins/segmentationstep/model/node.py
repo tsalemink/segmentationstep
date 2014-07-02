@@ -98,8 +98,6 @@ class NodeModel(AbstractModel):
         str_rep += '},'
         str_rep += '"_curve_points":{' + self._serializeNodeset(self._curve_group)
         str_rep += '},'
-        str_rep += '"_interpolation_points":{' + self._serializeNodeset(self._interpolation_point_group)
-        str_rep += '},'
         str_rep += '"_selection":' + self._serializeSelection()
         str_rep += ','
         str_rep += '"_plane":' + self._plane.serialize() + ','
@@ -147,8 +145,6 @@ class NodeModel(AbstractModel):
         del d['_basic_points']
         self._deserializeNodeset(self._curve_group, d['_curve_points'])
         del d['_curve_points']
-        self._deserializeNodeset(self._interpolation_point_group, d['_interpolation_points'])
-        del d['_interpolation_points']
         self._plane.deserialize(json.dumps(d['_plane']))
         del d['_plane']
         self._curves = {}
@@ -156,7 +152,7 @@ class NodeModel(AbstractModel):
         for curve_index in curves:
             c = CurveModel(self)
             c.deserialize(json.dumps(curves[curve_index]))
-            self._curves[int(curve_index)] = c
+            self.insertCurve(int(curve_index), c)
         del d['_curves']
         self._plane_attitude_store = []
         plane_attitude_store = d['_plane_attitude_store']
@@ -366,8 +362,12 @@ class NodeModel(AbstractModel):
             element_id = -1
         return mesh.findElementByIdentifier(element_id)
 
-    def getCurveCount(self):
-        return len(self._curves)
+    def getNextCurveIdentifier(self):
+        next_identifier = 0
+        while next_identifier in self._curves:
+            next_identifier += 1
+
+        return next_identifier
 
     def insertCurve(self, curve_identifier, curve):
         self._curves[curve_identifier] = curve
@@ -380,6 +380,9 @@ class NodeModel(AbstractModel):
             for node_id in node_ids:
                 self.removeNode(node_id)
             curve.removeAllNodes()
+
+    def getCurveIdentifiers(self):
+        return self._curves.keys()
 
     def getCurveIdentifier(self, curve):
         for curve_identifier in self._curves:

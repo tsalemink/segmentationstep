@@ -18,8 +18,20 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
     along with MAP Client.  If not, see <http://www.gnu.org/licenses/>..
 '''
 from mapclientplugins.segmentationstep.tools.handlers.curve import Curve
+from mapclientplugins.segmentationstep.definitions import CURVE_GRAPHIC_NAME
 
 class Curve3D(Curve):
     pass
+
+    def _createScenepickerFilter(self):
+        sceneviewer = self._zinc_view.getSceneviewer()
+        scene = sceneviewer.getScene()
+        filtermodule = scene.getScenefiltermodule()
+        name_filter1 = filtermodule.createScenefilterGraphicsName(CURVE_GRAPHIC_NAME)
+
+        name_filter = filtermodule.createScenefilterOperatorOr()
+        name_filter.appendOperand(name_filter1)
+
+        return name_filter
 
 

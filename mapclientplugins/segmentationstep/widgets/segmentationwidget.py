@@ -82,10 +82,25 @@ class SegmentationWidget(QtGui.QWidget):
         self._ui._lineEditHeightScale.setValidator(dbl_validator)
         self._ui._lineEditDepthScale.setValidator(dbl_validator)
 
+        dbl_validator = QtGui.QDoubleValidator()
+        self._ui._lineEditXOffset.setValidator(dbl_validator)
+        self._ui._lineEditYOffset.setValidator(dbl_validator)
+        self._ui._lineEditZOffset.setValidator(dbl_validator)
+
         dimensions = self._model.getImageModel().getDimensionsInPixels()
         self._ui._labelmageWidth.setText(str(dimensions[0]) + ' px')
         self._ui._labelmageHeight.setText(str(dimensions[1]) + ' px')
         self._ui._labelmageDepth.setText(str(dimensions[2]) + ' px')
+
+        scale = self._model.getImageModel().getScale()
+        self._ui._lineEditWidthScale.setText(str(scale[0]))
+        self._ui._lineEditHeightScale.setText(str(scale[1]))
+        self._ui._lineEditDepthScale.setText(str(scale[2]))
+
+        offset = self._model.getImageModel().getOffset()
+        self._ui._lineEditXOffset.setText(str(offset[0]))
+        self._ui._lineEditYOffset.setText(str(offset[1]))
+        self._ui._lineEditZOffset.setText(str(offset[2]))
 
     def setSerializationLocation(self, location):
         self._serialization_location = location
@@ -98,7 +113,6 @@ class SegmentationWidget(QtGui.QWidget):
         return os.path.join(self._serialization_location, 'node_state.json')
 
     def _saveState(self):
-#         import json
         node_model = self._model.getNodeModel()
         str_model = node_model.serialize()
         node_filename = self._getNodeFilename()
@@ -111,6 +125,13 @@ class SegmentationWidget(QtGui.QWidget):
         f = open(node_filename, 'r')
         str_model = f.read()
         node_model.deserialize(str_model)
+        node_scene = self._scene.getNodeScene()
+        node_scene.clearAllInterpolationPoints()
+        for curve_identifier in node_model.getCurveIdentifiers():
+            curve = node_model.getCurveWithIdentifier(curve_identifier)
+            if len(curve) > 1:
+                locations = curve.calculate()
+                node_scene.setInterpolationPoints(curve_identifier, locations)
 
     def _saveViewState(self):
         eye, lookat, up, angle = self._ui._sceneviewer3d.getViewParameters()

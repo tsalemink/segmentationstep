@@ -21,7 +21,7 @@ from PySide import QtCore
 
 from mapclientplugins.segmentationstep.tools.handlers.abstractselection import AbstractSelection
 from mapclientplugins.segmentationstep.definitions import ViewMode, \
-    CURVE_ON_PLANE_GRAPHIC_NAME, CURVE_GRAPHIC_NAME, DEFAULT_INTERPOLATION_COUNT
+    DEFAULT_INTERPOLATION_COUNT
 from mapclientplugins.segmentationstep.undoredo import CommandCurveNode, \
     CommandMovePlane
 from mapclientplugins.segmentationstep.segmentpoint import ControlPointStatus
@@ -55,6 +55,11 @@ class Curve(AbstractSelection):
         super(Curve, self).leave()
 
     def mousePressEvent(self, event):
+        if self._active_button != QtCore.Qt.NoButton:
+            return
+
+        self._active_button = event.button()
+
         self._start_plane_attitude = None
         self._finshing_curve = False
         self._adding_to_curve = False
@@ -101,7 +106,7 @@ class Curve(AbstractSelection):
             else:
                 # The start of a new curve
                 self._active_curve = CurveModel(self._model)
-                self._model.insertCurve(self._model.getCurveCount(), self._active_curve)
+                self._model.insertCurve(self._model.getNextCurveIdentifier(), self._active_curve)
                 self._active_curve.setInterpolationCount(self._interpolation_count)
                 node_location = None
                 plane_attitude = None
@@ -120,7 +125,7 @@ class Curve(AbstractSelection):
 
             self._node_status = ControlPointStatus(node_id, node_location, plane_attitude)
             curve_index = self._model.getCurveIdentifier(self._active_curve)
-            self._node_status.setCurveIndex(curve_index)
+            self._node_status.setCurveIdentifier(curve_index)
         elif self._node_status is None:
             super(Curve, self).mousePressEvent(event)
 
@@ -143,6 +148,9 @@ class Curve(AbstractSelection):
             super(Curve, self).mouseMoveEvent(event)
 
     def mouseReleaseEvent(self, event):
+        if self._active_button != event.button():
+            return
+
         if self._start_plane_attitude is not None and self._node_status is not None:
             group = self._model.getSelectionGroup()
             group.removeAllNodes()
@@ -175,13 +183,13 @@ class Curve(AbstractSelection):
             curve_index = self._model.getCurveIdentifier(self._active_curve)
             self._scene.clearInterpolationPoints(curve_index)
             self._active_curve.addNode(node_id)
-            node_status.setCurveIndex(curve_index)
-            self._node_status.setCurveIndex(curve_index)
+            node_status.setCurveIdentifier(curve_index)
+            self._node_status.setCurveIdentifier(curve_index)
             self._undo_redo_stack.push(c)
             locations = self._active_curve.calculate()
             self._scene.setInterpolationPoints(curve_index, locations)
             self._node_status = ControlPointStatus(node_id, None, None)
-            self._node_status.setCurveIndex(curve_index)
+            self._node_status.setCurveIdentifier(curve_index)
 
             self._zinc_view.setMouseTracking(True)
         elif self._finshing_curve:
@@ -193,7 +201,7 @@ class Curve(AbstractSelection):
             plane_attitude = self._plane.getAttitude()
             node_status = ControlPointStatus(node_id, node_location, plane_attitude)
             curve_index = self._model.getCurveIdentifier(self._active_curve)
-            node_status.setCurveIndex(curve_index)
+            node_status.setCurveIdentifier(curve_index)
             c = CommandCurveNode(self._model, self._node_status, node_status)
             c.setScene(self._scene)
 
@@ -204,23 +212,12 @@ class Curve(AbstractSelection):
         elif not self._adding_to_curve:
             super(Curve, self).mouseReleaseEvent(event)
 
+        self._active_button = QtCore.Qt.NoButton
+
     def _calculatePointOnPlane(self, x, y):
         far_plane_point = self._zinc_view.unproject(x, -y, -1.0)
         near_plane_point = self._zinc_view.unproject(x, -y, 1.0)
         point_on_plane = calculateLinePlaneIntersection(near_plane_point, far_plane_point, self._plane.getRotationPoint(), self._plane.getNormal())
         return point_on_plane
-
-    def _createScenepickerFilter(self):
-        sceneviewer = self._zinc_view.getSceneviewer()
-        scene = sceneviewer.getScene()
-        filtermodule = scene.getScenefiltermodule()
-        name_filter1 = filtermodule.createScenefilterGraphicsName(CURVE_GRAPHIC_NAME)
-        name_filter2 = filtermodule.createScenefilterGraphicsName(CURVE_ON_PLANE_GRAPHIC_NAME)
-
-        name_filter = filtermodule.createScenefilterOperatorOr()
-        name_filter.appendOperand(name_filter1)
-        name_filter.appendOperand(name_filter2)
-
-        return name_filter
 
 

@@ -20,7 +20,20 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
 from mapclientplugins.segmentationstep.tools.handlers.abstract2dhandler import Abstract2DHandler
 from mapclientplugins.segmentationstep.tools.handlers.curve import Curve
 
+from mapclientplugins.segmentationstep.definitions import CURVE_ON_PLANE_GRAPHIC_NAME  # , CURVE_GRAPHIC_NAME
+
 class Curve2D(Abstract2DHandler, Curve):
     pass
+
+    def _createScenepickerFilter(self):
+        sceneviewer = self._zinc_view.getSceneviewer()
+        scene = sceneviewer.getScene()
+        filtermodule = scene.getScenefiltermodule()
+        name_filter1 = filtermodule.createScenefilterGraphicsName(CURVE_ON_PLANE_GRAPHIC_NAME)
+
+        name_filter = filtermodule.createScenefilterOperatorOr()
+        name_filter.appendOperand(name_filter1)
+
+        return name_filter
 
 

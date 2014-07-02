@@ -38,6 +38,7 @@ class AbstractHandler(object):
         self._get_dimension_method = None
         self._sceneviewer_filter = None
         self._scenepicker_filter = None
+        self._active_button = QtCore.Qt.NoButton
 
     def setGetDimensionsMethod(self, get_dimensions_method):
         self._get_dimension_method = get_dimensions_method

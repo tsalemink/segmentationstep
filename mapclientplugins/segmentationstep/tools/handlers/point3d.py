@@ -18,8 +18,20 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
     along with MAP Client.  If not, see <http://www.gnu.org/licenses/>..
 '''
 from mapclientplugins.segmentationstep.tools.handlers.point import Point
+from mapclientplugins.segmentationstep.definitions import POINT_CLOUD_GRAPHIC_NAME
 
 class Point3D(Point):
     pass
+
+    def _createScenepickerFilter(self):
+        sceneviewer = self._zinc_view.getSceneviewer()
+        scene = sceneviewer.getScene()
+        filtermodule = scene.getScenefiltermodule()
+        name_filter1 = filtermodule.createScenefilterGraphicsName(POINT_CLOUD_GRAPHIC_NAME)
+
+        name_filter = filtermodule.createScenefilterOperatorOr()
+        name_filter.appendOperand(name_filter1)
+
+        return name_filter
 
 
