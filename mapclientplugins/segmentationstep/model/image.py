@@ -47,9 +47,33 @@ class ImageModel(AbstractModel):
         self._image_field = self._createImageField(dataIn)
 
     def initialize(self):
+        scale = [1.0, 1.0, 1.0]
+        dicom_property = 'dcm:PixelSpacing'
+        px_spacing = self._image_field.getProperty(dicom_property)
+        if px_spacing is not None:
+            px_x, px_y = px_spacing.split('\\')
+            scale[0] = float(px_x)
+            scale[1] = float(px_y)
+
+        dicom_property = 'dcm:SliceThickness'
+        slice_thickness = self._image_field.getProperty(dicom_property)
+        if slice_thickness is not None:
+            scale[2] = float(slice_thickness)
+
+        offset = [0.0, 0.0, 0.0]
+        dicom_property = 'dcm:ImagePosition(Patient)'
+        patient_offset = self._image_field.getProperty(dicom_property)
+        if patient_offset is not None:
+            offset_x, offset_y, offset_z = patient_offset.split('\\')
+            offset = [float(offset_x), float(offset_y), float(offset_z)]
+            offset = [0.0, 0.0, 0.0]
+
         self._material = self._createMaterialUsingImageField(self._image_field)
         self._plane = self._createPlane()
         self._setupImageRegion()
+
+        self.setScale(scale)
+        self.setOffset(offset)
 
     def getPlane(self):
         return self._plane
@@ -62,6 +86,20 @@ class ImageModel(AbstractModel):
 
     def setDimensionsInPixels(self, dimensions):
         self._dimensions_px = dimensions
+
+    def getOffset(self):
+        fieldmodule = self._offset_field.getFieldmodule()
+        fieldcache = fieldmodule.createFieldcache()
+        _, offset = self._offset_field.evaluateReal(fieldcache, 3)
+
+        return offset
+
+    def setOffset(self, offset):
+        fieldmodule = self._offset_field.getFieldmodule()
+        fieldcache = fieldmodule.createFieldcache()
+        fieldmodule.beginChange()
+        self._offset_field.assignReal(fieldcache, offset)
+        fieldmodule.endChange()
 
     def getScale(self):
         fieldmodule = self._scale_field.getFieldmodule()
@@ -153,7 +191,9 @@ class ImageModel(AbstractModel):
 
         self._coordinate_field = createFiniteElementField(self._region)
         self._scale_field = fieldmodule.createFieldConstant([1.0, 1.0, 1.0])
-        self._scaled_coordinate_field = self._coordinate_field * self._scale_field
+        self._offset_field = fieldmodule.createFieldConstant([0.0, 0.0, 0.0])
+        self._scaled_coordinate_field = self._coordinate_field * self._scale_field + self._offset_field
+
         createFiniteElement(self._region, self._coordinate_field, self._dimensions_px)
 
         self._iso_scalar_field = self._createIsoScalarField(fieldmodule, self._scaled_coordinate_field, normal_field, rotation_point_field)

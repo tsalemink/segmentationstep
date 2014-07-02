@@ -82,10 +82,25 @@ class SegmentationWidget(QtGui.QWidget):
         self._ui._lineEditHeightScale.setValidator(dbl_validator)
         self._ui._lineEditDepthScale.setValidator(dbl_validator)
 
+        dbl_validator = QtGui.QDoubleValidator()
+        self._ui._lineEditXOffset.setValidator(dbl_validator)
+        self._ui._lineEditYOffset.setValidator(dbl_validator)
+        self._ui._lineEditZOffset.setValidator(dbl_validator)
+
         dimensions = self._model.getImageModel().getDimensionsInPixels()
         self._ui._labelmageWidth.setText(str(dimensions[0]) + ' px')
         self._ui._labelmageHeight.setText(str(dimensions[1]) + ' px')
         self._ui._labelmageDepth.setText(str(dimensions[2]) + ' px')
+
+        scale = self._model.getImageModel().getScale()
+        self._ui._lineEditWidthScale.setText(str(scale[0]))
+        self._ui._lineEditHeightScale.setText(str(scale[1]))
+        self._ui._lineEditDepthScale.setText(str(scale[2]))
+
+        offset = self._model.getImageModel().getOffset()
+        self._ui._lineEditXOffset.setText(str(offset[0]))
+        self._ui._lineEditYOffset.setText(str(offset[1]))
+        self._ui._lineEditZOffset.setText(str(offset[2]))
 
     def setSerializationLocation(self, location):
         self._serialization_location = location
