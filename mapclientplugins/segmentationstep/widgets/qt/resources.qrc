@@ -3,5 +3,6 @@
     <file>icons/seg.gif</file>
     <file>icons/seg.png</file>
     <file>icons/2d.png</file>
+    <file>icons/segmentationicon.png</file>
   </qresource>
 </RCC>

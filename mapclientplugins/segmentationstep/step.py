@@ -40,9 +40,14 @@ class SegmentationStep(WorkflowStepMountPoint):
         '''
         super(SegmentationStep, self).__init__('Segmentation', location)
         self._identifier = ''
-        self._icon = QtGui.QImage(':/segmentation/icons/seg.gif')
-        self.addPort(('http://physiomeproject.org/workflow/1.0/rdf-schema#port', 'http://physiomeproject.org/workflow/1.0/rdf-schema#uses', 'http://physiomeproject.org/workflow/1.0/rdf-schema#images'))
-        self.addPort(('http://physiomeproject.org/workflow/1.0/rdf-schema#port', 'http://physiomeproject.org/workflow/1.0/rdf-schema#provides', 'http://physiomeproject.org/workflow/1.0/rdf-schema#pointcloud'))
+        # self._icon = QtGui.QImage(':/segmentation/icons/seg.gif')
+        self._icon = QtGui.QImage(':/segmentation/icons/segmentationicon.png')
+        self.addPort(('http://physiomeproject.org/workflow/1.0/rdf-schema#port',
+                      'http://physiomeproject.org/workflow/1.0/rdf-schema#uses',
+                      'http://physiomeproject.org/workflow/1.0/rdf-schema#images'))
+        self.addPort(('http://physiomeproject.org/workflow/1.0/rdf-schema#port',
+                      'http://physiomeproject.org/workflow/1.0/rdf-schema#provides',
+                      'ju#pointcoordinates'))
         self._model = SegmentationModel()
         self._view = None
         self._dataIn = None
