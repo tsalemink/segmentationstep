@@ -576,14 +576,14 @@ class CommandPushPullCurve(AbstractCommandPushPull):
             node_ids = self._model.createNodes(node_statuses, group=self._model.getCurveGroup())
             _updateNodeIdentifiers(node_statuses, node_ids)
             curve = CurveModel(self._model)
-            curve_identifier = self._model.getNextCurveIdentifier()
-            self._model.insertCurve(curve_identifier, curve)
+            next_curve_identifier = self._model.getNextCurveIdentifier()
+            self._model.insertCurve(next_curve_identifier, curve)
             curve.setInterpolationCount(self._interpolation_counts[curve_identifier])
             curve.setNodes(node_ids)
-            self._curves[curve_identifier] = curve_identifier
+            self._curves[curve_identifier] = next_curve_identifier
             if len(curve) > 1:
                 locations = curve.calculate()
-                self._scene.setInterpolationPoints(curve_identifier, locations)
+                self._scene.setInterpolationPoints(next_curve_identifier, locations)
             selection_node_ids += node_ids
 
         self._model.setSelection(selection_node_ids)

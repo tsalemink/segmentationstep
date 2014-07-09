@@ -32,6 +32,7 @@ class Point(AbstractSelection):
         self._mode_type = ViewMode.SEGMENT_POINT
         self._model = None
         self._streaming_create = False
+        self._node_status = None
 
     def setModel(self, model):
         self._model = model
