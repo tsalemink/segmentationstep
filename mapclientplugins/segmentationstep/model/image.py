@@ -265,8 +265,19 @@ class ImageModel(AbstractModel):
         materials_module = self._context.getMaterialmodule()
         material = materials_module.createMaterial()
 
+        spectrummodule = self._context.getSpectrummodule()
+        spectrum = spectrummodule.createSpectrum()
+        component = spectrum.createSpectrumcomponent()
+        component.setColourMappingType(component.COLOUR_MAPPING_TYPE_MONOCHROME)
+        component.setRangeMinimum(0)
+        component.setRangeMaximum(1)
+
+#         material.setSpectrum(spectrum)
+
+        fieldmodule = image_field.getFieldmodule()
+        rescaled_image_field = fieldmodule.createFieldImagefilterRescaleIntensity(image_field, 0, 1)
         # Create an image field. A temporary xi source field is created for us.
-        material.setTextureField(1, image_field)
+        material.setTextureField(1, rescaled_image_field)
 
         return material
 
