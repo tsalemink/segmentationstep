@@ -12,6 +12,12 @@ The segmentation tool is a tool designed to be used to digitise a set of images.
 Layout
 ======
 
+.. figure:: images/layout.png
+   :align: center
+   :width: 40%
+   
+   **Figure 1**: Segmentation tool layout.
+
 The segmentation tool is comprised of two parts the toolboxes to the left hand side and the segmentation area to the right.  The toolboxes offer enhancements to the available tools more information can be found in the `Toolboxes`_ section.  The segmentation area is comprised of two tabs a 3D view of the segmentation scene and a 2D view of the segmentation scene.  The two views can also be laid out side-by-side if desired by dragging either of the tabs to the drop zone near the right hand side of the window.  The drop zone is not visible but it will show itself (highlights itself with a blue background) when a tab is dragged over it.
 
 Input
@@ -43,12 +49,16 @@ These manipulations hold to some degree independent of the tool currently in use
 Point Tool
 ----------
 
+.. image:: images/point.png
+
 The point tool is the tool for adding single segmentation points onto the current image plane.  To add a single point press the Ctrl key and the left mouse button when the cursor is pointing to the desired location on the image plane.  Existing points can be selected and moved by clicking directly on an existing segmentation point.  The segmentation point will follow the mouse pointer while the mouse button is pressed.  Using the shift key and the left mouse button it is possible to select a group of segmentation points.  This can be done by either individually clicking on all the segmentation points to be selected or clicking and dragging the mouse to create a rubber-band selection box in which all segmentation points will be automatically selected.  Note that only segmentation points will be selected and not curve points while the point tool is active.  You can activate this tool with the keyboard shortcut Ctrl-1. 
 
 See the `Point Toolbox`_ section for details on the options that this tool can make use of.
 
 Curve Tool
 ----------
+
+.. image:: images/curve.png
 
 The curve tool is a tool for adding multiple segmentation points at a time.  This tool places interpolated Bezier points between user placed control points.  The user can place control points using the Ctrl key and the left mouse button, the curve will update while the mouse is moving to offer a preview of what the curve will look like with the addition of the next control point.  To finish placing control points press the Ctrl key and the right mouse button.  Existing control points can be selected and moved by clicking directly on an existing control point.  The control point will follow the mouse pointer and the curve will update it's shape while the mouse button is pressed.  The interpolated Bezier points are not able to be selected or moved directly.  You can activate this tool with the keyboard shortcut Ctrl-2. 
 
@@ -57,14 +67,18 @@ See the `Curve Toolbox`_ section for details on the options that this tool can m
 Normal Tool
 -----------
 
+.. image:: images/normal.png
+
 The normal tool is used for moving the image plane in the direction of the image plane normal.  Use the left mouse button to click on the arrow and with the left mouse button held down drag the plane to the desired location.  When clicked the arrow will change colour to orange to indicate that it has been selected.
 
 You can activate this tool with the keyboard shortcut Ctrl-3. 
 
-Rotation Tool
--------------
+Orientation Tool
+----------------
 
-The rotation tool is used for re-oreinting the image plane around a rotation point.  The centre of rotation for the plane is indicated by the purple sphere, if you want to change the point of rotation use the left mouse button and click on the sphere.  While the mouse button is held down the sphere will follow the mouse movements.  Release the mouse and the plane can now be rotated around the new rotation point.  When clicked the sphere will change colour to red to indicate that it has been selected.
+.. image:: images/orientation.png
+
+The orientation tool is used for re-oreinting the image plane around a rotation point.  The centre of rotation for the plane is indicated by the purple sphere, if you want to change the point of rotation use the left mouse button and click on the sphere.  While the mouse button is held down the sphere will follow the mouse movements.  Release the mouse and the plane can now be rotated around the new rotation point.  When clicked the sphere will change colour to red to indicate that it has been selected.
 
 You can activate this tool with the keyboard shortcut Ctrl-4. 
   
@@ -80,7 +94,7 @@ File Toolbox
    :align: center
    :width: 10%
    
-   **Figure 1**: File toolbox.
+   **Figure 2**: File toolbox.
 
 The file toolbox consists of three buttons.  The three buttons are:
 
@@ -93,6 +107,12 @@ The save button is for saving the current session to disk.  The load button is f
 View Toolbox
 ------------
 
+.. figure:: images/view_toolbox.png
+   :align: center
+   :width: 10%
+   
+   **Figure 3**: View toolbox.
+
 The view toolbox controls the visibility of the graphical items in the view.  The view toolbox allows the user to set the visibility of:
 
 #. The image plane.
@@ -102,12 +122,24 @@ The view toolbox controls the visibility of the graphical items in the view.  Th
 Image Toolbox
 -------------
 
+.. figure:: images/image_toolbox.png
+   :align: center
+   :width: 10%
+   
+   **Figure 4**: Image toolbox.
+
 The image toolbox displays information on the image stack currently in use as well as the scaling and offset currently being applied.  The image properties shows the dimensions of the 3D texture without any scaling.  The scaling edit boxes show the scaling to be applied the default values are 1.0, 1.0, and 1.0.  The offset edit boxes show the offset to be applied the default values are 0.0, 0.0, and 0.0.
 
 It is advisable to set the scaling and offset of the image stack before starting the segmentation process.  
 
 Point Toolbox
 -------------
+
+.. figure:: images/point_toolbox.png
+   :align: center
+   :width: 10%
+   
+   **Figure 5**: Point toolbox.
 
 The point toolbox controls four options for the point tool.  The four options are:
 
@@ -120,6 +152,12 @@ The point size option controls the size of the segmentation points that are seen
 
 Curve Toolbox
 -------------
+
+.. figure:: images/curve_toolbox.png
+   :align: center
+   :width: 10%
+   
+   **Figure 6**: Curve toolbox.
 
 The curve toolbox controls four options for the curve tool.  The four options are:
 
