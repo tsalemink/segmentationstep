@@ -49,6 +49,7 @@ class SegmentationStep(WorkflowStepMountPoint):
                       'http://physiomeproject.org/workflow/1.0/rdf-schema#provides',
                       'ju#pointcoordinates'))
         self._model = SegmentationModel()
+        self._category = 'Segmentation'
         self._view = None
         self._dataIn = None
 #        self._configured = True

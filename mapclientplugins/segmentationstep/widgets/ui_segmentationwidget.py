@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'qt/segmentationwidget.ui'
 #
-# Created: Thu Jun 26 14:37:14 2014
+# Created: Thu Sep 11 13:15:31 2014
 #      by: pyside-uic 0.2.15 running on PySide 1.2.1
 #
 # WARNING! All changes made in this file will be lost!
@@ -266,7 +266,7 @@ class Ui_SegmentationWidget(object):
         self.verticalLayout.addWidget(self.splitterToolBox)
 
         self.retranslateUi(SegmentationWidget)
-        self._toolTab.setCurrentIndex(2)
+        self._toolTab.setCurrentIndex(0)
         self._tabWidgetLeft.setCurrentIndex(-1)
         QtCore.QMetaObject.connectSlotsByName(SegmentationWidget)
 

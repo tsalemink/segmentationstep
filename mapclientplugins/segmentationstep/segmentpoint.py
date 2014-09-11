@@ -19,9 +19,9 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
 '''
 class SegmentPointStatus(object):
 
-    def __init__(self, node_id, location, plane_attitude):
+    def __init__(self, node_id, position, plane_attitude):
         self._node_identifier = node_id
-        self._location = location
+        self._position = position
         self._plane_attitude = plane_attitude
 
     def getNodeIdentifier(self):
@@ -31,10 +31,10 @@ class SegmentPointStatus(object):
         self._node_identifier = identifier
 
     def getLocation(self):
-        return self._location
+        return self._position
 
-    def setLocation(self, location):
-        self._location = location
+    def setLocation(self, position):
+        self._position = position
 
     def getPlaneAttitude(self):
         return self._plane_attitude
@@ -45,8 +45,8 @@ class SegmentPointStatus(object):
 
 class ControlPointStatus(SegmentPointStatus):
 
-    def __init__(self, node_id, location, plane_attitude):
-        super(ControlPointStatus, self).__init__(node_id, location, plane_attitude)
+    def __init__(self, node_id, position, plane_attitude):
+        super(ControlPointStatus, self).__init__(node_id, position, plane_attitude)
         self._curve_index = None
 
     def setCurveIdentifier(self, index):

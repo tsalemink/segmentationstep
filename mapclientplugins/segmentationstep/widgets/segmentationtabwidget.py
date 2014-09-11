@@ -27,7 +27,7 @@ class SegmentationTabWidget(QtGui.QTabWidget):
 
     def __init__(self, parent=None):
         super(SegmentationTabWidget, self).__init__(parent)
-        tb = SegmentationTabBar()
+        tb = SegmentationTabBar(self)
         tb.tabReorderRequested.connect(self.repositionTab)
         self.setTabBar(tb)
 
@@ -63,7 +63,6 @@ class SegmentationTabWidget(QtGui.QTabWidget):
                 self._animation_increase.start()
 
     def dragLeaveEvent(self, event):
-#         super(SegmentationTabDropWidget, self).dragLeaveEvent(event)
         if self.width() > 1 and self.count() == 0:
             self._animation_decrease.setStartValue(self.width())
             self._animation_decrease.start()
@@ -73,8 +72,6 @@ class SegmentationTabWidget(QtGui.QTabWidget):
         if m.hasFormat('application/tab-moving'):
             self._stop_drag_pos = event.pos()
             event.acceptProposedAction()
-
-#         super(SegmentationTabWidget, self).dragMoveEvent(event)
 
     def dropEvent(self, event):
         m = event.mimeData()

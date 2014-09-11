@@ -232,15 +232,16 @@ class ImageModel(AbstractModel):
         files = os.listdir(directory)
         files.sort(key=alphanum_key)
         for filename in files:
-            # We are reading in a file from the local disk so our resource is a file.
-            absolute_filename = os.path.join(directory, filename)
-            if os.path.isfile(absolute_filename):
-                # SWIG cannot handle unicode strings or rather the Zinc interface
-                # files cannot handle unicode strings so we convert them to ascii
-                # here.
-                if isinstance(absolute_filename, unicode):
-                    absolute_filename = absolute_filename.encode('ascii', 'ignore')
-                stream_information.createStreamresourceFile(absolute_filename)
+            if filename not in ['.hg', 'annotation.rdf']:
+                # We are reading in a file from the local disk so our resource is a file.
+                absolute_filename = os.path.join(directory, filename)
+                if os.path.isfile(absolute_filename):
+                    # SWIG cannot handle unicode strings or rather the Zinc interface
+                    # files cannot handle unicode strings so we convert them to ascii
+                    # here.
+                    if isinstance(absolute_filename, unicode):
+                        absolute_filename = absolute_filename.encode('ascii', 'ignore')
+                    stream_information.createStreamresourceFile(absolute_filename)
 
         # Actually read in the image file into the image field.
         image_field.read(stream_information)
@@ -265,6 +266,23 @@ class ImageModel(AbstractModel):
         materials_module = self._context.getMaterialmodule()
         material = materials_module.createMaterial()
 
+        spectrummodule = self._context.getSpectrummodule()
+        spectrum = spectrummodule.createSpectrum()
+        component = spectrum.createSpectrumcomponent()
+        component.setColourMappingType(component.COLOUR_MAPPING_TYPE_MONOCHROME)
+        component.setRangeMinimum(0)
+        component.setRangeMaximum(1)
+
+#         material.setSpectrum(spectrum)
+
+#         fieldmodule = image_field.getFieldmodule()
+#         histogram_field = fieldmodule.createFieldImagefilterHistogram(image_field)
+#         print histogram_field.getMarginalScale()
+#         print histogram_field.getNumberOfBins(10)
+#         print histogram_field.getComputeMinimumValues(10)
+#         print histogram_field.getComputeMaximumValues(10)
+#         rescaled_image_field = fieldmodule.createFieldImagefilterRescaleIntensity(image_field, 0, 1)
+#         actual_rescaled_image_field = fieldmodule.createFieldImageFromSource(rescaled_image_field)
         # Create an image field. A temporary xi source field is created for us.
         material.setTextureField(1, image_field)
 
