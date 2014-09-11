@@ -2,8 +2,8 @@
 
 # Form implementation generated from reading ui file 'qt/configuredialog.ui'
 #
-# Created: Fri Jun 14 15:10:39 2013
-#      by: pyside-uic 0.2.14 running on PySide 1.1.2
+# Created: Thu Sep 11 12:27:09 2014
+#      by: pyside-uic 0.2.15 running on PySide 1.2.1
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -45,7 +45,7 @@ class Ui_ConfigureDialog(object):
         QtCore.QMetaObject.connectSlotsByName(ConfigureDialog)
 
     def retranslateUi(self, ConfigureDialog):
-        ConfigureDialog.setWindowTitle(QtGui.QApplication.translate("ConfigureDialog", "Configure - Point Cloud Store", None, QtGui.QApplication.UnicodeUTF8))
+        ConfigureDialog.setWindowTitle(QtGui.QApplication.translate("ConfigureDialog", "Configure - Segmentation", None, QtGui.QApplication.UnicodeUTF8))
         self.label.setText(QtGui.QApplication.translate("ConfigureDialog", "Identifier:", None, QtGui.QApplication.UnicodeUTF8))
 
 from . import resources_rc
