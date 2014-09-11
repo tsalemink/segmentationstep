@@ -116,22 +116,29 @@ class SegmentationWidget(QtGui.QWidget):
         node_model = self._model.getNodeModel()
         str_model = node_model.serialize()
         node_filename = self._getNodeFilename()
-        f = open(node_filename, 'w')
-        f.write(str_model)
+        try:
+            with open(node_filename, 'w') as f:
+                f.write(str_model)
+        except IOError:
+            pass
 
     def _loadState(self):
         node_model = self._model.getNodeModel()
         node_filename = self._getNodeFilename()
-        f = open(node_filename, 'r')
-        str_model = f.read()
-        node_model.deserialize(str_model)
-        node_scene = self._scene.getNodeScene()
-        node_scene.clearAllInterpolationPoints()
-        for curve_identifier in node_model.getCurveIdentifiers():
-            curve = node_model.getCurveWithIdentifier(curve_identifier)
-            if len(curve) > 1:
-                locations = curve.calculate()
-                node_scene.setInterpolationPoints(curve_identifier, locations)
+        try:
+            with open(node_filename, 'r') as f:
+    #         f = open(node_filename, 'r')
+                str_model = f.read()
+                node_model.deserialize(str_model)
+                node_scene = self._scene.getNodeScene()
+                node_scene.clearAllInterpolationPoints()
+                for curve_identifier in node_model.getCurveIdentifiers():
+                    curve = node_model.getCurveWithIdentifier(curve_identifier)
+                    if len(curve) > 1:
+                        locations = curve.calculate()
+                        node_scene.setInterpolationPoints(curve_identifier, locations)
+        except IOError:
+            pass
 
     def _saveViewState(self):
         eye, lookat, up, angle = self._ui._sceneviewer3d.getViewParameters()
