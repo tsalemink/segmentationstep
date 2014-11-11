@@ -47,7 +47,7 @@ class SegmentationStep(WorkflowStepMountPoint):
                       'http://physiomeproject.org/workflow/1.0/rdf-schema#images'))
         self.addPort(('http://physiomeproject.org/workflow/1.0/rdf-schema#port',
                       'http://physiomeproject.org/workflow/1.0/rdf-schema#provides',
-                      'ju#pointcoordinates'))
+                      'http://physiomeproject.org/workflow/1.0/rdf-schema#pointcloud'))
         self._model = SegmentationModel()
         self._category = 'Segmentation'
         self._view = None
