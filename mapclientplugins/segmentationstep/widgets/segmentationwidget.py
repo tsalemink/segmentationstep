@@ -117,6 +117,8 @@ class SegmentationWidget(QtGui.QWidget):
         str_model = node_model.serialize()
         node_filename = self._getNodeFilename()
         try:
+            if not os.path.exists(self._serialization_location):
+                os.makedirs(self._serialization_location)
             with open(node_filename, 'w') as f:
                 f.write(str_model)
         except IOError:

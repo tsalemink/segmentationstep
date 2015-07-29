@@ -1,3 +1,6 @@
 *.pyc
 __pycache__/
 mapclientplugins/segmentationstep/test/
+
+.project
+.pydevproject

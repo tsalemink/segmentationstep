@@ -19,7 +19,7 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
 '''
 import os
 
-from PySide import QtGui, QtCore
+from PySide import QtGui
 
 from mapclient.mountpoints.workflowstep import WorkflowStepMountPoint
 
@@ -51,7 +51,8 @@ class SegmentationStep(WorkflowStepMountPoint):
         self._state = ConfigureDialogState()
 
     def configure(self):
-        d = ConfigureDialog(self._state)
+        
+        d = ConfigureDialog(self._state, QtGui.QApplication.activeWindow().currentWidget())
         d.setModal(True)
         if d.exec_():
             self._state = d.getState()
@@ -66,21 +67,11 @@ class SegmentationStep(WorkflowStepMountPoint):
     def setIdentifier(self, identifier):
         self._state.setIdentifier(identifier)
 
-    def _setStepLocation(self, location):
-        self._step_location = os.path.join(location, self._state.identifier())
+    def serialize(self):
+        return self._state.serialize()
 
-    def serialize(self, location):
-        self._setStepLocation(location)
-        if not os.path.exists(self._step_location):
-            os.mkdir(self._step_location)
-
-        s = QtCore.QSettings(os.path.join(self._step_location, STEP_SERIALISATION_FILENAME), QtCore.QSettings.IniFormat)
-        self._state.save(s)
-
-    def deserialize(self, location):
-        self._setStepLocation(location)
-        s = QtCore.QSettings(os.path.join(self._step_location, STEP_SERIALISATION_FILENAME), QtCore.QSettings.IniFormat)
-        self._state.load(s)
+    def deserialize(self, string):
+        self._state.deserialize(string)
         d = ConfigureDialog(self._state)
         self._configured = d.validate()
 
@@ -95,7 +86,7 @@ class SegmentationStep(WorkflowStepMountPoint):
             self._model.loadImages(self._dataIn)
             self._model.initialize()
             self._view = SegmentationWidget(self._model)
-            self._view.setSerializationLocation(self._step_location)
+            self._view.setSerializationLocation(os.path.join(self._location, self.getIdentifier()))
             self._view._ui.doneButton.clicked.connect(self._doneExecution)
 
         self._setCurrentUndoRedoStack(self._model.getUndoRedoStack())
