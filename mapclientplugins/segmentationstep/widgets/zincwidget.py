@@ -284,7 +284,7 @@ class ZincWidget(QtOpenGL.QGLWidget):
 
         return None
 
-    def getNeareshGraphics(self):
+    def getNearestGraphics(self):
         return self._scenepicker.getNearestGraphics()
 
     def getNearestGraphicsNode(self, x, y):
