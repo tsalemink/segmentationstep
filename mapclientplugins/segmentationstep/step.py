@@ -87,7 +87,7 @@ class SegmentationStep(WorkflowStepMountPoint):
         return self._model.getPointCloud()
 
     def execute(self):
-        if not self._view:
+        if self._view is None:
             self._model.loadImages(self._dataIn)
             self._model.initialize()
             self._view = SegmentationWidget(self._model)
