@@ -423,8 +423,8 @@ class CommandDeleteCurve(QtGui.QUndoCommand):
                 self._curves[curve_identifier] = curve
                 self._interpolation_counts[curve_identifier] = curve.getInterpolationCount()
                 self._node_statuses[curve_identifier] = []
-                for node_id in curve.getNodes():
-                    self._node_statuses[curve_identifier].append(model.getNodeStatus(node_id))
+                for curve_node_id in curve.getNodes():
+                    self._node_statuses[curve_identifier].append(model.getNodeStatus(curve_node_id))
 
     def setScene(self, scene):
         self._scene = scene
@@ -446,7 +446,6 @@ class CommandDeleteCurve(QtGui.QUndoCommand):
         scene = region.getScene()
         scene.beginChange()
 
-        node_ids = []
         for curve_identifier in self._curves:
             if self._curves[curve_identifier] is None:
                 curve = CurveModel(self._model)

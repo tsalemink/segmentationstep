@@ -41,7 +41,7 @@ class NodeScene(object):
         self._segmentation_point_on_plane_glyph = self._createPointCloudOnPlaneGraphics(region, coordinate_field)
         self._curve_point_glyph = self._createCurveGraphics(region, coordinate_field)
         self._curve_point_on_plane_glyph = self._createCurveOnPlaneGraphics(region, coordinate_field)
-        self._interpolation_point_glyph = self._createInterpolationPointGraphics(region, coordinate_field)
+        self._interpolation_point_glyph = _createInterpolationPointGraphics(region, coordinate_field)
         self._interpolation_point_on_plane_glyph = self._createInterpolationPointOnPlaneGraphics(region, coordinate_field)
 
     def _createPointCloudGraphics(self, region, finite_element_field):
@@ -154,28 +154,6 @@ class NodeScene(object):
 
         return graphic
 
-    def _createInterpolationPointGraphics(self, region, finite_element_field):
-        scene = region.getScene()
-        scene.beginChange()
-
-        materialmodule = scene.getMaterialmodule()
-        blue_material = materialmodule.findMaterialByName('blue')
-
-        graphic = scene.createGraphicsPoints()
-        graphic.setFieldDomainType(Field.DOMAIN_TYPE_DATAPOINTS)
-        graphic.setCoordinateField(finite_element_field)
-        graphic.setName(CURVE_GRAPHIC_NAME)
-        graphic.setMaterial(blue_material)
-        graphic.setSelectMode(Graphics.SELECT_MODE_OFF)
-#         graphic.setSubgroupField(self._model.getOnPlaneSegmentationPointField())
-        attributes = graphic.getGraphicspointattributes()
-        attributes.setGlyphShapeType(Glyph.SHAPE_TYPE_SPHERE)
-        attributes.setBaseSize(DEFAULT_SEGMENTATION_POINT_SIZE)
-
-        scene.endChange()
-
-        return graphic
-
     def setInterpolationPoints(self, curve_index, locations):
         region = self._model.getRegion()
         scene = region.getScene()
@@ -234,4 +212,27 @@ class NodeScene(object):
             graphic = self._interpolation_point_on_plane_glyph
 
         return graphic
+
+
+def _createInterpolationPointGraphics(region, finite_element_field):
+    scene = region.getScene()
+    scene.beginChange()
+
+    materialmodule = scene.getMaterialmodule()
+    blue_material = materialmodule.findMaterialByName('blue')
+
+    graphic = scene.createGraphicsPoints()
+    graphic.setFieldDomainType(Field.DOMAIN_TYPE_DATAPOINTS)
+    graphic.setCoordinateField(finite_element_field)
+    graphic.setName(CURVE_GRAPHIC_NAME)
+    graphic.setMaterial(blue_material)
+    graphic.setSelectMode(Graphics.SELECT_MODE_OFF)
+#         graphic.setSubgroupField(self._model.getOnPlaneSegmentationPointField())
+    attributes = graphic.getGraphicspointattributes()
+    attributes.setGlyphShapeType(Glyph.SHAPE_TYPE_SPHERE)
+    attributes.setBaseSize(DEFAULT_SEGMENTATION_POINT_SIZE)
+
+    scene.endChange()
+
+    return graphic
 

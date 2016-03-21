@@ -59,7 +59,7 @@ class CurveModel(object):
         if self.isClosed():
             data += [self._node_model.getNodeLocation(self._node_model.getNodeByIdentifier(self._nodes[0]))]
         splines = paramerterizedSplines(data)
-        t = [float(i) / (self._interpolation_count + 1) for i in xrange(1, self._interpolation_count + 1)]
+        t = [float(i) / (self._interpolation_count + 1) for i in range(1, self._interpolation_count + 1)]
         locations = []
         for pair in splines:
             xt = pair[0][:]
@@ -74,6 +74,7 @@ class CurveModel(object):
         return locations
 
     def addNode(self, node_id):
+        print(node_id, self._nodes)
         if node_id not in self._nodes:
             self._nodes.append(node_id)
         elif self.closes(node_id):

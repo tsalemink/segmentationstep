@@ -181,7 +181,7 @@ class SegmentationWidget(QtGui.QWidget):
         self._ui._sceneviewer3d.setProjectionMode(mode)
 
     def _iconSizeChanged(self):
-        current = 0.0
+        current = new = 0.0
         spin_box = self.sender()
         if spin_box == self._ui._doubleSpinBoxNormalArrow:
             mode = self._ui._sceneviewer3d.getMode(ViewMode.PLANE_NORMAL)

@@ -312,4 +312,3 @@ class Ui_SegmentationWidget(object):
         self._toolTab.setItemText(self._toolTab.indexOf(self.image), QtGui.QApplication.translate("SegmentationWidget", "Image", None, QtGui.QApplication.UnicodeUTF8))
 
 from mapclientplugins.segmentationstep.widgets.segmentationtabwidget import SegmentationTabWidget
-from . import resources_rc

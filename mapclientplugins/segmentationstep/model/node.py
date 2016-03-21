@@ -211,7 +211,7 @@ class NodeModel(AbstractModel):
         alias_normal_field = fieldmodule.createFieldAlias(self._plane.getNormalField())
         alias_point_field = fieldmodule.createFieldAlias(self._plane.getRotationPointField())
 
-        plane_equation_field = self._createPlaneEquationField(fieldmodule, self._scaled_coordinate_field, alias_normal_field, alias_point_field)
+        plane_equation_field = _createPlaneEquationField(fieldmodule, self._scaled_coordinate_field, alias_normal_field, alias_point_field)
         tolerance_field = fieldmodule.createFieldConstant(0.5)
         abs_field = fieldmodule.createFieldAbs(plane_equation_field)
         on_plane_field = fieldmodule.createFieldLessThan(abs_field, tolerance_field)
@@ -242,12 +242,6 @@ class NodeModel(AbstractModel):
         fieldmodule.endChange()
 
         return and_field
-
-    def _createPlaneEquationField(self, fieldmodule, coordinate_field, plane_normal_field, point_on_plane_field):
-        d = fieldmodule.createFieldDotProduct(plane_normal_field, point_on_plane_field)
-        plane_equation_field = fieldmodule.createFieldDotProduct(coordinate_field, plane_normal_field) - d
-
-        return plane_equation_field
 
     def setScale(self, scale):
         '''
@@ -465,10 +459,6 @@ class NodeModel(AbstractModel):
         self._interpolation_point_group.addNode(node)
         return node
 
-    def removeDatapoint(self, datapoint):
-        nodeset = datapoint.getNodeset()
-        nodeset.destroyNode(datapoint)
-
     def removeNodes(self, node_statuses):
         fieldmodule = self._region.getFieldmodule()
         fieldmodule.beginChange()
@@ -540,3 +530,16 @@ class NodeModel(AbstractModel):
         fieldmodule.endChange()
 
         return node
+
+    @staticmethod
+    def removeDatapoint(datapoint):
+        nodeset = datapoint.getNodeset()
+        nodeset.destroyNode(datapoint)
+
+
+def _createPlaneEquationField(fieldmodule, coordinate_field, plane_normal_field, point_on_plane_field):
+    d = fieldmodule.createFieldDotProduct(plane_normal_field, point_on_plane_field)
+    plane_equation_field = fieldmodule.createFieldDotProduct(coordinate_field, plane_normal_field) - d
+
+    return plane_equation_field
+

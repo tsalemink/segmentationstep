@@ -63,7 +63,7 @@ class SegmentationStep(WorkflowStepMountPoint):
             self._state = d.getState()
 
         self._configured = d.validate()
-        if self._configured and self._configuredObserver != None:
+        if self._configured and self._configuredObserver is not None:
             self._configuredObserver()
 
     def getIdentifier(self):

@@ -71,10 +71,10 @@ class Orientation(PlaneAdjust):
             delta_y = float(event.y() - self._previous_mouse_position[1])
             tangent_dist = sqrt((delta_x * delta_x + delta_y * delta_y))
             if tangent_dist > 0.0:
-                dx = -delta_y / tangent_dist;
-                dy = delta_x / tangent_dist;
+                dx = -delta_y / tangent_dist
+                dy = delta_x / tangent_dist
 
-                d = dx * (event.x() - 0.5 * (width - 1)) + dy * ((event.y() - 0.5 * (height - 1)))
+                d = dx * (event.x() - 0.5 * (width - 1)) + dy * (event.y() - 0.5 * (height - 1))
                 if d > radius: d = radius
                 if d < -radius: d = -radius
 

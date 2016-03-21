@@ -100,5 +100,3 @@ class Ui_PropertiesWidget(object):
         self.groupBox_11.setTitle(QtGui.QApplication.translate("PropertiesWidget", "Edit", None, QtGui.QApplication.UnicodeUTF8))
         self._pushButtonDelete.setToolTip(QtGui.QApplication.translate("PropertiesWidget", "Remove selected segmentation points", None, QtGui.QApplication.UnicodeUTF8))
         self._pushButtonDelete.setText(QtGui.QApplication.translate("PropertiesWidget", "Delete", None, QtGui.QApplication.UnicodeUTF8))
-
-from . import images_rc

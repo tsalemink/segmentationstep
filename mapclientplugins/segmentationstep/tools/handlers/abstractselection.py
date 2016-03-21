@@ -82,7 +82,7 @@ class AbstractSelection(AbstractHandler):
             self._selection_box.setVisibilityFlag(False)
             selection_group = self._model.getSelectionGroupField()
 
-            if (x != self._selection_position_start[0] and y != self._selection_position_start[1]):
+            if x != self._selection_position_start[0] and y != self._selection_position_start[1]:
                 left = min(x, self._selection_position_start[0])
                 right = max(x, self._selection_position_start[0])
                 bottom = min(y, self._selection_position_start[1])

@@ -48,7 +48,6 @@ def boundCoordinatesToCuboid(pt1, pt2, cuboid_dimensions):
 
     if any(outside):
         indices = [i for i, x in enumerate(outside) if x]
-        ipt = None
         for index in indices:
             if outside[index] == 1:
                 ipt = calculateLinePlaneIntersection(pt1, pt2, coordinate_set[0], axes[index])
@@ -157,8 +156,8 @@ class CentroidAlgorithm(object):
         e1, e2, e3 = self._calculateBasis()
         trans_xi = self._convertXi(ave, e1, e2, e3)
         ordered_xi = self._orderByHeading(trans_xi)
-        area = self._calculatePolygonArea(ordered_xi)
-        cx, cy = self._calculateCxCy(ordered_xi, area)
+        area = _calculatePolygonArea(ordered_xi)
+        cx, cy = _calculateCxCy(ordered_xi, area)
         centroid_x = ave[0] + e1[0] * cx + e2[0] * cy
         centroid_y = ave[1] + e1[1] * cx + e2[1] * cy
         centroid_z = ave[2] + e1[2] * cx + e2[2] * cy
@@ -167,38 +166,12 @@ class CentroidAlgorithm(object):
         return centroid
 
     def _orderByHeading(self, trans_xi):
-        headings = self._calculateHeading(trans_xi)
+        headings = _calculateHeading(trans_xi)
         heading_indexes = [i[0] for i in sorted(enumerate(headings), key=lambda x:x[1])]
         ordered_xi = [trans_xi[i] for i in heading_indexes]
         ordered_xi.append(ordered_xi[0])  # repeat the first vertex
 
         return ordered_xi
-
-    def _calculateCxCy(self, vertices, area):
-        cx = 0.0
-        cy = 0.0
-        for i in range(len(vertices) - 1):
-            val = (vertices[i][0] * vertices[i + 1][1] - vertices[i + 1][0] * vertices[i][1])
-            cx += ((vertices[i][0] + vertices[i + 1][0]) * val)
-            cy += ((vertices[i][1] + vertices[i + 1][1]) * val)
-
-        cx = cx / (6 * area)
-        cy = cy / (6 * area)
-        return cx, cy
-
-    def _calculatePolygonArea(self, vertices):
-        area = 0.0
-        for i in range(len(vertices) - 1):
-            area += (vertices[i][0] * vertices[i + 1][1] - vertices[i + 1][0] * vertices[i][1])
-        return 0.5 * area
-
-    def _calculateHeading(self, direction):
-        '''
-        Convert a vector based direction into a heading
-        between 0 and 2*pi.
-        '''
-        headings = [atan2(pt[1], pt[0]) + pi for pt in direction]
-        return headings
 
     def _calculateBasis(self):
         e1 = e2 = e3 = None
@@ -241,6 +214,34 @@ class CentroidAlgorithm(object):
         average = div(sum_xi, len(self._xi))
         return average
 
+
+def _calculateCxCy(vertices, area):
+    cx = 0.0
+    cy = 0.0
+    for i in range(len(vertices) - 1):
+        val = (vertices[i][0] * vertices[i + 1][1] - vertices[i + 1][0] * vertices[i][1])
+        cx += ((vertices[i][0] + vertices[i + 1][0]) * val)
+        cy += ((vertices[i][1] + vertices[i + 1][1]) * val)
+
+    cx /= 6 * area
+    cy /= 6 * area
+    return cx, cy
+
+def _calculatePolygonArea(vertices):
+    area = 0.0
+    for i in range(len(vertices) - 1):
+        area += (vertices[i][0] * vertices[i + 1][1] - vertices[i + 1][0] * vertices[i][1])
+    return 0.5 * area
+
+def _calculateHeading(direction):
+    '''
+    Convert a vector based direction into a heading
+    between 0 and 2*pi.
+    '''
+    headings = [atan2(pt[1], pt[0]) + pi for pt in direction]
+    return headings
+
+
 class WeiszfeldsAlgorithm(object):
 
     def __init__(self, xi):
@@ -260,7 +261,7 @@ class WeiszfeldsAlgorithm(object):
             weight = sum([1 / ni for ni in normi])
             val = [div(self._xi[i], normi[i]) for i in range(len(self._xi))]
 
-            yip1 = self._weightedaverage(val, weight)
+            yip1 = _weightedAverage(val, weight)
             diff = sub(yip1, yi)
             yi = yip1
             it += 1
@@ -269,16 +270,6 @@ class WeiszfeldsAlgorithm(object):
                 converged = True
 
         return yi
-
-    def _weightedaverage(self, values, weight):
-        sum_values = None
-        for v in values:
-            if not sum_values:
-                sum_values = [0.0] * len(v)
-            sum_values = add(sum_values, v)
-
-        weightedaverage = div(sum_values, weight)
-        return weightedaverage
 
     def _average(self):
         sum_xi = None
@@ -290,42 +281,59 @@ class WeiszfeldsAlgorithm(object):
         average = div(sum_xi, len(self._xi))
         return average
 
+
+def _weightedAverage(values, weight):
+    sum_values = None
+    for v in values:
+        if not sum_values:
+            sum_values = [0.0] * len(v)
+        sum_values = add(sum_values, v)
+
+    weighted_average = div(sum_values, weight)
+    return weighted_average
+
+
 def evaluatePolynomial(t, coeffs):
     return ((coeffs[3] * t + coeffs[2]) * t + coeffs[1]) * t + coeffs[0]
+
 
 def createOpenFormTridiagonalMatrix(n):
     # Create Tri-diagonal mx
     mx = np.eye(n + 1) * 4
     mx[0, 0] = mx[n, n] = 2.0
-    for i in xrange(n):
+    for i in range(n):
         mx[i + 1, i] = 1.0
         mx[i, i + 1] = 1.0
 
     return mx
+
 
 def createClosedFormTridiagonalMatrix(n):
     # Create Tri-diagonal mx
     mx = np.eye(n + 1) * 4
     mx[0, n] = mx[n, 0] = 1.0
-    for i in xrange(n):
+    for i in range(n):
         mx[i + 1, i] = 1.0
         mx[i, i + 1] = 1.0
 
     return mx
 
+
 def createOpenFormB(X):
     n = len(X) - 1
-    b = [3 * (X[i + 2] - X[i]) for i in xrange(n - 1)]
+    b = [3 * (X[i + 2] - X[i]) for i in range(n - 1)]
     b = [3 * (X[1] - X[0])] + b + [3 * (X[n] - X[n - 1])]
 
     return b
 
+
 def createClosedFormB(X):
     n = len(X) - 1
-    b = [3 * (X[i + 2] - X[i]) for i in xrange(n - 1)]
+    b = [3 * (X[i + 2] - X[i]) for i in range(n - 1)]
     b = [3 * (X[1] - X[n])] + b + [3 * (X[0] - X[n - 1])]
 
     return b
+
 
 def calculateCoefficients(x_i, x_ip1, D_i, D_ip1):
     a = x_i
@@ -335,12 +343,13 @@ def calculateCoefficients(x_i, x_ip1, D_i, D_ip1):
 
     return [a, b, c, d]
 
+
 def paramerterizedSplines(data):
     '''
     Calculates the polynomial coefficients for piecewise cubic splines
     over the data. 
     '''
-    control_points = zip(*data)
+    control_points = list(zip(*data))
     np1 = len(data)
     n = np1 - 1
 
@@ -356,13 +365,13 @@ def paramerterizedSplines(data):
         mx = createOpenFormTridiagonalMatrix(n)
 
     out = []
-    for dim in control_points:
+    for dim_t in control_points:
         if closed_form:
-            b = createClosedFormB(dim)
+            b = createClosedFormB(dim_t)
         else:
-            b = createOpenFormB(dim)
+            b = createOpenFormB(dim_t)
         D = np.linalg.solve(mx, b)  # not D as in derivative just a paramertisation of polynomial coefficients.
-        out.append([calculateCoefficients(dim[i], dim[i + 1], D[i], D[i + 1]) for i in xrange(n)])
+        out.append([calculateCoefficients(dim_t[i], dim_t[i + 1], D[i], D[i + 1]) for i in range(n)])
 
     return zip(*out)
 

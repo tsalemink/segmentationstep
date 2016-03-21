@@ -36,65 +36,16 @@ class ImageScene(object):
         self._model = model
         self._setupImageVisualisation()
 
-    def _createImageOutline(self, region, finite_element_field):
-        scene = region.getScene()
-
-        scene.beginChange()
-        # Create a surface graphic and set it's coordinate field
-        # to the finite element coordinate field.
-        outline = scene.createGraphicsLines()
-        outline.setCoordinateField(finite_element_field)
-        outline.setName(ELEMENT_OUTLINE_GRAPHIC_NAME)
-        scene.endChange()
-
-        return outline
-
-    def _createTextureSurface(self, region, coordinate_field, iso_scalar_field):
-        scene = region.getScene()
-
-        fm = region.getFieldmodule()
-        xi = fm.findFieldByName('xi')
-        scene.beginChange()
-        # Create a surface graphic and set it's coordinate field
-        # to the finite element coordinate field.
-        iso_graphic = scene.createGraphicsContours()
-        iso_graphic.setCoordinateField(coordinate_field)
-        iso_graphic.setTextureCoordinateField(xi)
-        iso_graphic.setIsoscalarField(iso_scalar_field)
-        iso_graphic.setListIsovalues(0.0)
-        iso_graphic.setName(IMAGE_PLANE_GRAPHIC_NAME)
-
-        scene.endChange()
-
-        return iso_graphic
-
-    def _createNodeLabels(self, region, finite_element_field):
-        scene = region.getScene()
-
-        scene.beginChange()
-
-        graphic = scene.createGraphicsPoints()
-        graphic.setFieldDomainType(Field.DOMAIN_TYPE_NODES)
-        graphic.setCoordinateField(finite_element_field)
-        graphic.setName(ELEMENT_NODE_LABEL_GRAPHIC_NAME)
-        attributes = graphic.getGraphicspointattributes()
-        attributes.setGlyphShapeType(Glyph.SHAPE_TYPE_NONE)
-        attributes.setLabelField(finite_element_field)
-
-        scene.endChange()
-
-        return graphic
-
     def _setupImageVisualisation(self):
         image_region = self._model.getRegion()
         image_coordinate_field = self._model.getScaledCoordinateField()
         iso_scalar_field = self._model.getIsoScalarField()
         material = self._model.getMaterial()
 
-        self._plane_image_graphic = self._createTextureSurface(image_region, image_coordinate_field, iso_scalar_field)
+        self._plane_image_graphic = _createTextureSurface(image_region, image_coordinate_field, iso_scalar_field)
         self._plane_image_graphic.setMaterial(material)
-        self._image_outline = self._createImageOutline(image_region, image_coordinate_field)
-        self._coordinate_labels = self._createNodeLabels(image_region, image_coordinate_field)
+        self._image_outline = _createImageOutline(image_region, image_coordinate_field)
+        self._coordinate_labels = _createNodeLabels(image_region, image_coordinate_field)
         self._coordinate_labels.setVisibilityFlag(False)
 
     def getGraphic(self, name):
@@ -107,4 +58,54 @@ class ImageScene(object):
             graphic = self._image_outline
 
         return graphic
+
+
+def _createImageOutline(region, finite_element_field):
+    scene = region.getScene()
+
+    scene.beginChange()
+    # Create a surface graphic and set it's coordinate field
+    # to the finite element coordinate field.
+    outline = scene.createGraphicsLines()
+    outline.setCoordinateField(finite_element_field)
+    outline.setName(ELEMENT_OUTLINE_GRAPHIC_NAME)
+    scene.endChange()
+
+    return outline
+
+def _createTextureSurface(region, coordinate_field, iso_scalar_field):
+    scene = region.getScene()
+
+    fm = region.getFieldmodule()
+    xi = fm.findFieldByName('xi')
+    scene.beginChange()
+    # Create a surface graphic and set it's coordinate field
+    # to the finite element coordinate field.
+    iso_graphic = scene.createGraphicsContours()
+    iso_graphic.setCoordinateField(coordinate_field)
+    iso_graphic.setTextureCoordinateField(xi)
+    iso_graphic.setIsoscalarField(iso_scalar_field)
+    iso_graphic.setListIsovalues(0.0)
+    iso_graphic.setName(IMAGE_PLANE_GRAPHIC_NAME)
+
+    scene.endChange()
+
+    return iso_graphic
+
+def _createNodeLabels(region, finite_element_field):
+    scene = region.getScene()
+
+    scene.beginChange()
+
+    graphic = scene.createGraphicsPoints()
+    graphic.setFieldDomainType(Field.DOMAIN_TYPE_NODES)
+    graphic.setCoordinateField(finite_element_field)
+    graphic.setName(ELEMENT_NODE_LABEL_GRAPHIC_NAME)
+    attributes = graphic.getGraphicspointattributes()
+    attributes.setGlyphShapeType(Glyph.SHAPE_TYPE_NONE)
+    attributes.setLabelField(finite_element_field)
+
+    scene.endChange()
+
+    return graphic
 

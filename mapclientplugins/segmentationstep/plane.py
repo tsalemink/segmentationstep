@@ -24,16 +24,8 @@ from mapclientplugins.segmentationstep.observed import event
 class Plane(object):
 
     def __init__(self, fieldmodule):
-        self._normal_field = self._createNormalField(fieldmodule)
-        self._rotation_point_field = self._createRotationPointField(fieldmodule)
-
-    def _createNormalField(self, fieldmodule):
-        plane_normal_field = fieldmodule.createFieldConstant([1, 0, 0])
-        return plane_normal_field
-
-    def _createRotationPointField(self, fieldmodule):
-        point_on_plane_field = fieldmodule.createFieldConstant([0, 0, 0])
-        return point_on_plane_field
+        self._normal_field = _createNormalField(fieldmodule)
+        self._rotation_point_field = _createRotationPointField(fieldmodule)
 
     def serialize(self):
         tmp = '{ "normal":' + json.dumps(self.getNormal()) + ',' \
@@ -104,6 +96,15 @@ class Plane(object):
     def getAttitude(self):
         pa = PlaneAttitude(self.getRotationPoint(), self.getNormal())
         return pa
+
+
+def _createNormalField(fieldmodule):
+    plane_normal_field = fieldmodule.createFieldConstant([1, 0, 0])
+    return plane_normal_field
+
+def _createRotationPointField(fieldmodule):
+    point_on_plane_field = fieldmodule.createFieldConstant([0, 0, 0])
+    return point_on_plane_field
 
 
 class PlaneAttitude(object):

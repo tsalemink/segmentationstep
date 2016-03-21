@@ -202,7 +202,7 @@ class ZincWidget(QtOpenGL.QGLWidget):
         result, eye, lookat, up = self._sceneviewer.getLookatParameters()
         if result == OK:
             angle = self._sceneviewer.getViewAngle()
-            return (eye, lookat, up, angle)
+            return eye, lookat, up, angle
 
         return None
 
@@ -226,7 +226,7 @@ class ZincWidget(QtOpenGL.QGLWidget):
         return self._scenepicker
 
     def setPickingRectangle(self, coordinate_system, left, bottom, right, top):
-        self._scenepicker.setSceneviewerRectangle(self._sceneviewer, coordinate_system, left, bottom, right, top);
+        self._scenepicker.setSceneviewerRectangle(self._sceneviewer, coordinate_system, left, bottom, right, top)
 
     def setSelectionfilter(self, scenefilter):
         self._scenepicker.setScenefilter(scenefilter)
@@ -263,7 +263,7 @@ class ZincWidget(QtOpenGL.QGLWidget):
     def getViewportSize(self):
         result, width, height = self._sceneviewer.getViewportSize()
         if result == OK:
-            return (width, height)
+            return width, height
 
         return None
 
@@ -386,12 +386,12 @@ class ZincWidget(QtOpenGL.QGLWidget):
             root_region.beginHierarchicalChange()
             self._selection_box.setVisibilityFlag(False)
 
-            if (x != self._selection_position_start[0] and y != self._selection_position_start[1]):
+            if x != self._selection_position_start[0] and y != self._selection_position_start[1]:
                 left = min(x, self._selection_position_start[0])
                 right = max(x, self._selection_position_start[0])
                 bottom = min(y, self._selection_position_start[1])
                 top = max(y, self._selection_position_start[1])
-                self._scenepicker.setSceneviewerRectangle(self._sceneviewer, SCENECOORDINATESYSTEM_LOCAL, left, bottom, right, top);
+                self._scenepicker.setSceneviewerRectangle(self._sceneviewer, SCENECOORDINATESYSTEM_LOCAL, left, bottom, right, top)
                 if self._selection_mode == SelectionMode.EXCULSIVE:
                     self._selectionGroup.clear()
                 if self._nodeSelectMode:

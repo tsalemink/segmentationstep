@@ -196,14 +196,8 @@ class ImageModel(AbstractModel):
 
         createFiniteElement(self._region, self._coordinate_field, self._dimensions_px)
 
-        self._iso_scalar_field = self._createIsoScalarField(fieldmodule, self._scaled_coordinate_field, normal_field, rotation_point_field)
+        self._iso_scalar_field = _createIsoScalarField(fieldmodule, self._scaled_coordinate_field, normal_field, rotation_point_field)
         fieldmodule.endChange()
-
-    def _createIsoScalarField(self, fieldmodule, finite_element_field, plane_normal_field, point_on_plane_field):
-        d = fieldmodule.createFieldDotProduct(plane_normal_field, point_on_plane_field)
-        iso_scalar_field = fieldmodule.createFieldDotProduct(finite_element_field, plane_normal_field) - d
-
-        return iso_scalar_field
 
     def _createImageField(self, dataIn):
         '''
@@ -239,8 +233,6 @@ class ImageModel(AbstractModel):
                     # SWIG cannot handle unicode strings or rather the Zinc interface
                     # files cannot handle unicode strings so we convert them to ascii
                     # here.
-                    if isinstance(absolute_filename, unicode):
-                        absolute_filename = absolute_filename.encode('ascii', 'ignore')
                     stream_information.createStreamresourceFile(absolute_filename)
 
         # Actually read in the image file into the image field.
@@ -288,4 +280,10 @@ class ImageModel(AbstractModel):
 
         return material
 
+
+def _createIsoScalarField(fieldmodule, finite_element_field, plane_normal_field, point_on_plane_field):
+    d = fieldmodule.createFieldDotProduct(plane_normal_field, point_on_plane_field)
+    iso_scalar_field = fieldmodule.createFieldDotProduct(finite_element_field, plane_normal_field) - d
+
+    return iso_scalar_field
 

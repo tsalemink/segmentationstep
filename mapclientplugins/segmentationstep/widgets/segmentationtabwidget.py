@@ -45,13 +45,13 @@ class SegmentationTabWidget(QtGui.QTabWidget):
         self.setStyleSheet("")
 
     def repositionTab(self, fromIndex, toIndex):
-        w = self.widget(fromIndex);
-        icon = self.tabIcon(fromIndex);
-        text = self.tabText(fromIndex);
+        w = self.widget(fromIndex)
+        icon = self.tabIcon(fromIndex)
+        text = self.tabText(fromIndex)
 
-        self.removeTab(fromIndex);
-        self.insertTab(toIndex, w, icon, text);
-        self.setCurrentIndex(toIndex);
+        self.removeTab(fromIndex)
+        self.insertTab(toIndex, w, icon, text)
+        self.setCurrentIndex(toIndex)
 
     def dragEnterEvent(self, event):
         m = event.mimeData()
