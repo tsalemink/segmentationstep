@@ -102,6 +102,9 @@ class SegmentationWidget(QtGui.QWidget):
         self._ui._lineEditYOffset.setText(str(offset[1]))
         self._ui._lineEditZOffset.setText(str(offset[2]))
 
+    def registerDoneExecution(self, callback):
+        self._ui.doneButton.clicked.connect(callback)
+
     def setSerializationLocation(self, location):
         self._serialization_location = location
 

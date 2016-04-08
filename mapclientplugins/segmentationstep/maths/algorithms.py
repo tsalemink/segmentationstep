@@ -23,6 +23,7 @@ import numpy as np
 from mapclientplugins.segmentationstep.maths.vectorops import add, cross, div, dot, normalize, sub, mult
 from mapclientplugins.segmentationstep.misc import checkRange
 
+
 def boundCoordinatesToCuboid(pt1, pt2, cuboid_dimensions):
     '''
     Takes two points and a cuboids dimensions, with 
@@ -63,6 +64,7 @@ def boundCoordinatesToCuboid(pt1, pt2, cuboid_dimensions):
 
     return bounded_pt
 
+
 def pointOutsideCuboid(pt, cuboid_dimensions):
     '''
     Determine if the given point is outside the cuboid and 
@@ -86,6 +88,7 @@ def pointOutsideCuboid(pt, cuboid_dimensions):
 
     return outside
 
+
 def calculateLinePlaneIntersection(pt1, pt2, point_on_plane, plane_normal):
     line_direction = sub(pt2, pt1)
     d = dot(sub(point_on_plane, pt1), plane_normal) / dot(line_direction, plane_normal)
@@ -94,6 +97,7 @@ def calculateLinePlaneIntersection(pt1, pt2, point_on_plane, plane_normal):
         return intersection_point
 
     return None
+
 
 def calculateCentroid(point_on_plane, plane_normal, cuboid_dimensions):
     '''
@@ -142,6 +146,7 @@ def calculateCentroid(point_on_plane, plane_normal, cuboid_dimensions):
 #         wa = WeiszfeldsAlgorithm(unique_ipts)
     plane_centre = ca.compute()
     return plane_centre
+
 
 class CentroidAlgorithm(object):
 
@@ -227,11 +232,13 @@ def _calculateCxCy(vertices, area):
     cy /= 6 * area
     return cx, cy
 
+
 def _calculatePolygonArea(vertices):
     area = 0.0
     for i in range(len(vertices) - 1):
         area += (vertices[i][0] * vertices[i + 1][1] - vertices[i + 1][0] * vertices[i][1])
     return 0.5 * area
+
 
 def _calculateHeading(direction):
     '''

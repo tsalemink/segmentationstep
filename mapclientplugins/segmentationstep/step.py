@@ -92,7 +92,7 @@ class SegmentationStep(WorkflowStepMountPoint):
             self._model.initialize()
             self._view = SegmentationWidget(self._model)
             self._view.setSerializationLocation(os.path.join(self._location, self.getIdentifier()))
-            self._view._ui.doneButton.clicked.connect(self._doneExecution)
+            self._view.registerDoneExecution(self._doneExecution)
 
         self._setCurrentUndoRedoStack(self._model.getUndoRedoStack())
         self._setCurrentWidget(self._view)

@@ -26,6 +26,7 @@ from mapclientplugins.segmentationstep.plane import Plane
 from mapclientplugins.segmentationstep.zincutils import createFiniteElementField, createFiniteElement
 from mapclientplugins.segmentationstep.misc import alphanum_key
 
+
 class ImageModel(AbstractModel):
     '''
     A model of the image region containing a 
@@ -45,6 +46,7 @@ class ImageModel(AbstractModel):
 
     def loadImages(self, dataIn):
         self._image_field = self._createImageField(dataIn)
+        self._dimensions_px = self._image_field.getSizeInPixels(3)[1]
 
     def initialize(self):
         scale = [1.0, 1.0, 1.0]
@@ -230,15 +232,11 @@ class ImageModel(AbstractModel):
                 # We are reading in a file from the local disk so our resource is a file.
                 absolute_filename = os.path.join(directory, filename)
                 if os.path.isfile(absolute_filename):
-                    # SWIG cannot handle unicode strings or rather the Zinc interface
-                    # files cannot handle unicode strings so we convert them to ascii
-                    # here.
                     stream_information.createStreamresourceFile(absolute_filename)
 
         # Actually read in the image file into the image field.
         image_field.read(stream_information)
 
-        self._dimensions_px = image_field.getSizeInPixels(3)[1]
         return image_field
 
     def _setImageTextureSize(self, size):

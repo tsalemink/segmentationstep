@@ -99,7 +99,7 @@ class Plane(object):
 
 
 def _createNormalField(fieldmodule):
-    plane_normal_field = fieldmodule.createFieldConstant([1, 0, 0])
+    plane_normal_field = fieldmodule.createFieldConstant([0, 0, 1])
     return plane_normal_field
 
 def _createRotationPointField(fieldmodule):
