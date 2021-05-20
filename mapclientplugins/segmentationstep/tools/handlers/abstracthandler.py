@@ -17,7 +17,7 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
     You should have received a copy of the GNU General Public License
     along with MAP Client.  If not, see <http://www.gnu.org/licenses/>..
 '''
-from PySide import QtCore
+from PySide2 import QtCore
 
 from mapclientplugins.segmentationstep.zincutils import button_map, modifier_map, Sceneviewerinput
 from mapclientplugins.segmentationstep.undoredo import CommandChangeView

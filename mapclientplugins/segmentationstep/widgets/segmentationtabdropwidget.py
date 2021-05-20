@@ -18,11 +18,11 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
     along with MAP Client.  If not, see <http://www.gnu.org/licenses/>..
 '''
 
-from PySide import QtCore, QtGui
+from PySide2 import QtCore, QtGui, QtWidgets
 
 from mapclientplugins.segmentationstep.widgets.segmentationtabwidget import SegmentationTabWidget
 
-class SegmentationTabDropWidget(QtGui.QWidget):
+class SegmentationTabDropWidget(QtWidgets.QWidget):
 
     def __init__(self, parent):
         super(SegmentationTabDropWidget, self).__init__(parent)
@@ -70,7 +70,7 @@ class SegmentationTabDropWidget(QtGui.QWidget):
 
     def addTab(self, widget, text):
         if self._tabWidget is None:
-            v_layout = QtGui.QVBoxLayout()
+            v_layout = QtWidgets.QVBoxLayout()
             v_layout.setContentsMargins(0, 0, 0, 0)
             self._tabWidget = SegmentationTabWidget(self)
 #             moveWidget = widget.widget(index)

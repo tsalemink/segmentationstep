@@ -17,13 +17,13 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
     You should have received a copy of the GNU General Public License
     along with MAP Client.  If not, see <http://www.gnu.org/licenses/>..
 '''
-from PySide import QtGui
+from PySide2 import QtWidgets
 
 from mapclientplugins.segmentationstep.tools.resources.ui_point import Ui_PropertiesWidget
 from mapclientplugins.segmentationstep.definitions import DEFAULT_SEGMENTATION_POINT_SIZE, \
     DEFAULT_PUSH_PULL_STEP_SIZE
 
-class PropertiesWidget(QtGui.QWidget):
+class PropertiesWidget(QtWidgets.QWidget):
 
     def __init__(self, tool):
         super(PropertiesWidget, self).__init__()

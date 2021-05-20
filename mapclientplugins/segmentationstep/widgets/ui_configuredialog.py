@@ -1,50 +1,73 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'qt/configuredialog.ui'
-#
-# Created: Thu Sep 11 12:27:09 2014
-#      by: pyside-uic 0.2.15 running on PySide 1.2.1
-#
-# WARNING! All changes made in this file will be lost!
+################################################################################
+## Form generated from reading UI file 'configuredialog.ui'
+##
+## Created by: Qt User Interface Compiler version 5.15.2
+##
+## WARNING! All changes made in this file will be lost when recompiling UI file!
+################################################################################
 
-from PySide import QtCore, QtGui
+from PySide2.QtCore import *
+from PySide2.QtGui import *
+from PySide2.QtWidgets import *
+
+from . import resources_rc
 
 class Ui_ConfigureDialog(object):
     def setupUi(self, ConfigureDialog):
-        ConfigureDialog.setObjectName("ConfigureDialog")
+        if not ConfigureDialog.objectName():
+            ConfigureDialog.setObjectName(u"ConfigureDialog")
         ConfigureDialog.resize(526, 216)
-        self.verticalLayout_2 = QtGui.QVBoxLayout(ConfigureDialog)
-        self.verticalLayout_2.setObjectName("verticalLayout_2")
-        self.groupBox = QtGui.QGroupBox(ConfigureDialog)
-        self.groupBox.setTitle("")
-        self.groupBox.setObjectName("groupBox")
-        self.verticalLayout = QtGui.QVBoxLayout(self.groupBox)
-        self.verticalLayout.setObjectName("verticalLayout")
-        self.horizontalLayout = QtGui.QHBoxLayout()
-        self.horizontalLayout.setObjectName("horizontalLayout")
-        self.label = QtGui.QLabel(self.groupBox)
-        self.label.setObjectName("label")
+        self.verticalLayout_2 = QVBoxLayout(ConfigureDialog)
+        self.verticalLayout_2.setObjectName(u"verticalLayout_2")
+        self.groupBox = QGroupBox(ConfigureDialog)
+        self.groupBox.setObjectName(u"groupBox")
+        self.verticalLayout = QVBoxLayout(self.groupBox)
+        self.verticalLayout.setObjectName(u"verticalLayout")
+        self.horizontalLayout = QHBoxLayout()
+        self.horizontalLayout.setObjectName(u"horizontalLayout")
+        self.label = QLabel(self.groupBox)
+        self.label.setObjectName(u"label")
+
         self.horizontalLayout.addWidget(self.label)
-        self.identifierLineEdit = QtGui.QLineEdit(self.groupBox)
-        self.identifierLineEdit.setObjectName("identifierLineEdit")
+
+        self.identifierLineEdit = QLineEdit(self.groupBox)
+        self.identifierLineEdit.setObjectName(u"identifierLineEdit")
+
         self.horizontalLayout.addWidget(self.identifierLineEdit)
+
+
         self.verticalLayout.addLayout(self.horizontalLayout)
-        spacerItem = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
-        self.verticalLayout.addItem(spacerItem)
+
+        self.verticalSpacer = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
+
+        self.verticalLayout.addItem(self.verticalSpacer)
+
+
         self.verticalLayout_2.addWidget(self.groupBox)
-        self.buttonBox = QtGui.QDialogButtonBox(ConfigureDialog)
-        self.buttonBox.setOrientation(QtCore.Qt.Horizontal)
-        self.buttonBox.setStandardButtons(QtGui.QDialogButtonBox.Cancel|QtGui.QDialogButtonBox.Ok)
-        self.buttonBox.setObjectName("buttonBox")
+
+        self.buttonBox = QDialogButtonBox(ConfigureDialog)
+        self.buttonBox.setObjectName(u"buttonBox")
+        self.buttonBox.setOrientation(Qt.Horizontal)
+        self.buttonBox.setStandardButtons(QDialogButtonBox.Cancel|QDialogButtonBox.Ok)
+
         self.verticalLayout_2.addWidget(self.buttonBox)
+
+#if QT_CONFIG(shortcut)
         self.label.setBuddy(self.identifierLineEdit)
+#endif // QT_CONFIG(shortcut)
 
         self.retranslateUi(ConfigureDialog)
-        QtCore.QObject.connect(self.buttonBox, QtCore.SIGNAL("accepted()"), ConfigureDialog.accept)
-        QtCore.QObject.connect(self.buttonBox, QtCore.SIGNAL("rejected()"), ConfigureDialog.reject)
-        QtCore.QMetaObject.connectSlotsByName(ConfigureDialog)
+        self.buttonBox.accepted.connect(ConfigureDialog.accept)
+        self.buttonBox.rejected.connect(ConfigureDialog.reject)
+
+        QMetaObject.connectSlotsByName(ConfigureDialog)
+    # setupUi
 
     def retranslateUi(self, ConfigureDialog):
-        ConfigureDialog.setWindowTitle(QtGui.QApplication.translate("ConfigureDialog", "Configure - Segmentation", None, QtGui.QApplication.UnicodeUTF8))
-        self.label.setText(QtGui.QApplication.translate("ConfigureDialog", "Identifier:", None, QtGui.QApplication.UnicodeUTF8))
+        ConfigureDialog.setWindowTitle(QCoreApplication.translate("ConfigureDialog", u"Configure - Segmentation", None))
+        self.groupBox.setTitle("")
+        self.label.setText(QCoreApplication.translate("ConfigureDialog", u"Identifier:", None))
+    # retranslateUi
 
