@@ -17,9 +17,9 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
     You should have received a copy of the GNU General Public License
     along with MAP Client.  If not, see <http://www.gnu.org/licenses/>..
 '''
-from PySide import QtGui
+from PySide2 import QtWidgets
 
-class TabToolBar(QtGui.QToolBar):
+class TabToolBar(QtWidgets.QToolBar):
     '''
     classdocs
     '''

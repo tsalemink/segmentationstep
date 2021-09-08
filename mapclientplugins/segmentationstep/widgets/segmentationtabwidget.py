@@ -18,12 +18,12 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
     along with MAP Client.  If not, see <http://www.gnu.org/licenses/>..
 '''
 
-from PySide import QtCore, QtGui
+from PySide2 import QtCore, QtWidgets
 from mapclientplugins.segmentationstep.widgets.segmentationtabbar import SegmentationTabBar
 
 TABWIDGET_TARGET_SIZE = 100
 
-class SegmentationTabWidget(QtGui.QTabWidget):
+class SegmentationTabWidget(QtWidgets.QTabWidget):
 
     def __init__(self, parent=None):
         super(SegmentationTabWidget, self).__init__(parent)

@@ -397,7 +397,7 @@ class NodeModel(AbstractModel):
         return None
 
     def addNode(self, node_id, location, plane_attitude):
-        if node_id is -1:
+        if node_id == -1:
             node = self._createNodeAtLocation(location)
             node_id = node.getIdentifier()
         self._addId(plane_attitude, node_id)

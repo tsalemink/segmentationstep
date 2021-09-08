@@ -18,9 +18,9 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
     along with MAP Client.  If not, see <http://www.gnu.org/licenses/>..
 '''
 
-from PySide import QtGui  # , QtCore
+from PySide2 import QtWidgets  # , QtCore
 
-class GroupBox(QtGui.QGroupBox):
+class GroupBox(QtWidgets.QGroupBox):
     '''
     My Group box to workaround some bugs in QGroupBox.
     '''
@@ -30,7 +30,7 @@ class GroupBox(QtGui.QGroupBox):
 #         if mouseevent.button() != QtCore.Qt.LeftButton or not self.checkable():
 #             mouseevent.ignore()
 #         else:
-#             QtGui.QGroupBox.mousePressEvent(mouseevent)
+#             QtWidgets.QGroupBox.mousePressEvent(mouseevent)
 
     def mouseMoveEvent(self, mouseevent):
         print('groupbox')

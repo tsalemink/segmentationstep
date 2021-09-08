@@ -19,7 +19,7 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
 '''
 from math import cos, sin, acos, copysign
 
-from PySide import QtCore
+from PySide2 import QtCore
 
 from mapclientplugins.segmentationstep.maths.vectorops import add, mult, cross, dot, sub, normalize, magnitude
 from mapclientplugins.segmentationstep.maths.algorithms import calculateCentroid

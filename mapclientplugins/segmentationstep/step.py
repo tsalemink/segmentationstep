@@ -19,7 +19,7 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
 '''
 import os
 
-from PySide import QtGui
+from PySide2 import QtGui, QtWidgets
 
 from mapclient.mountpoints.workflowstep import WorkflowStepMountPoint
 
@@ -57,7 +57,7 @@ class SegmentationStep(WorkflowStepMountPoint):
 
     def configure(self):
         
-        d = ConfigureDialog(self._state, QtGui.QApplication.activeWindow().currentWidget())
+        d = ConfigureDialog(self._state, QtWidgets.QApplication.activeWindow().current_widget())
         d.setModal(True)
         if d.exec_():
             self._state = d.getState()

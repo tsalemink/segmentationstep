@@ -19,7 +19,7 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
 '''
 import json
 
-from PySide.QtGui import QDialog, QDialogButtonBox
+from PySide2 import QtWidgets
 
 from mapclientplugins.segmentationstep.widgets.ui_configuredialog import Ui_ConfigureDialog
 
@@ -47,7 +47,7 @@ class ConfigureDialogState(object):
         self.__dict__.update(json.loads(string))
 
 
-class ConfigureDialog(QDialog):
+class ConfigureDialog(QtWidgets.QDialog):
     '''
     Configure dialog to present the user with the options to configure this step.
     '''
@@ -57,7 +57,7 @@ class ConfigureDialog(QDialog):
         '''
         Constructor
         '''
-        QDialog.__init__(self, parent)
+        QtWidgets.QDialog.__init__(self, parent)
         self._ui = Ui_ConfigureDialog()
         self._ui.setupUi(self)
         self._ui.identifierLineEdit.setStyleSheet(REQUIRED_STYLE_SHEET)
@@ -81,7 +81,7 @@ class ConfigureDialog(QDialog):
     def validate(self):
         identifierValid = len(self._ui.identifierLineEdit.text()) > 0
 
-        self._ui.buttonBox.button(QDialogButtonBox.Ok).setEnabled(identifierValid)
+        self._ui.buttonBox.button(QtWidgets.QDialogButtonBox.Ok).setEnabled(identifierValid)
 
         if identifierValid:
             self._ui.identifierLineEdit.setStyleSheet(DEFAULT_STYLE_SHEET)

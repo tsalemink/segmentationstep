@@ -17,7 +17,7 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
     You should have received a copy of the GNU General Public License
     along with MAP Client.  If not, see <http://www.gnu.org/licenses/>..
 '''
-from PySide import QtCore, QtOpenGL
+from PySide2 import QtCore, QtWidgets
 
 # from opencmiss.zinc.glyph import Glyph
 from opencmiss.zinc.sceneviewer import Sceneviewer, Sceneviewerevent
@@ -62,18 +62,18 @@ class SelectionMode(object):
 # selectionMode end
 
 
-class ZincWidget(QtOpenGL.QGLWidget):
+class ZincWidget(QtWidgets.QOpenGLWidget):
 
     # Create a signal to notify when the sceneviewer is ready.
     graphicsInitialized = QtCore.Signal()
 
     # init start
-    def __init__(self, parent=None, shared=None):
+    def __init__(self, parent=None):
         '''
         Call the super class init functions, set the  Zinc context and the scene viewer handle to None.
         Initialise other attributes that deal with selection and the rotation of the plane.
         '''
-        QtOpenGL.QGLWidget.__init__(self, parent, shared)
+        QtWidgets.QOpenGLWidget.__init__(self, parent)
         # Create a Zinc context from which all other objects can be derived either directly or indirectly.
         self._context = None
         self._sceneviewer = None

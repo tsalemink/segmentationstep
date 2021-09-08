@@ -17,13 +17,13 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
     You should have received a copy of the GNU General Public License
     along with MAP Client.  If not, see <http://www.gnu.org/licenses/>..
 '''
-from PySide import QtGui
+from PySide2 import QtWidgets
 
 from mapclientplugins.segmentationstep.plane import PlaneAttitude
 from mapclientplugins.segmentationstep.maths.vectorops import mult, add
 from mapclientplugins.segmentationstep.model.curve import CurveModel
 
-class CommandMovePlane(QtGui.QUndoCommand):
+class CommandMovePlane(QtWidgets.QUndoCommand):
 
     def __init__(self, plane, plane_start, plane_end):
         super(CommandMovePlane, self).__init__()
@@ -38,7 +38,7 @@ class CommandMovePlane(QtGui.QUndoCommand):
     def undo(self):
         self._plane.setPlaneEquation(self._plane_start.getNormal(), self._plane_start.getPoint())
 
-class CommandMoveGlyph(QtGui.QUndoCommand):
+class CommandMoveGlyph(QtWidgets.QUndoCommand):
 
     def __init__(self, glyph, start_location, end_location):
         super(CommandMoveGlyph, self).__init__()
@@ -58,7 +58,7 @@ class CommandMoveGlyph(QtGui.QUndoCommand):
         self._glyph_move_method(self._glyph, self._start_location)
 
 
-class CommandChangeView(QtGui.QUndoCommand):
+class CommandChangeView(QtWidgets.QUndoCommand):
 
     def __init__(self, view_start, view_end):
         super(CommandChangeView, self).__init__()
@@ -79,7 +79,7 @@ class CommandChangeView(QtGui.QUndoCommand):
         self._set_viewport_parameters_method = viewport_parameters
 
 
-class CommandChangeViewHandler(QtGui.QUndoCommand):
+class CommandChangeViewHandler(QtWidgets.QUndoCommand):
 
     def __init__(self, current_handler, current_action, new_handler, new_action):
         super(CommandChangeViewHandler, self).__init__()
@@ -110,7 +110,7 @@ class CommandChangeViewHandler(QtGui.QUndoCommand):
         self._set_change_handler_method(self._current_handler)
 
 
-class CommandCurrentNew(QtGui.QUndoCommand):
+class CommandCurrentNew(QtWidgets.QUndoCommand):
 
     def __init__(self, current, new):
         super(CommandCurrentNew, self).__init__()
@@ -209,7 +209,7 @@ class CommandSetGlyphSize(CommandCurrentNew):
         self._spin_box.setValue(self._current[0])
 
 
-class CommandNode(QtGui.QUndoCommand):
+class CommandNode(QtWidgets.QUndoCommand):
 
     def __init__(self, node_model, node_status_start, node_status_end):
         super(CommandNode, self).__init__()
@@ -357,7 +357,7 @@ class CommandCurveNode(CommandNode):
                 self._updateInterpolationPoints(curve)
 
 
-class CommandSelection(QtGui.QUndoCommand):
+class CommandSelection(QtWidgets.QUndoCommand):
 
     def __init__(self, model, selection_start, selection_end):
         super(CommandSelection, self).__init__()
@@ -373,7 +373,7 @@ class CommandSelection(QtGui.QUndoCommand):
         self._model.setSelection(self._selection_start)
 
 
-class CommandDelete(QtGui.QUndoCommand):
+class CommandDelete(QtWidgets.QUndoCommand):
 
     def __init__(self, model, selected):
         super(CommandDelete, self).__init__()
@@ -403,7 +403,7 @@ class CommandDelete(QtGui.QUndoCommand):
         scene.endChange()
 
 
-class CommandDeleteCurve(QtGui.QUndoCommand):
+class CommandDeleteCurve(QtWidgets.QUndoCommand):
 
     def __init__(self, model, selected):
         super(CommandDeleteCurve, self).__init__()
@@ -462,7 +462,7 @@ class CommandDeleteCurve(QtGui.QUndoCommand):
 
         scene.endChange()
 
-class AbstractCommandPushPull(QtGui.QUndoCommand):
+class AbstractCommandPushPull(QtWidgets.QUndoCommand):
 
     def __init__(self, model, selected, scale):
         super(AbstractCommandPushPull, self).__init__()

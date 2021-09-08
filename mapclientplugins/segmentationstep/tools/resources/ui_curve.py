@@ -1,101 +1,147 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'qt/curve.ui'
-#
-# Created: Sun Jun  8 20:25:03 2014
-#      by: pyside-uic 0.2.15 running on PySide 1.2.1
-#
-# WARNING! All changes made in this file will be lost!
+################################################################################
+## Form generated from reading UI file 'curve.ui'
+##
+## Created by: Qt User Interface Compiler version 5.15.2
+##
+## WARNING! All changes made in this file will be lost when recompiling UI file!
+################################################################################
 
-from PySide import QtCore, QtGui
+from PySide2.QtCore import *
+from PySide2.QtGui import *
+from PySide2.QtWidgets import *
+
 
 class Ui_PropertiesWidget(object):
     def setupUi(self, PropertiesWidget):
-        PropertiesWidget.setObjectName("PropertiesWidget")
+        if not PropertiesWidget.objectName():
+            PropertiesWidget.setObjectName(u"PropertiesWidget")
         PropertiesWidget.resize(330, 420)
-        self.verticalLayout = QtGui.QVBoxLayout(PropertiesWidget)
-        self.verticalLayout.setObjectName("verticalLayout")
-        self.groupBox = QtGui.QGroupBox(PropertiesWidget)
-        self.groupBox.setObjectName("groupBox")
-        self.verticalLayout_2 = QtGui.QVBoxLayout(self.groupBox)
-        self.verticalLayout_2.setObjectName("verticalLayout_2")
-        self._doubleSpinBoxPointSize = QtGui.QDoubleSpinBox(self.groupBox)
-        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Fixed)
+        self.verticalLayout = QVBoxLayout(PropertiesWidget)
+        self.verticalLayout.setObjectName(u"verticalLayout")
+        self.groupBox = QGroupBox(PropertiesWidget)
+        self.groupBox.setObjectName(u"groupBox")
+        self.verticalLayout_2 = QVBoxLayout(self.groupBox)
+        self.verticalLayout_2.setObjectName(u"verticalLayout_2")
+        self._doubleSpinBoxPointSize = QDoubleSpinBox(self.groupBox)
+        self._doubleSpinBoxPointSize.setObjectName(u"_doubleSpinBoxPointSize")
+        sizePolicy = QSizePolicy(QSizePolicy.Minimum, QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self._doubleSpinBoxPointSize.sizePolicy().hasHeightForWidth())
         self._doubleSpinBoxPointSize.setSizePolicy(sizePolicy)
-        self._doubleSpinBoxPointSize.setMinimum(0.01)
-        self._doubleSpinBoxPointSize.setMaximum(999999.99)
-        self._doubleSpinBoxPointSize.setProperty("value", 45.0)
-        self._doubleSpinBoxPointSize.setObjectName("_doubleSpinBoxPointSize")
+        self._doubleSpinBoxPointSize.setMinimum(0.010000000000000)
+        self._doubleSpinBoxPointSize.setMaximum(999999.989999999990687)
+        self._doubleSpinBoxPointSize.setValue(45.000000000000000)
+
         self.verticalLayout_2.addWidget(self._doubleSpinBoxPointSize)
+
+
         self.verticalLayout.addWidget(self.groupBox)
-        self.groupBox_8 = QtGui.QGroupBox(PropertiesWidget)
-        self.groupBox_8.setObjectName("groupBox_8")
-        self.verticalLayout_11 = QtGui.QVBoxLayout(self.groupBox_8)
-        self.verticalLayout_11.setObjectName("verticalLayout_11")
-        self._spinBoxInterpolationCount = QtGui.QSpinBox(self.groupBox_8)
-        self._spinBoxInterpolationCount.setObjectName("_spinBoxInterpolationCount")
+
+        self.groupBox_8 = QGroupBox(PropertiesWidget)
+        self.groupBox_8.setObjectName(u"groupBox_8")
+        self.verticalLayout_11 = QVBoxLayout(self.groupBox_8)
+        self.verticalLayout_11.setObjectName(u"verticalLayout_11")
+        self._spinBoxInterpolationCount = QSpinBox(self.groupBox_8)
+        self._spinBoxInterpolationCount.setObjectName(u"_spinBoxInterpolationCount")
+
         self.verticalLayout_11.addWidget(self._spinBoxInterpolationCount)
+
+
         self.verticalLayout.addWidget(self.groupBox_8)
-        self.groupBox_10 = QtGui.QGroupBox(PropertiesWidget)
-        self.groupBox_10.setObjectName("groupBox_10")
-        self.verticalLayout_7 = QtGui.QVBoxLayout(self.groupBox_10)
-        self.verticalLayout_7.setObjectName("verticalLayout_7")
-        self.horizontalLayout_2 = QtGui.QHBoxLayout()
-        self.horizontalLayout_2.setObjectName("horizontalLayout_2")
-        self.label_10 = QtGui.QLabel(self.groupBox_10)
-        self.label_10.setObjectName("label_10")
+
+        self.groupBox_10 = QGroupBox(PropertiesWidget)
+        self.groupBox_10.setObjectName(u"groupBox_10")
+        self.verticalLayout_7 = QVBoxLayout(self.groupBox_10)
+        self.verticalLayout_7.setObjectName(u"verticalLayout_7")
+        self.horizontalLayout_2 = QHBoxLayout()
+        self.horizontalLayout_2.setObjectName(u"horizontalLayout_2")
+        self.label_10 = QLabel(self.groupBox_10)
+        self.label_10.setObjectName(u"label_10")
+
         self.horizontalLayout_2.addWidget(self.label_10)
-        self._doubleSpinBoxStepSize = QtGui.QDoubleSpinBox(self.groupBox_10)
-        self._doubleSpinBoxStepSize.setProperty("value", 1.0)
-        self._doubleSpinBoxStepSize.setObjectName("_doubleSpinBoxStepSize")
+
+        self._doubleSpinBoxStepSize = QDoubleSpinBox(self.groupBox_10)
+        self._doubleSpinBoxStepSize.setObjectName(u"_doubleSpinBoxStepSize")
+        self._doubleSpinBoxStepSize.setValue(1.000000000000000)
+
         self.horizontalLayout_2.addWidget(self._doubleSpinBoxStepSize)
+
+
         self.verticalLayout_7.addLayout(self.horizontalLayout_2)
-        self.horizontalLayout_6 = QtGui.QHBoxLayout()
-        self.horizontalLayout_6.setObjectName("horizontalLayout_6")
-        self._pushButtonPushDown = QtGui.QPushButton(self.groupBox_10)
-        self._pushButtonPushDown.setMinimumSize(QtCore.QSize(99, 0))
-        self._pushButtonPushDown.setObjectName("_pushButtonPushDown")
+
+        self.horizontalLayout_6 = QHBoxLayout()
+        self.horizontalLayout_6.setObjectName(u"horizontalLayout_6")
+        self._pushButtonPushDown = QPushButton(self.groupBox_10)
+        self._pushButtonPushDown.setObjectName(u"_pushButtonPushDown")
+        self._pushButtonPushDown.setMinimumSize(QSize(99, 0))
+
         self.horizontalLayout_6.addWidget(self._pushButtonPushDown)
-        spacerItem = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-        self.horizontalLayout_6.addItem(spacerItem)
-        self._pushButtonPullUp = QtGui.QPushButton(self.groupBox_10)
-        self._pushButtonPullUp.setMinimumSize(QtCore.QSize(99, 0))
-        self._pushButtonPullUp.setObjectName("_pushButtonPullUp")
+
+        self.horizontalSpacer_5 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+
+        self.horizontalLayout_6.addItem(self.horizontalSpacer_5)
+
+        self._pushButtonPullUp = QPushButton(self.groupBox_10)
+        self._pushButtonPullUp.setObjectName(u"_pushButtonPullUp")
+        self._pushButtonPullUp.setMinimumSize(QSize(99, 0))
+
         self.horizontalLayout_6.addWidget(self._pushButtonPullUp)
+
+
         self.verticalLayout_7.addLayout(self.horizontalLayout_6)
+
+
         self.verticalLayout.addWidget(self.groupBox_10)
-        self.groupBox_11 = QtGui.QGroupBox(PropertiesWidget)
-        self.groupBox_11.setObjectName("groupBox_11")
-        self.verticalLayout_14 = QtGui.QVBoxLayout(self.groupBox_11)
-        self.verticalLayout_14.setObjectName("verticalLayout_14")
-        self.horizontalLayout_5 = QtGui.QHBoxLayout()
-        self.horizontalLayout_5.setObjectName("horizontalLayout_5")
-        self._pushButtonDelete = QtGui.QPushButton(self.groupBox_11)
-        self._pushButtonDelete.setObjectName("_pushButtonDelete")
+
+        self.groupBox_11 = QGroupBox(PropertiesWidget)
+        self.groupBox_11.setObjectName(u"groupBox_11")
+        self.verticalLayout_14 = QVBoxLayout(self.groupBox_11)
+        self.verticalLayout_14.setObjectName(u"verticalLayout_14")
+        self.horizontalLayout_5 = QHBoxLayout()
+        self.horizontalLayout_5.setObjectName(u"horizontalLayout_5")
+        self._pushButtonDelete = QPushButton(self.groupBox_11)
+        self._pushButtonDelete.setObjectName(u"_pushButtonDelete")
+
         self.horizontalLayout_5.addWidget(self._pushButtonDelete)
-        spacerItem1 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-        self.horizontalLayout_5.addItem(spacerItem1)
+
+        self.horizontalSpacer_4 = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+
+        self.horizontalLayout_5.addItem(self.horizontalSpacer_4)
+
+
         self.verticalLayout_14.addLayout(self.horizontalLayout_5)
+
+
         self.verticalLayout.addWidget(self.groupBox_11)
-        spacerItem2 = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
-        self.verticalLayout.addItem(spacerItem2)
+
+        self.verticalSpacer = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
+
+        self.verticalLayout.addItem(self.verticalSpacer)
+
 
         self.retranslateUi(PropertiesWidget)
-        QtCore.QMetaObject.connectSlotsByName(PropertiesWidget)
+
+        QMetaObject.connectSlotsByName(PropertiesWidget)
+    # setupUi
 
     def retranslateUi(self, PropertiesWidget):
-        PropertiesWidget.setWindowTitle(QtGui.QApplication.translate("PropertiesWidget", "Form", None, QtGui.QApplication.UnicodeUTF8))
-        self.groupBox.setTitle(QtGui.QApplication.translate("PropertiesWidget", "Point Size", None, QtGui.QApplication.UnicodeUTF8))
-        self.groupBox_8.setTitle(QtGui.QApplication.translate("PropertiesWidget", "Interpolation Point Count", None, QtGui.QApplication.UnicodeUTF8))
-        self.groupBox_10.setTitle(QtGui.QApplication.translate("PropertiesWidget", "Push/Pull", None, QtGui.QApplication.UnicodeUTF8))
-        self.label_10.setText(QtGui.QApplication.translate("PropertiesWidget", "Step size:", None, QtGui.QApplication.UnicodeUTF8))
-        self._doubleSpinBoxStepSize.setToolTip(QtGui.QApplication.translate("PropertiesWidget", "Set the depth for pushing/pulling segmentation points down/up a layer", None, QtGui.QApplication.UnicodeUTF8))
-        self._pushButtonPushDown.setText(QtGui.QApplication.translate("PropertiesWidget", "Push Down", None, QtGui.QApplication.UnicodeUTF8))
-        self._pushButtonPullUp.setText(QtGui.QApplication.translate("PropertiesWidget", "Pull Up", None, QtGui.QApplication.UnicodeUTF8))
-        self.groupBox_11.setTitle(QtGui.QApplication.translate("PropertiesWidget", "Edit", None, QtGui.QApplication.UnicodeUTF8))
-        self._pushButtonDelete.setToolTip(QtGui.QApplication.translate("PropertiesWidget", "Remove selected segmentation points", None, QtGui.QApplication.UnicodeUTF8))
-        self._pushButtonDelete.setText(QtGui.QApplication.translate("PropertiesWidget", "Delete", None, QtGui.QApplication.UnicodeUTF8))
+        PropertiesWidget.setWindowTitle(QCoreApplication.translate("PropertiesWidget", u"Form", None))
+        self.groupBox.setTitle(QCoreApplication.translate("PropertiesWidget", u"Point Size", None))
+        self.groupBox_8.setTitle(QCoreApplication.translate("PropertiesWidget", u"Interpolation Point Count", None))
+        self.groupBox_10.setTitle(QCoreApplication.translate("PropertiesWidget", u"Push/Pull", None))
+        self.label_10.setText(QCoreApplication.translate("PropertiesWidget", u"Step size:", None))
+#if QT_CONFIG(tooltip)
+        self._doubleSpinBoxStepSize.setToolTip(QCoreApplication.translate("PropertiesWidget", u"Set the depth for pushing/pulling segmentation points down/up a layer", None))
+#endif // QT_CONFIG(tooltip)
+        self._pushButtonPushDown.setText(QCoreApplication.translate("PropertiesWidget", u"Push Down", None))
+        self._pushButtonPullUp.setText(QCoreApplication.translate("PropertiesWidget", u"Pull Up", None))
+        self.groupBox_11.setTitle(QCoreApplication.translate("PropertiesWidget", u"Edit", None))
+#if QT_CONFIG(tooltip)
+        self._pushButtonDelete.setToolTip(QCoreApplication.translate("PropertiesWidget", u"Remove selected segmentation points", None))
+#endif // QT_CONFIG(tooltip)
+        self._pushButtonDelete.setText(QCoreApplication.translate("PropertiesWidget", u"Delete", None))
+    # retranslateUi
 

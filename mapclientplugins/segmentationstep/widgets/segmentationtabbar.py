@@ -17,9 +17,9 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
     You should have received a copy of the GNU General Public License
     along with MAP Client.  If not, see <http://www.gnu.org/licenses/>..
 '''
-from PySide import QtGui, QtCore
+from PySide2 import QtGui, QtWidgets, QtCore
 
-class SegmentationTabBar(QtGui.QTabBar):
+class SegmentationTabBar(QtWidgets.QTabBar):
 
     tabReorderRequested = QtCore.Signal(int, int)
     tabMoveRequested = QtCore.Signal(int)
@@ -42,7 +42,7 @@ class SegmentationTabBar(QtGui.QTabBar):
             return
 
         # check if distance of drag is too small
-        if (event.pos() - self._start_drag_pos).manhattanLength() < QtGui.QApplication.startDragDistance():
+        if (event.pos() - self._start_drag_pos).manhattanLength() < QtWidgets.QApplication.startDragDistance():
             return
 
         drag = QtGui.QDrag(self)
