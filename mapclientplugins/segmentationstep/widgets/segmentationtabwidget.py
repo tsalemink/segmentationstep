@@ -33,10 +33,12 @@ class SegmentationTabWidget(QtWidgets.QTabWidget):
 
         self.setAcceptDrops(True)
 
-        self._animation_increase = QtCore.QPropertyAnimation(self, 'maximumWidth')
+        self._animation_increase = QtCore.QPropertyAnimation(
+            self, QtCore.QByteArray("maximumWidth".encode()))
         self._animation_increase.setStartValue(1)
         self._animation_increase.setEndValue(TABWIDGET_TARGET_SIZE)
-        self._animation_decrease = QtCore.QPropertyAnimation(self, 'maximumWidth')
+        self._animation_decrease = QtCore.QPropertyAnimation(
+            self, QtCore.QByteArray("maximumWidth".encode()))
         self._animation_decrease.setStartValue(TABWIDGET_TARGET_SIZE)
         self._animation_decrease.setEndValue(1)
         self._animation_decrease.finished.connect(self._animationFinished)

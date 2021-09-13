@@ -23,8 +23,8 @@ from mapclientplugins.segmentationstep.maths.vectorops import add, sub, \
 
 class ZincWidgetState(ZincWidget):
 
-    def __init__(self, parent=None, shared=None):
-        super(ZincWidgetState, self).__init__(parent, shared)
+    def __init__(self, parent=None):
+        super().__init__(parent)
 
         self._initialized_view = False
         self._active_handler = None

@@ -33,7 +33,7 @@ class SceneviewerTab(SegmentationTab):
         '''
         super(SceneviewerTab, self).__init__(undo_redo_stack)
         self._ui = Ui_SceneviewerTab()
-        self._ui.setupUi(self, shared_context)
+        self._ui.setupUi(self)
         self._plane = None
         self._ui._zincwidget.setContext(context)
         self._ui._zincwidget.setUndoRedoStack(undo_redo_stack)
