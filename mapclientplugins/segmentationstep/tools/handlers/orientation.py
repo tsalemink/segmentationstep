@@ -1,7 +1,7 @@
-'''
+"""
 MAP Client, a program to generate detailed musculoskeletal models for OpenSim.
     Copyright (C) 2012  University of Auckland
-    
+
 This file is part of MAP Client. (http://launchpad.net/mapclient)
 
     MAP Client is free software: you can redistribute it and/or modify
@@ -16,7 +16,7 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
 
     You should have received a copy of the GNU General Public License
     along with MAP Client.  If not, see <http://www.gnu.org/licenses/>..
-'''
+"""
 
 from math import cos, sin, sqrt, acos, pi
 
@@ -27,12 +27,13 @@ from mapclientplugins.segmentationstep.maths.algorithms import calculateCentroid
 from mapclientplugins.segmentationstep.zincutils import getGlyphPosition, setGlyphPosition, createPlaneManipulationSphere
 # from mapclientplugins.segmentationstep.tools.resources import images
 
+
 class Orientation(PlaneAdjust):
-    '''
+    """
     Handle sceneviewer input events when in rotation mode.
     The rotation mode allows the user to re-orient the image
     plane and set the plane point of rotation.
-    '''
+    """
     def __init__(self, plane, undo_redo_stack):
         super(Orientation, self).__init__(plane, undo_redo_stack)
         self._mode_type = ViewMode.PLANE_ROTATION
