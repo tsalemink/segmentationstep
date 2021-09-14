@@ -40,5 +40,3 @@ class OrientationTool(SegmentationTool):
 
     def setSelectedMaterial(self, material):
         self._handlers[ViewType.VIEW_3D].setSelectedMaterial(material)
-
-
