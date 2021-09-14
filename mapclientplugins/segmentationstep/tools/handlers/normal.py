@@ -1,7 +1,7 @@
-'''
+"""
 MAP Client, a program to generate detailed musculoskeletal models for OpenSim.
     Copyright (C) 2012  University of Auckland
-    
+
 This file is part of MAP Client. (http://launchpad.net/mapclient)
 
     MAP Client is free software: you can redistribute it and/or modify
@@ -16,7 +16,7 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
 
     You should have received a copy of the GNU General Public License
     along with MAP Client.  If not, see <http://www.gnu.org/licenses/>..
-'''
+"""
 from mapclientplugins.segmentationstep.tools.handlers.planeadjust import PlaneAdjust
 from mapclientplugins.segmentationstep.definitions import ViewMode
 from mapclientplugins.segmentationstep.maths.vectorops import add, mult, dot, sub
@@ -24,12 +24,13 @@ from mapclientplugins.segmentationstep.maths.algorithms import calculateCentroid
 from mapclientplugins.segmentationstep.zincutils import getGlyphPosition, setGlyphPosition, createPlaneNormalIndicator
 # from mapclientplugins.segmentationstep.tools.resources import images
 
+
 class Normal(PlaneAdjust):
-    '''
+    """
     Handle sceneviewer input events when in normal mode.
-    The normal mode allows the user to move the plane in 
-    the direction of the normal of the plane.  
-    '''
+    The normal mode allows the user to move the plane in
+    the direction of the normal of the plane.
+    """
     def __init__(self, plane, undo_redo_stack):
         super(Normal, self).__init__(plane, undo_redo_stack)
         self._mode_type = ViewMode.PLANE_NORMAL
@@ -80,5 +81,3 @@ class Normal(PlaneAdjust):
 
         if set_undo_redo_command:
             self.setUndoRedoCommand('Plane Normal')
-
-

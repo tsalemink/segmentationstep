@@ -1,7 +1,7 @@
-'''
+"""
 MAP Client, a program to generate detailed musculoskeletal models for OpenSim.
     Copyright (C) 2012  University of Auckland
-    
+
 This file is part of MAP Client. (http://launchpad.net/mapclient)
 
     MAP Client is free software: you can redistribute it and/or modify
@@ -16,15 +16,15 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
 
     You should have received a copy of the GNU General Public License
     along with MAP Client.  If not, see <http://www.gnu.org/licenses/>..
-'''
+"""
 from PySide2 import QtWidgets
 
 class SegmentationTab(QtWidgets.QWidget):
 
     def __init__(self, undo_redo_stack, parent=None):
-        '''
+        """
         Constructor
-        '''
+        """
         super(SegmentationTab, self).__init__(parent)
         self._undo_redo_stack = undo_redo_stack
 
