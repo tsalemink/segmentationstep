@@ -130,5 +130,3 @@ class Orientation(PlaneAdjust):
         super(Orientation, self).enter()
         setGlyphPosition(self._glyph, self._plane.getRotationPoint())
         scene.endChange()
-
-
