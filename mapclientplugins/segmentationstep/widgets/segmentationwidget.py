@@ -19,8 +19,7 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
 '''
 from PySide2 import QtCore, QtGui, QtWidgets
 
-from mapclientplugins.segmentationstep.tools import normal, orientation, point, \
-    curve
+from mapclientplugins.segmentationstep.tools import normal, orientation, point, curve, resetorientation
 from mapclientplugins.segmentationstep.widgets.ui_segmentationwidget import Ui_SegmentationWidget
 from mapclientplugins.segmentationstep.undoredo import CommandSetScale, CommandSetSingleParameterMethod, CommandSetGraphicVisibility, CommandSetGlyphSize
 from mapclientplugins.segmentationstep.widgets.zincwidget import ProjectionMode
@@ -32,15 +31,15 @@ from mapclientplugins.segmentationstep.scene.master import MasterScene
 import os
 
 class SegmentationWidget(QtWidgets.QWidget):
-    '''
+    """
     About dialog to display program about information.
-    '''
+    """
 
 
     def __init__(self, model, parent=None):
-        '''
+        """
         Constructor
-        '''
+        """
         QtWidgets.QWidget.__init__(self, parent)
         self._ui = Ui_SegmentationWidget()
         self._ui.setupUi(self)
@@ -339,6 +338,10 @@ class SegmentationWidget(QtWidgets.QWidget):
         rotation_tool.setDefaultMaterial(purple_material)
         rotation_tool.setSelectedMaterial(red_material)
 
+        reset_rotation_tool_XY = resetorientation.ResetOrientationXYTool(plane, undo_redo_stack)
+        reset_rotation_tool_XZ = resetorientation.ResetOrientationXZTool(plane, undo_redo_stack)
+        reset_rotation_tool_YZ = resetorientation.ResetOrientationYZTool(plane, undo_redo_stack)
+
         curve_tool = curve.CurveTool(plane, undo_redo_stack)
         curve_tool.setModel(node_model)
         curve_tool.setScene(node_scene)
@@ -351,12 +354,15 @@ class SegmentationWidget(QtWidgets.QWidget):
         view_3d_tab.addHandler(normal_tool.getName(), normal_tool.getIcon(), normal_tool.getHandler(ViewType.VIEW_3D))
         view_3d_tab.addHandler(rotation_tool.getName(), rotation_tool.getIcon(), rotation_tool.getHandler(ViewType.VIEW_3D))
 
+        view_3d_tab.add_action(reset_rotation_tool_XY.getName(), reset_rotation_tool_XY.getIcon(), reset_rotation_tool_XY.action)
+        view_3d_tab.add_action(reset_rotation_tool_XZ.getName(), reset_rotation_tool_XZ.getIcon(), reset_rotation_tool_XZ.action)
+        view_3d_tab.add_action(reset_rotation_tool_YZ.getName(), reset_rotation_tool_YZ.getIcon(), reset_rotation_tool_YZ.action)
+
         view_2d_tab.addHandler(point_tool.getName(), point_tool.getIcon(), point_tool.getHandler(ViewType.VIEW_2D))
         view_2d_tab.addHandler(curve_tool.getName(), curve_tool.getIcon(), curve_tool.getHandler(ViewType.VIEW_2D))
 
+        # Should we also add the the new tools to this dictionary?:
         self._tools[ViewMode.SEGMENT_POINT] = point_tool
         self._tools[ViewMode.PLANE_NORMAL] = normal_tool
         self._tools[ViewMode.PLANE_ROTATION] = rotation_tool
         self._tools[ViewMode.SEGMENT_CURVE] = curve_tool
-
-
