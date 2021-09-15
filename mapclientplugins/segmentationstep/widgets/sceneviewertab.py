@@ -45,18 +45,23 @@ class SceneviewerTab(SegmentationTab):
         self._ui._tabToolBar.actionTriggered.connect(self._toolbarAction)
 
     def _toolbarAction(self, action):
-        new_handler = self._action_map[action]
-        if new_handler == self._active_handler:
-            action.blockSignals(True)
-            action.setChecked(True)
-            action.blockSignals(False)
-        else:
-            current_action = self._handler_map[self._active_handler]
-            current_handler = self._active_handler
-            c = CommandChangeViewHandler(current_handler, current_action, new_handler, action)
-            c.setSetChangeHandlerMethod(self._changeHandler)
+        if action.isCheckable():
+            new_handler = self._action_map[action]
+            if new_handler == self._active_handler:
+                action.blockSignals(True)
+                action.setChecked(True)
+                action.blockSignals(False)
+            else:
+                current_action = self._handler_map[self._active_handler]
+                current_handler = self._active_handler
+                c = CommandChangeViewHandler(current_handler, current_action, new_handler, action)
+                c.setSetChangeHandlerMethod(self._changeHandler)
 
-            self._undo_redo_stack.push(c)
+                self._undo_redo_stack.push(c)
+
+        else:
+            function = self._action_map[action]
+            function()
 
     def _changeHandler(self, handler):
         self._active_handler = handler

@@ -40,4 +40,6 @@ class SegmentationTab(QtWidgets.QWidget):
         self._handler_map[handler] = action
         self._handlers[handler.getModeType()] = handler
 
-
+    def add_action(self, name, icon, function):
+        action = self._ui._tabToolBar.addAction(icon, name)
+        self._action_map[action] = function
