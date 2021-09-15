@@ -3,7 +3,8 @@
 """
 from PySide2 import QtGui
 from mapclientplugins.segmentationstep.tools.segmentation import SegmentationTool
-from mapclientplugins.segmentationstep.zincutils import createPlaneManipulationSphere
+from mapclientplugins.segmentationstep.undoredo import CommandMovePlane
+from mapclientplugins.segmentationstep.plane import PlaneAttitude
 
 
 class AbstractResetOrientationTool(SegmentationTool):
@@ -16,16 +17,15 @@ class AbstractResetOrientationTool(SegmentationTool):
         self._plane_normal = None
 
     def action(self):
-        # The undo and redo actions for this method don't always work correctly.
-
-        glyph = createPlaneManipulationSphere(self._plane.getRegion())
-        scene = glyph.getScene()
-        scene.beginChange()
+        plane_start = PlaneAttitude(self._plane.getRotationPoint(), self._plane.getNormal())
 
         point_on_plane = self._plane.getRotationPoint()
         self._plane.setPlaneEquation(self._plane_normal, point_on_plane)
 
-        scene.endChange()
+        plane_end = PlaneAttitude(self._plane.getRotationPoint(), self._plane.getNormal())
+
+        c = CommandMovePlane(self._plane, plane_start, plane_end)
+        self._undo_redo_stack.push(c)
 
 
 class ResetOrientationXYTool(AbstractResetOrientationTool):
