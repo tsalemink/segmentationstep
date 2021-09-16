@@ -62,6 +62,9 @@ class Curve(AbstractSelection):
         self._finshing_curve = False
         self._adding_to_curve = False
         self._modifying_curve = False
+        pixel_scale = self._zinc_view.getPixelScale()
+        x = event.x() * pixel_scale
+        y = event.y() * pixel_scale
         if self._node_status:
             if (event.modifiers() & QtCore.Qt.CTRL) and event.button() == QtCore.Qt.RightButton:
                 node_id = self._node_status.getNodeIdentifier()
@@ -78,7 +81,7 @@ class Curve(AbstractSelection):
                 self._zinc_view.setMouseTracking(False)
                 self._finshing_curve = True
             elif (event.modifiers() & QtCore.Qt.CTRL) and event.button() == QtCore.Qt.LeftButton:
-                node = self._zinc_view.getNearestNode(event.x(), event.y())
+                node = self._zinc_view.getNearestNode(x, y)
                 if node and node.isValid():
                     self._closing_curve_node_id = self._node_status.getNodeIdentifier()
                     self._node_status.setNodeIdentifier(node.getIdentifier())
@@ -88,7 +91,7 @@ class Curve(AbstractSelection):
         elif (event.modifiers() & QtCore.Qt.CTRL) and event.button() == QtCore.Qt.LeftButton:
             # The start of a new curve
             self._active_curve = None
-            node = self._zinc_view.getNearestNode(event.x(), event.y())
+            node = self._zinc_view.getNearestNode(x, y)
             if node and node.isValid():
                 # node exists at this location so select it
                 group = self._model.getSelectionGroup()
@@ -108,7 +111,7 @@ class Curve(AbstractSelection):
                 self._active_curve.setInterpolationCount(self._interpolation_count)
                 node_location = None
                 plane_attitude = None
-                point_on_plane = self._calculatePointOnPlane(event.x(), event.y())
+                point_on_plane = self._calculatePointOnPlane(x, y)
                 region = self._model.getRegion()
                 fieldmodule = region.getFieldmodule()
                 fieldmodule.beginChange()
@@ -130,9 +133,12 @@ class Curve(AbstractSelection):
 
     def mouseMoveEvent(self, event):
         if self._node_status is not None:
+            pixel_scale = self._zinc_view.getPixelScale()
+            x = event.x() * pixel_scale
+            y = event.y() * pixel_scale
             self._start_plane_attitude = None
             node = self._model.getNodeByIdentifier(self._node_status.getNodeIdentifier())
-            point_on_plane = self._calculatePointOnPlane(event.x(), event.y())
+            point_on_plane = self._calculatePointOnPlane(x, y)
             self._model.setNodeLocation(node, point_on_plane)
             curve_index = self._model.getCurveIdentifier(self._active_curve)
             if len(self._active_curve) > 1:

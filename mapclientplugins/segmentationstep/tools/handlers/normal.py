@@ -45,9 +45,12 @@ class Normal(PlaneAdjust):
 
     def mouseMoveEvent(self, event):
         if self._glyph.getMaterial().getName() == self._selected_material.getName():
+            pixel_scale = self._zinc_view.getPixelScale()
+            x = event.x() * pixel_scale
+            y = event.y() * pixel_scale
             pos = getGlyphPosition(self._glyph)
             screen_pos = self._zinc_view.project(pos[0], pos[1], pos[2])
-            global_cur_pos = self._zinc_view.unproject(event.x(), -event.y(), screen_pos[2])
+            global_cur_pos = self._zinc_view.unproject(x, -y, screen_pos[2])
             global_old_pos = self._zinc_view.unproject(self._previous_mouse_position[0], -self._previous_mouse_position[1], screen_pos[2])
             global_pos_diff = sub(global_cur_pos, global_old_pos)
 
@@ -63,7 +66,7 @@ class Normal(PlaneAdjust):
                 setGlyphPosition(self._glyph, plane_centre)
 
             scene.endChange()
-            self._previous_mouse_position = [event.x(), event.y()]
+            self._previous_mouse_position = [x, y]
         else:
             super(Normal, self).mouseMoveEvent(event)
 
