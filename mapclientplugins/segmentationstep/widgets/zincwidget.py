@@ -1,4 +1,4 @@
-'''
+"""
 MAP Client, a program to generate detailed musculoskeletal models for OpenSim.
     Copyright (C) 2012  University of Auckland
     
@@ -16,10 +16,9 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
 
     You should have received a copy of the GNU General Public License
     along with MAP Client.  If not, see <http://www.gnu.org/licenses/>..
-'''
+"""
 from PySide2 import QtCore, QtWidgets
 
-# from opencmiss.zinc.glyph import Glyph
 from opencmiss.zinc.sceneviewer import Sceneviewer, Sceneviewerevent
 from opencmiss.zinc.sceneviewerinput import Sceneviewerinput
 from opencmiss.zinc.scenecoordinatesystem import SCENECOORDINATESYSTEM_LOCAL, SCENECOORDINATESYSTEM_WINDOW_PIXEL_TOP_LEFT, SCENECOORDINATESYSTEM_WORLD
@@ -32,10 +31,10 @@ from opencmiss.zinc.status import OK
 button_map = {QtCore.Qt.LeftButton: Sceneviewerinput.BUTTON_TYPE_LEFT, QtCore.Qt.MidButton: Sceneviewerinput.BUTTON_TYPE_MIDDLE, QtCore.Qt.RightButton: Sceneviewerinput.BUTTON_TYPE_RIGHT}
 # Create a modifier map of Qt modifier keys to Zinc modifier keys
 def modifier_map(qt_modifiers):
-    '''
+    """
     Return a Zinc SceneViewerInput modifiers object that is created from
     the Qt modifier flags passed in.
-    '''
+    """
     modifiers = Sceneviewerinput.MODIFIER_FLAG_NONE
     if qt_modifiers & QtCore.Qt.SHIFT:
         modifiers = modifiers | Sceneviewerinput.MODIFIER_FLAG_SHIFT
@@ -69,10 +68,10 @@ class ZincWidget(QtWidgets.QOpenGLWidget):
 
     # init start
     def __init__(self, parent=None):
-        '''
+        """
         Call the super class init functions, set the  Zinc context and the scene viewer handle to None.
         Initialise other attributes that deal with selection and the rotation of the plane.
-        '''
+        """
         QtWidgets.QOpenGLWidget.__init__(self, parent)
         # Create a Zinc context from which all other objects can be derived either directly or indirectly.
         self._context = None
@@ -89,19 +88,19 @@ class ZincWidget(QtWidgets.QOpenGLWidget):
         # init end
 
     def setContext(self, context):
-        '''
+        """
         Sets the context for this ZincWidget.  This should be set before the initializeGL()
         method is called otherwise the scene viewer cannot be created.
-        '''
+        """
         self._context = context
 
     def setUndoRedoStack(self, stack):
         self._undoRedoStack = stack
 
     def getSceneviewer(self):
-        '''
+        """
         Get the scene viewer for this ZincWidget.
-        '''
+        """
         return self._sceneviewer
 
     def setSelectModeNode(self):
@@ -118,9 +117,9 @@ class ZincWidget(QtWidgets.QOpenGLWidget):
 
     # initializeGL start
     def initializeGL(self):
-        '''
+        """
         Initialise the Zinc scene for drawing the axis glyph at a point.  
-        '''
+        """
         if self._sceneviewer is None:
             # Get the scene viewer module.
             scene_viewer_module = self._context.getSceneviewermodule()
@@ -291,11 +290,11 @@ class ZincWidget(QtWidgets.QOpenGLWidget):
         return self._getNearestGraphic(x, y, Field.DOMAIN_TYPE_NODES)
 
     def getNearestGraphicsPoint(self, x, y):
-        '''
+        """
         Assuming given x and y is in the sending widgets coordinates 
         which is a parent of this widget.  For example the values given 
         directly from the event in the parent widget.
-        '''
+        """
         return self._getNearestGraphic(x, y, Field.DOMAIN_TYPE_POINT)
 
     def getNearestNode(self, x, y):
@@ -311,30 +310,30 @@ class ZincWidget(QtWidgets.QOpenGLWidget):
         self._ignore_mouse_events = value
 
     def viewAll(self):
-        '''
+        """
         Helper method to set the current scene viewer to view everything
         visible in the current scene.
-        '''
+        """
         self._sceneviewer.viewAll()
 
     # paintGL start
     def paintGL(self):
-        '''
+        """
         Render the scene for this scene viewer.  The QGLWidget has already set up the
         correct OpenGL buffer for us so all we need do is render into it.  The scene viewer
         will clear the background so any OpenGL drawing of your own needs to go after this
         API call.
-        '''
+        """
         self._sceneviewer.renderScene()
         # paintGL end
 
     def _zincSceneviewerEvent(self, event):
-        '''
+        """
         Process a scene viewer event.  The updateGL() method is called for a
         repaint required event all other events are ignored.
-        '''
+        """
         if event.getChangeFlags() & Sceneviewerevent.CHANGE_FLAG_REPAINT_REQUIRED:
-            QtCore.QTimer.singleShot(0, self.updateGL)
+            QtCore.QTimer.singleShot(0, self.update)
 
 #  Not applicable at the current point in time.
 #     def _zincSelectionEvent(self, event):
@@ -343,16 +342,17 @@ class ZincWidget(QtWidgets.QOpenGLWidget):
 
     # resizeGL start
     def resizeGL(self, width, height):
-        '''
+        """
         Respond to widget resize events.
-        '''
-        self._sceneviewer.setViewportSize(width, height)
+        """
+        pixel_scale = self.window().devicePixelRatio()
+        self._sceneviewer.setViewportSize(width * pixel_scale, height * pixel_scale)
         # resizeGL end
 
     def mousePressEvent(self, event):
-        '''
+        """
         Inform the scene viewer of a mouse press event.
-        '''
+        """
         event.accept()
         self._handle_mouse_events = False  # Track when the zinc should be handling mouse events
         if not self._ignore_mouse_events and (event.modifiers() & QtCore.Qt.SHIFT) and (self._nodeSelectMode or self._elemSelectMode) and button_map[event.button()] == Sceneviewerinput.BUTTON_TYPE_LEFT:
@@ -374,9 +374,9 @@ class ZincWidget(QtWidgets.QOpenGLWidget):
             event.ignore()
 
     def mouseReleaseEvent(self, event):
-        '''
+        """
         Inform the scene viewer of a mouse release event.
-        '''
+        """
         event.accept()
         if not self._ignore_mouse_events and self._selection_mode != SelectionMode.NONE:
             x = event.x()
@@ -459,10 +459,10 @@ class ZincWidget(QtWidgets.QOpenGLWidget):
             event.ignore()
 
     def mouseMoveEvent(self, event):
-        '''
+        """
         Inform the scene viewer of a mouse move event and update the OpenGL scene to reflect this
         change to the viewport.
-        '''
+        """
 
         event.accept()
         if not self._ignore_mouse_events and self._selection_mode != SelectionMode.NONE:

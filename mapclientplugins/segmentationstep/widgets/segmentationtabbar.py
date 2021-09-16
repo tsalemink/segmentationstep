@@ -54,7 +54,7 @@ class SegmentationTabBar(QtWidgets.QTabBar):
         painter.drawPixmap(0, 0, pix)
         painter.end()
         drag.setPixmap(target_pix)
-        mime.setData('application/tab-moving', 'tab moving data')
+        mime.setData('application/tab-moving', b'tab moving data')
         drag.setMimeData(mime)
         d = drag.exec_()
         super(SegmentationTabBar, self).mouseMoveEvent(event)

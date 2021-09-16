@@ -21,10 +21,11 @@ from mapclientplugins.segmentationstep.widgets.zincwidget import ZincWidget
 from mapclientplugins.segmentationstep.maths.vectorops import add, sub, \
     magnitude, mult
 
+
 class ZincWidgetState(ZincWidget):
 
     def __init__(self, parent=None, shared=None):
-        super(ZincWidgetState, self).__init__(parent, shared)
+        super(ZincWidgetState, self).__init__(parent)
 
         self._initialized_view = False
         self._active_handler = None
@@ -83,5 +84,3 @@ class ZincWidgetState(ZincWidget):
                 self._sceneviewer.viewAll()
                 self._initialized_view = True
             self._sceneviewer.endChange()
-
-

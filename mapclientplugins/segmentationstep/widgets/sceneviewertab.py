@@ -22,18 +22,13 @@ from mapclientplugins.segmentationstep.widgets.ui_sceneviewertab import Ui_Scene
 from mapclientplugins.segmentationstep.definitions import ViewMode
 from mapclientplugins.segmentationstep.undoredo import CommandChangeViewHandler
 
+
 class SceneviewerTab(SegmentationTab):
-    '''
-    classdocs
-    '''
 
     def __init__(self, context, undo_redo_stack, shared_context=None):
-        '''
-        Constructor
-        '''
         super(SceneviewerTab, self).__init__(undo_redo_stack)
         self._ui = Ui_SceneviewerTab()
-        self._ui.setupUi(self, shared_context)
+        self._ui.setupUi(self)
         self._plane = None
         self._ui._zincwidget.setContext(context)
         self._ui._zincwidget.setUndoRedoStack(undo_redo_stack)
@@ -74,7 +69,6 @@ class SceneviewerTab(SegmentationTab):
 
                 self._undo_redo_stack.push(c)
 
-
     def _sceneviewerReady(self):
         self._ui._zincwidget.setActiveModeType(ViewMode.SEGMENT_POINT)
         tool = self._handlers[ViewMode.SEGMENT_POINT]
@@ -97,5 +91,3 @@ class SceneviewerTab(SegmentationTab):
 
     def getZincWidget(self):
         return self._ui._zincwidget
-
-
