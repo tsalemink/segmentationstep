@@ -1,7 +1,7 @@
-'''
+"""
 MAP Client, a program to generate detailed musculoskeletal models for OpenSim.
     Copyright (C) 2012  University of Auckland
-    
+
 This file is part of MAP Client. (http://launchpad.net/mapclient)
 
     MAP Client is free software: you can redistribute it and/or modify
@@ -16,18 +16,18 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
 
     You should have received a copy of the GNU General Public License
     along with MAP Client.  If not, see <http://www.gnu.org/licenses/>..
-'''
+"""
+
 
 class SegmentationTool(object):
-    '''
+    """
     classdocs
-    '''
-
+    """
 
     def __init__(self, name, undo_redo_stack):
-        '''
+        """
         Constructor
-        '''
+        """
         self._name = name
         self._icon = None
         self._handlers = {}
@@ -68,5 +68,3 @@ class SegmentationTool(object):
             return True
 
         return False
-
-

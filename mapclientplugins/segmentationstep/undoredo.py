@@ -1,7 +1,7 @@
-'''
+"""
 MAP Client, a program to generate detailed musculoskeletal models for OpenSim.
     Copyright (C) 2012  University of Auckland
-    
+
 This file is part of MAP Client. (http://launchpad.net/mapclient)
 
     MAP Client is free software: you can redistribute it and/or modify
@@ -16,12 +16,13 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
 
     You should have received a copy of the GNU General Public License
     along with MAP Client.  If not, see <http://www.gnu.org/licenses/>..
-'''
+"""
 from PySide2 import QtWidgets
 
 from mapclientplugins.segmentationstep.plane import PlaneAttitude
 from mapclientplugins.segmentationstep.maths.vectorops import mult, add
 from mapclientplugins.segmentationstep.model.curve import CurveModel
+
 
 class CommandMovePlane(QtWidgets.QUndoCommand):
 
@@ -37,6 +38,7 @@ class CommandMovePlane(QtWidgets.QUndoCommand):
 
     def undo(self):
         self._plane.setPlaneEquation(self._plane_start.getNormal(), self._plane_start.getPoint())
+
 
 class CommandMoveGlyph(QtWidgets.QUndoCommand):
 
@@ -483,10 +485,10 @@ class AbstractCommandPushPull(QtWidgets.QUndoCommand):
         self._set_normal_method = set_normal_method
 
     def _adjustNodeLocation(self, selected, scale):
-        '''
+        """
         Adjust the node location by adding the scaled normal
         for the plane.
-        '''
+        """
         node_statuses = []
         for node_id in selected:
             node_status = self._model.getNodeStatus(node_id)
