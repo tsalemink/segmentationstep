@@ -2,19 +2,20 @@
 
 """
 from PySide2 import QtGui
-from mapclientplugins.segmentationstep.tools.segmentation import SegmentationTool
-from mapclientplugins.segmentationstep.undoredo import CommandMovePlane
 from mapclientplugins.segmentationstep.plane import PlaneAttitude
+from mapclientplugins.segmentationstep.undoredo import CommandMovePlane
+from mapclientplugins.segmentationstep.commands.abstractcommand import AbstractCommand
 
 
-class AbstractResetOrientationTool(SegmentationTool):
+class AbstractResetOrientationCommand(AbstractCommand):
 
     def __init__(self, axes, plane, undo_redo_stack):
-        super().__init__(f'Reset Orientation {axes}', undo_redo_stack)
+        super().__init__(f'Reset Orientation {axes}')
         self._icon = QtGui.QIcon(':toolbar_icons/orientation.png')
         # self._icon = QtGui.QIcon(f':toolbar_icons/{axes}.png')
         self._plane = plane
         self._plane_normal = None
+        self._undo_redo_stack = undo_redo_stack
 
     def action(self):
         plane_start = PlaneAttitude(self._plane.getRotationPoint(), self._plane.getNormal())
@@ -28,19 +29,19 @@ class AbstractResetOrientationTool(SegmentationTool):
         self._undo_redo_stack.push(c)
 
 
-class ResetOrientationXYTool(AbstractResetOrientationTool):
+class ResetOrientationXYCommand(AbstractResetOrientationCommand):
     def __init__(self, plane, undo_redo_stack):
         super().__init__('XY', plane, undo_redo_stack)
         self._plane_normal = [0.0, 0.0, 1.0]
 
 
-class ResetOrientationXZTool(AbstractResetOrientationTool):
+class ResetOrientationXZCommand(AbstractResetOrientationCommand):
     def __init__(self, plane, undo_redo_stack):
         super().__init__('XZ', plane, undo_redo_stack)
         self._plane_normal = [0.0, 1.0, 0.0]
 
 
-class ResetOrientationYZTool(AbstractResetOrientationTool):
+class ResetOrientationYZCommand(AbstractResetOrientationCommand):
     def __init__(self, plane, undo_redo_stack):
         super().__init__('YZ', plane, undo_redo_stack)
         self._plane_normal = [1.0, 0.0, 0.0]

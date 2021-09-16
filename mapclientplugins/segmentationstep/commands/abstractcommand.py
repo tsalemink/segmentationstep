@@ -18,11 +18,11 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
     along with MAP Client.  If not, see <http://www.gnu.org/licenses/>..
 """
 
+
 class AbstractCommand(object):
     """
     classdocs
     """
-
 
     def __init__(self, name):
         """
@@ -30,3 +30,9 @@ class AbstractCommand(object):
         """
         self._name = name
         self._icon = None
+
+    def get_name(self):
+        return self._name
+
+    def get_icon(self):
+        return self._icon

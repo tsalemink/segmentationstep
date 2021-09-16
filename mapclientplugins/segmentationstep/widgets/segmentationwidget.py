@@ -1,7 +1,7 @@
-'''
+"""
 MAP Client, a program to generate detailed musculoskeletal models for OpenSim.
     Copyright (C) 2012  University of Auckland
-    
+
 This file is part of MAP Client. (http://launchpad.net/mapclient)
 
     MAP Client is free software: you can redistribute it and/or modify
@@ -16,10 +16,11 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
 
     You should have received a copy of the GNU General Public License
     along with MAP Client.  If not, see <http://www.gnu.org/licenses/>..
-'''
+"""
 from PySide2 import QtCore, QtGui, QtWidgets
 
-from mapclientplugins.segmentationstep.tools import normal, orientation, point, curve, resetorientation
+from mapclientplugins.segmentationstep.commands import resetorientation
+from mapclientplugins.segmentationstep.tools import normal, orientation, point, curve
 from mapclientplugins.segmentationstep.widgets.ui_segmentationwidget import Ui_SegmentationWidget
 from mapclientplugins.segmentationstep.undoredo import CommandSetScale, CommandSetSingleParameterMethod, CommandSetGraphicVisibility, CommandSetGlyphSize
 from mapclientplugins.segmentationstep.widgets.zincwidget import ProjectionMode
@@ -30,11 +31,11 @@ from mapclientplugins.segmentationstep.widgets.sceneviewertab import Sceneviewer
 from mapclientplugins.segmentationstep.scene.master import MasterScene
 import os
 
+
 class SegmentationWidget(QtWidgets.QWidget):
     """
     About dialog to display program about information.
     """
-
 
     def __init__(self, model, parent=None):
         """
@@ -338,9 +339,9 @@ class SegmentationWidget(QtWidgets.QWidget):
         rotation_tool.setDefaultMaterial(purple_material)
         rotation_tool.setSelectedMaterial(red_material)
 
-        reset_rotation_tool_XY = resetorientation.ResetOrientationXYTool(plane, undo_redo_stack)
-        reset_rotation_tool_XZ = resetorientation.ResetOrientationXZTool(plane, undo_redo_stack)
-        reset_rotation_tool_YZ = resetorientation.ResetOrientationYZTool(plane, undo_redo_stack)
+        reset_rotation_XY = resetorientation.ResetOrientationXYCommand(plane, undo_redo_stack)
+        reset_rotation_XZ = resetorientation.ResetOrientationXZCommand(plane, undo_redo_stack)
+        reset_rotation_YZ = resetorientation.ResetOrientationYZCommand(plane, undo_redo_stack)
 
         curve_tool = curve.CurveTool(plane, undo_redo_stack)
         curve_tool.setModel(node_model)
@@ -354,9 +355,9 @@ class SegmentationWidget(QtWidgets.QWidget):
         view_3d_tab.addHandler(normal_tool.getName(), normal_tool.getIcon(), normal_tool.getHandler(ViewType.VIEW_3D))
         view_3d_tab.addHandler(rotation_tool.getName(), rotation_tool.getIcon(), rotation_tool.getHandler(ViewType.VIEW_3D))
 
-        view_3d_tab.add_action(reset_rotation_tool_XY.getName(), reset_rotation_tool_XY.getIcon(), reset_rotation_tool_XY.action)
-        view_3d_tab.add_action(reset_rotation_tool_XZ.getName(), reset_rotation_tool_XZ.getIcon(), reset_rotation_tool_XZ.action)
-        view_3d_tab.add_action(reset_rotation_tool_YZ.getName(), reset_rotation_tool_YZ.getIcon(), reset_rotation_tool_YZ.action)
+        view_3d_tab.add_action(reset_rotation_XY.get_name(), reset_rotation_XY.get_icon(), reset_rotation_XY.action)
+        view_3d_tab.add_action(reset_rotation_XZ.get_name(), reset_rotation_XZ.get_icon(), reset_rotation_XZ.action)
+        view_3d_tab.add_action(reset_rotation_YZ.get_name(), reset_rotation_YZ.get_icon(), reset_rotation_YZ.action)
 
         view_2d_tab.addHandler(point_tool.getName(), point_tool.getIcon(), point_tool.getHandler(ViewType.VIEW_2D))
         view_2d_tab.addHandler(curve_tool.getName(), curve_tool.getIcon(), curve_tool.getHandler(ViewType.VIEW_2D))
