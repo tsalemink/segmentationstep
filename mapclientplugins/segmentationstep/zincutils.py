@@ -1,4 +1,4 @@
-'''
+"""
 MAP Client, a program to generate detailed musculoskeletal models for OpenSim.
 Copyright (C) 2012  University of Auckland
 
@@ -16,7 +16,7 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with MAP Client.  If not, see <http://www.gnu.org/licenses/>..
-'''
+"""
 from PySide2 import QtCore
 
 from opencmiss.zinc.sceneviewerinput import Sceneviewerinput
@@ -26,30 +26,33 @@ from opencmiss.zinc.glyph import Glyph
 from opencmiss.zinc.scenecoordinatesystem import SCENECOORDINATESYSTEM_LOCAL, SCENECOORDINATESYSTEM_WINDOW_PIXEL_TOP_LEFT
 from opencmiss.zinc.graphics import Graphics
 
-COORDINATE_SYSTEM_LOCAL = SCENECOORDINATESYSTEM_LOCAL
-COORDINATE_SYSTEM_WINDOW_PIXEL_TOP_LEFT = SCENECOORDINATESYSTEM_WINDOW_PIXEL_TOP_LEFT
-
 from mapclientplugins.segmentationstep.definitions import DEFAULT_GRAPHICS_SPHERE_SIZE, DEFAULT_NORMAL_ARROW_SIZE, \
     PLANE_MANIPULATION_SPHERE_GRAPHIC_NAME, PLANE_MANIPULATION_NORMAL_GRAPHIC_NAME
 
+COORDINATE_SYSTEM_LOCAL = SCENECOORDINATESYSTEM_LOCAL
+COORDINATE_SYSTEM_WINDOW_PIXEL_TOP_LEFT = SCENECOORDINATESYSTEM_WINDOW_PIXEL_TOP_LEFT
+
 button_map = {QtCore.Qt.LeftButton: Sceneviewerinput.BUTTON_TYPE_LEFT, QtCore.Qt.MidButton: Sceneviewerinput.BUTTON_TYPE_MIDDLE, QtCore.Qt.RightButton: Sceneviewerinput.BUTTON_TYPE_RIGHT}
+
+
 # Create a modifier map of Qt modifier keys to Zinc modifier keys
 def modifier_map(qt_modifiers):
-    '''
+    """
     Return a Zinc SceneViewerInput modifiers object that is created from
     the Qt modifier flags passed in.
-    '''
+    """
     modifiers = Sceneviewerinput.MODIFIER_FLAG_NONE
     if qt_modifiers & QtCore.Qt.SHIFT:
         modifiers = modifiers | Sceneviewerinput.MODIFIER_FLAG_SHIFT
 
     return modifiers
 
+
 def createFiniteElementField(region):
-    '''
+    """
     Create a finite element field of three dimensions
     called 'coordinates' and set the coordinate type true.
-    '''
+    """
     field_module = region.getFieldmodule()
     field_module.beginChange()
 
@@ -65,6 +68,7 @@ def createFiniteElementField(region):
     field_module.endChange()
 
     return finite_element_field
+
 
 def create1DFiniteElement(finite_element_field, node1, node2):
     # Use a 3D mesh to to create the 3D finite element.
@@ -89,11 +93,12 @@ def create1DFiniteElement(finite_element_field, node1, node2):
 
     return element
 
+
 def create3DFiniteElement(fieldmodule, finite_element_field, node_coordinate_set):
-    '''
-    Create a single finite element using the supplied 
+    """
+    Create a single finite element using the supplied
     finite element field and node coordinate set.
-    '''
+    """
     # Find a special node set named 'nodes'
     nodeset = fieldmodule.findNodesetByName('nodes')
     node_template = nodeset.createNodetemplate()
@@ -134,14 +139,15 @@ def create3DFiniteElement(fieldmodule, finite_element_field, node_coordinate_set
 
     mesh.defineElement(-1, element_template)
 
+
 def createFiniteElement(region, finite_element_field, dim):
-    '''
+    """
     Create finite element meshes using the supplied
     finite element field (of three dimensions) and dim list
-    of size 3.  The dimension list is the maximum value for a 
+    of size 3.  The dimension list is the maximum value for a
     particular dimension.  The origin of the element is set
     at [0, 0, 0].
-    '''
+    """
     fieldmodule = region.getFieldmodule()
     fieldmodule.beginChange()
     # Define the coordinates for each 3D element
@@ -153,12 +159,14 @@ def createFiniteElement(region, finite_element_field, dim):
     fieldmodule.defineAllFaces()
     fieldmodule.endChange()
 
+
 def setGlyphPosition(glyph, position):
     if position is not None:
         position_field = glyph.getCoordinateField()
         fieldmodule = position_field.getFieldmodule()
         fieldcache = fieldmodule.createFieldcache()
         position_field.assignReal(fieldcache, position)
+
 
 def getGlyphPosition(glyph):
     position_field = glyph.getCoordinateField()
@@ -168,18 +176,22 @@ def getGlyphPosition(glyph):
 
     return position
 
+
 def getGlyphSize(glyph):
     attributes = glyph.getGraphicspointattributes()
     _, base_size = attributes.getBaseSize(3)
     return base_size
 
+
 def setGlyphSize(glyph, size):
     attributes = glyph.getGraphicspointattributes()
     attributes.setBaseSize(size)
 
+
 def setGlyphOffset(glyph, offset):
     attributes = glyph.getGraphicspointattributes()
     attributes.setGlyphOffset(offset)
+
 
 def createSelectionBox(region, name):
     scene = region.getScene()
@@ -199,6 +211,7 @@ def createSelectionBox(region, name):
     scene.endChange()
 
     return selection_box
+
 
 def createPlaneManipulationSphere(region):
     scene = region.getScene()
@@ -224,6 +237,7 @@ def createPlaneManipulationSphere(region):
 
     return plane_rotation_sphere
 
+
 def createPlaneNormalIndicator(region, plane_normal_field):
     scene = region.getScene()
 
@@ -248,6 +262,7 @@ def createPlaneNormalIndicator(region, plane_normal_field):
 
     return plane_normal_indicator
 
+
 def createInterpolationPointAtLocation(region, name, size, location, subgroupfield=None):
     scene = region.getScene()
 
@@ -269,5 +284,3 @@ def createInterpolationPointAtLocation(region, name, size, location, subgroupfie
     attributes.setBaseSize(size)
 
     return graphic
-
-
