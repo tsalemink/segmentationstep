@@ -1,6 +1,7 @@
 """
 
 """
+
 from PySide2 import QtGui
 from mapclientplugins.segmentationstep.plane import PlaneAttitude
 from mapclientplugins.segmentationstep.undoredo import CommandMovePlane
@@ -17,7 +18,10 @@ class AbstractResetOrientationCommand(AbstractCommand):
         self._plane_normal = None
         self._undo_redo_stack = undo_redo_stack
 
-    def action(self):
+    def get_function(self):
+        return self.execute
+
+    def execute(self):
         plane_start = PlaneAttitude(self._plane.getRotationPoint(), self._plane.getNormal())
 
         point_on_plane = self._plane.getRotationPoint()

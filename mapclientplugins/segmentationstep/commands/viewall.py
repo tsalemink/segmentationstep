@@ -17,13 +17,33 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
     You should have received a copy of the GNU General Public License
     along with MAP Client.  If not, see <http://www.gnu.org/licenses/>..
 """
-from mapclientplugins.segmentationstep.commands.abstractcommand import \
-    AbstractCommand
+
+from PySide2 import QtGui
+from mapclientplugins.segmentationstep.definitions import ViewType
+from mapclientplugins.segmentationstep.commands.abstractcommand import AbstractCommand
 
 
 class ViewAll(AbstractCommand):
 
-    def __init__(self):
-        super(ViewAll, self).__init__('View All')
+    def __init__(self, tabs):
+        super().__init__('View All')
 
+        # This needs a proper icon:
+        self._icon = QtGui.QIcon(':toolbar_icons/normal.png')
 
+        self._3d_sceneviewer_widget = tabs[ViewType.VIEW_3D].getZincWidget()
+        self._2d_sceneviewer_widget = tabs[ViewType.VIEW_2D].getZincWidget()
+
+    def get_function(self, view_type):
+        if view_type == "View 3D":
+            return self.execute_3d
+        else:
+            return self.execute_2d
+
+    def execute_3d(self):
+        if self._3d_sceneviewer_widget.getSceneviewer() is not None:
+            self._3d_sceneviewer_widget.viewAll()
+
+    def execute_2d(self):
+        if self._2d_sceneviewer_widget.getSceneviewer() is not None:
+            self._2d_sceneviewer_widget.viewAll()

@@ -36,3 +36,6 @@ class AbstractCommand(object):
 
     def get_icon(self):
         return self._icon
+
+    def get_function(self):
+        pass
