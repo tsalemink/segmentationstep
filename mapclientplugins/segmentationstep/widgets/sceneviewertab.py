@@ -22,6 +22,7 @@ from mapclientplugins.segmentationstep.widgets.ui_sceneviewertab import Ui_Scene
 from mapclientplugins.segmentationstep.definitions import ViewMode
 from mapclientplugins.segmentationstep.undoredo import CommandChangeViewHandler
 
+
 class SceneviewerTab(SegmentationTab):
     """
     classdocs
