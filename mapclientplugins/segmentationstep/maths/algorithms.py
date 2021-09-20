@@ -1,7 +1,7 @@
-'''
+"""
 MAP Client, a program to generate detailed musculoskeletal models for OpenSim.
     Copyright (C) 2012  University of Auckland
-    
+
 This file is part of MAP Client. (http://launchpad.net/mapclient)
 
     MAP Client is free software: you can redistribute it and/or modify
@@ -16,7 +16,7 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
 
     You should have received a copy of the GNU General Public License
     along with MAP Client.  If not, see <http://www.gnu.org/licenses/>..
-'''
+"""
 from math import atan2, pi, sqrt, copysign
 import numpy as np
 
@@ -25,12 +25,12 @@ from mapclientplugins.segmentationstep.misc import checkRange
 
 
 def boundCoordinatesToCuboid(pt1, pt2, cuboid_dimensions):
-    '''
-    Takes two points and a cuboids dimensions, with 
-    one corner defined by [0, 0, 0] and the opposite by 
-    cuboid_dimensions, and returns a point that is inside the 
+    """
+    Takes two points and a cuboids dimensions, with
+    one corner defined by [0, 0, 0] and the opposite by
+    cuboid_dimensions, and returns a point that is inside the
     cuboid.  pt2 *must* be inside the cuboid.
-    '''
+    """
     bounded_pt = pt1[:]
     axes = [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
     coordinate_set = [[0, 0, 0], [cuboid_dimensions[0], cuboid_dimensions[1], cuboid_dimensions[2]]]
@@ -66,11 +66,11 @@ def boundCoordinatesToCuboid(pt1, pt2, cuboid_dimensions):
 
 
 def pointOutsideCuboid(pt, cuboid_dimensions):
-    '''
-    Determine if the given point is outside the cuboid and 
+    """
+    Determine if the given point is outside the cuboid and
     return a number determining which planes it is outside of.
     0 indicates that the pt is inside the cuboid.
-    '''
+    """
     outside = 0
 
     axes = [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
@@ -100,13 +100,13 @@ def calculateLinePlaneIntersection(pt1, pt2, point_on_plane, plane_normal):
 
 
 def calculateCentroid(point_on_plane, plane_normal, cuboid_dimensions):
-    '''
-    Takes a description of a plane as a point on the plane 
-    and a normal of the plane with a cuboids dimensions, with 
-    one corner defined by [0, 0, 0] and the opposite by 
+    """
+    Takes a description of a plane as a point on the plane
+    and a normal of the plane with a cuboids dimensions, with
+    one corner defined by [0, 0, 0] and the opposite by
     cuboid_dimensions, and calculates the centroid formed by the
     given plane intersecting with the cuboid.
-    '''
+    """
     tol = 1e-08
     dim = cuboid_dimensions
 #         print(point_on_plane, plane_normal)
@@ -196,10 +196,10 @@ class CentroidAlgorithm(object):
         return e1, e2, e3
 
     def _convertXi(self, ori, e1, e2, e3):
-        '''
-        Use average point as the origin 
+        """
+        Use average point as the origin
         for new basis.
-        '''
+        """
         converted = []
 
         for v in self._xi:
@@ -241,10 +241,10 @@ def _calculatePolygonArea(vertices):
 
 
 def _calculateHeading(direction):
-    '''
+    """
     Convert a vector based direction into a heading
     between 0 and 2*pi.
-    '''
+    """
     headings = [atan2(pt[1], pt[0]) + pi for pt in direction]
     return headings
 
@@ -352,10 +352,10 @@ def calculateCoefficients(x_i, x_ip1, D_i, D_ip1):
 
 
 def paramerterizedSplines(data):
-    '''
+    """
     Calculates the polynomial coefficients for piecewise cubic splines
-    over the data. 
-    '''
+    over the data.
+    """
     control_points = list(zip(*data))
     np1 = len(data)
     n = np1 - 1

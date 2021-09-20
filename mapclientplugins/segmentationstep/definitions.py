@@ -1,7 +1,7 @@
-'''
+"""
 MAP Client, a program to generate detailed musculoskeletal models for OpenSim.
     Copyright (C) 2012  University of Auckland
-    
+
 This file is part of MAP Client. (http://launchpad.net/mapclient)
 
     MAP Client is free software: you can redistribute it and/or modify
@@ -16,7 +16,7 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
 
     You should have received a copy of the GNU General Public License
     along with MAP Client.  If not, see <http://www.gnu.org/licenses/>..
-'''
+"""
 DEFAULT_NORMAL_ARROW_SIZE = 25.0
 DEFAULT_GRAPHICS_SPHERE_SIZE = 10.0
 DEFAULT_SEGMENTATION_POINT_SIZE = 2.0
@@ -39,12 +39,14 @@ SELECTION_BOX_3D_GRAPHIC_NAME = 'selection_box_3d'
 PLANE_MANIPULATION_SPHERE_GRAPHIC_NAME = 'plane_rotation_sphere'
 PLANE_MANIPULATION_NORMAL_GRAPHIC_NAME = 'plane_normal_arrow'
 
+
 class ViewMode(object):
 
     SEGMENT_POINT = 1
     PLANE_NORMAL = 2
     PLANE_ROTATION = 4
     SEGMENT_CURVE = 8
+
 
 class ViewType(object):
 
