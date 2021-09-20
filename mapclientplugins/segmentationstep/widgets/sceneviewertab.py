@@ -68,6 +68,9 @@ class SceneviewerTab(SegmentationTab):
         self._active_handler = handler
         self._ui._zincwidget.setActiveModeType(handler.getModeType())
 
+    def get_active_handler(self):
+        return self._active_handler
+
     def setActiveHandler(self, handler_type):
         if handler_type in self._handlers:
             handler = self._handlers[handler_type]

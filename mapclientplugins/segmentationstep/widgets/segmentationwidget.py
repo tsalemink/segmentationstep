@@ -339,9 +339,10 @@ class SegmentationWidget(QtWidgets.QWidget):
         rotation_tool.setDefaultMaterial(purple_material)
         rotation_tool.setSelectedMaterial(red_material)
 
-        reset_rotation_XY = resetorientation.ResetOrientationXYCommand(plane, undo_redo_stack)
-        reset_rotation_XZ = resetorientation.ResetOrientationXZCommand(plane, undo_redo_stack)
-        reset_rotation_YZ = resetorientation.ResetOrientationYZCommand(plane, undo_redo_stack)
+        active_handler = self._tabs[ViewType.VIEW_3D].get_active_handler
+        reset_rotation_XY = resetorientation.ResetOrientationXYCommand(plane, undo_redo_stack, image_model.getDimensions(), active_handler)
+        reset_rotation_XZ = resetorientation.ResetOrientationXZCommand(plane, undo_redo_stack, image_model.getDimensions(), active_handler)
+        reset_rotation_YZ = resetorientation.ResetOrientationYZCommand(plane, undo_redo_stack, image_model.getDimensions(), active_handler)
 
         view_all_command = viewall.ViewAll(self._tabs)
 
