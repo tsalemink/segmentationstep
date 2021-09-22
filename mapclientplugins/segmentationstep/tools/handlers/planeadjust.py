@@ -22,6 +22,7 @@ from mapclientplugins.segmentationstep.undoredo import CommandMovePlane, Command
 from mapclientplugins.segmentationstep.zincutils import setGlyphPosition
 from mapclientplugins.segmentationstep.plane import PlaneAttitude
 
+
 class PlaneAdjust(AbstractHandler):
 
     def __init__(self, plane, undo_redo_stack):

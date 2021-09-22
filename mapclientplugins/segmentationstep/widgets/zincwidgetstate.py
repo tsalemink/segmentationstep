@@ -78,10 +78,14 @@ class ZincWidgetState(ZincWidget):
             eye, lookat, up, angle = self.getViewParameters()
             scale = magnitude(sub(eye, lookat))
             self._sceneviewer.beginChange()
+
+            # This is not ideal, it works well for the reset-orientation commands but not the free orientation tool. Perhaps we should
+            # calculate the difference in the angle of the normal before and after the orientation command (on mouseReleased event), and
+            # use this to update the angle.
+            up = normal[1:] + [normal[0]]
+
             self.setViewParameters(add(mult(normal, scale), centre), centre, up, angle)
             if not self._initialized_view:
                 self._sceneviewer.viewAll()
                 self._initialized_view = True
             self._sceneviewer.endChange()
-
-

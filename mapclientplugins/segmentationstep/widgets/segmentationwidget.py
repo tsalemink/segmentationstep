@@ -75,6 +75,9 @@ class SegmentationWidget(QtWidgets.QWidget):
         self._ui._pushButtonSave.clicked.connect(self._saveState)
         self._ui._pushButtonLoad.clicked.connect(self._loadState)
 
+        # This is a workaround so that the plane is always visible in the 2D tab.
+        self._ui._tabWidgetLeft.tabBarClicked.connect(self.view_all_command.execute_2d)
+
     def _setupUi(self):
         dbl_validator = QtGui.QDoubleValidator()
         dbl_validator.setBottom(0.0)
@@ -266,14 +269,14 @@ class SegmentationWidget(QtWidgets.QWidget):
             self._tools[ViewMode.SEGMENT_CURVE].deleteClicked()
 
     def keyReleaseEvent(self, keyevent):
-        '''
+        """
         Special Keys:
         To provide the expected behavior for Qt applications on Mac OS X,
         the Qt::Meta, Qt::MetaModifier, and Qt::META enum values correspond
         to the Control keys on the standard Macintosh keyboard, and the
-        Qt::Control, Qt::ControlModifier, and Qt::CTRL enum values 
+        Qt::Control, Qt::ControlModifier, and Qt::CTRL enum values
         correspond to the Command keys.
-        '''
+        """
         if keyevent.key() == QtCore.Qt.Key_1 and keyevent.modifiers() & QtCore.Qt.CTRL and not keyevent.isAutoRepeat():
             self._changeHandler(ViewMode.SEGMENT_POINT)
         if keyevent.key() == QtCore.Qt.Key_2 and keyevent.modifiers() & QtCore.Qt.CTRL and not keyevent.isAutoRepeat():
@@ -334,17 +337,18 @@ class SegmentationWidget(QtWidgets.QWidget):
         normal_tool.setDefaultMaterial(yellow_material)
         normal_tool.setSelectedMaterial(orange_material)
 
+        view_all_command = viewall.ViewAll(self._tabs)
+        self.view_all_command = view_all_command
+
         rotation_tool = orientation.OrientationTool(plane, undo_redo_stack)
         rotation_tool.setGetDimensionsMethod(image_model.getDimensions)
         rotation_tool.setDefaultMaterial(purple_material)
         rotation_tool.setSelectedMaterial(red_material)
 
-        active_handler = self._tabs[ViewType.VIEW_3D].get_active_handler
+        active_handler = view_3d_tab.get_active_handler
         reset_rotation_XY = resetorientation.ResetOrientationXYCommand(plane, undo_redo_stack, image_model.getDimensions(), active_handler)
         reset_rotation_XZ = resetorientation.ResetOrientationXZCommand(plane, undo_redo_stack, image_model.getDimensions(), active_handler)
         reset_rotation_YZ = resetorientation.ResetOrientationYZCommand(plane, undo_redo_stack, image_model.getDimensions(), active_handler)
-
-        view_all_command = viewall.ViewAll(self._tabs)
 
         curve_tool = curve.CurveTool(plane, undo_redo_stack)
         curve_tool.setModel(node_model)
@@ -368,7 +372,6 @@ class SegmentationWidget(QtWidgets.QWidget):
 
         view_2d_tab.add_command(view_all_command.get_name(), view_all_command.get_icon(), view_all_command.get_function(ViewType.VIEW_2D))
 
-        # Should we also add the the new tools to this dictionary?:
         self._tools[ViewMode.SEGMENT_POINT] = point_tool
         self._tools[ViewMode.PLANE_NORMAL] = normal_tool
         self._tools[ViewMode.PLANE_ROTATION] = rotation_tool
