@@ -362,6 +362,8 @@ class SegmentationWidget(QtWidgets.QWidget):
         view_3d_tab.addHandler(normal_tool.getName(), normal_tool.getIcon(), normal_tool.getHandler(ViewType.VIEW_3D))
         view_3d_tab.addHandler(rotation_tool.getName(), rotation_tool.getIcon(), rotation_tool.getHandler(ViewType.VIEW_3D))
 
+        view_3d_tab.add_separator()
+
         view_3d_tab.add_command(reset_rotation_XY.get_name(), reset_rotation_XY.get_icon(), reset_rotation_XY.get_function())
         view_3d_tab.add_command(reset_rotation_XZ.get_name(), reset_rotation_XZ.get_icon(), reset_rotation_XZ.get_function())
         view_3d_tab.add_command(reset_rotation_YZ.get_name(), reset_rotation_YZ.get_icon(), reset_rotation_YZ.get_function())
@@ -369,6 +371,8 @@ class SegmentationWidget(QtWidgets.QWidget):
 
         view_2d_tab.addHandler(point_tool.getName(), point_tool.getIcon(), point_tool.getHandler(ViewType.VIEW_2D))
         view_2d_tab.addHandler(curve_tool.getName(), curve_tool.getIcon(), curve_tool.getHandler(ViewType.VIEW_2D))
+
+        view_2d_tab.add_separator()
 
         view_2d_tab.add_command(view_all_command.get_name(), view_all_command.get_icon(), view_all_command.get_function(ViewType.VIEW_2D))
 
