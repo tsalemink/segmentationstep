@@ -1,7 +1,7 @@
-'''
+"""
 MAP Client, a program to generate detailed musculoskeletal models for OpenSim.
     Copyright (C) 2012  University of Auckland
-    
+
 This file is part of MAP Client. (http://launchpad.net/mapclient)
 
     MAP Client is free software: you can redistribute it and/or modify
@@ -16,7 +16,7 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
 
     You should have received a copy of the GNU General Public License
     along with MAP Client.  If not, see <http://www.gnu.org/licenses/>..
-'''
+"""
 from PySide2 import QtCore
 
 from mapclientplugins.segmentationstep.zincutils import button_map, modifier_map, Sceneviewerinput
@@ -27,6 +27,7 @@ from mapclientplugins.segmentationstep.definitions import \
     ELEMENT_NODE_LABEL_GRAPHIC_NAME, CURVE_GRAPHIC_NAME, \
     PLANE_MANIPULATION_SPHERE_GRAPHIC_NAME, \
     PLANE_MANIPULATION_NORMAL_GRAPHIC_NAME
+
 
 class AbstractHandler(object):
 
