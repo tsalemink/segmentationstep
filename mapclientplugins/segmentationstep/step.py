@@ -1,7 +1,7 @@
-'''
+"""
 MAP Client, a program to generate detailed musculoskeletal models for OpenSim.
     Copyright (C) 2012  University of Auckland
-    
+
 This file is part of MAP Client. (http://launchpad.net/mapclient)
 
     MAP Client is free software: you can redistribute it and/or modify
@@ -16,7 +16,7 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
 
     You should have received a copy of the GNU General Public License
     along with MAP Client.  If not, see <http://www.gnu.org/licenses/>..
-'''
+"""
 import os
 
 from PySide2 import QtGui, QtWidgets
@@ -29,15 +29,16 @@ from mapclientplugins.segmentationstep.widgets.configuredialog import ConfigureD
 
 STEP_SERIALISATION_FILENAME = 'step.conf'
 
+
 class SegmentationStep(WorkflowStepMountPoint):
-    '''
+    """
     A step that acts like the step plugin duck
-    '''
+    """
 
     def __init__(self, location):
-        '''
+        """
         Constructor
-        '''
+        """
         super(SegmentationStep, self).__init__('Segmentation', location)
         self._identifier = ''
         # self._icon = QtGui.QImage(':/segmentation/icons/seg.gif')

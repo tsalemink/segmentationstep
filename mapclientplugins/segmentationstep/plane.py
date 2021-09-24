@@ -21,6 +21,7 @@ import json
 
 from mapclientplugins.segmentationstep.observed import event
 
+
 class Plane(object):
 
     def __init__(self, fieldmodule):
