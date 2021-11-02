@@ -20,8 +20,8 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
 from mapclientplugins.segmentationstep.tools.handlers.point import Point
 from mapclientplugins.segmentationstep.definitions import POINT_CLOUD_GRAPHIC_NAME
 
+
 class Point3D(Point):
-    pass
 
     def _createScenepickerFilter(self):
         sceneviewer = self._zinc_view.getSceneviewer()
@@ -33,5 +33,3 @@ class Point3D(Point):
         name_filter.appendOperand(name_filter1)
 
         return name_filter
-
-

@@ -42,7 +42,10 @@ class AbstractSelection(AbstractHandler):
     def mousePressEvent(self, event):
         self._selection_mode = SelectionMode.NONE
         if event.modifiers() & QtCore.Qt.SHIFT and event.button() == QtCore.Qt.LeftButton:
-            self._selection_position_start = [event.x(), event.y()]
+            pixel_scale = self._zinc_view.getPixelScale()
+            x = event.x() * pixel_scale
+            y = event.y() * pixel_scale
+            self._selection_position_start = [x, y]
             self._selection_mode = SelectionMode.EXCULSIVE
             if event.modifiers() & QtCore.Qt.ALT:
                 self._selection_mode = SelectionMode.ADDITIVE
@@ -53,8 +56,9 @@ class AbstractSelection(AbstractHandler):
 
     def mouseMoveEvent(self, event):
         if self._selection_mode != SelectionMode.NONE:
-            x = event.x()
-            y = event.y()
+            pixel_scale = self._zinc_view.getPixelScale()
+            x = event.x() * pixel_scale
+            y = event.y() * pixel_scale
             xdiff = float(x - self._selection_position_start[0])
             ydiff = float(y - self._selection_position_start[1])
             if abs(xdiff) < 0.0001:
@@ -74,8 +78,9 @@ class AbstractSelection(AbstractHandler):
 
     def mouseReleaseEvent(self, event):
         if self._selection_mode != SelectionMode.NONE:
-            x = event.x()
-            y = event.y()
+            pixel_scale = self._zinc_view.getPixelScale()
+            x = event.x() * pixel_scale
+            y = event.y() * pixel_scale
             # Construct a small frustrum to look for nodes in.
             region = self._model.getRegion()
             region.beginHierarchicalChange()

@@ -300,7 +300,7 @@ class SegmentationWidget(QtWidgets.QWidget):
         view3d = SceneviewerTab(context, self._model.getUndoRedoStack())
         self._ui._tabWidgetLeft.addTab(view3d, ViewType.VIEW_3D)
 
-        view2d = SceneviewerTab(context, self._model.getUndoRedoStack(), view3d.getZincWidget())
+        view2d = SceneviewerTab(context, self._model.getUndoRedoStack())
         view2d.setPlane(self._model.getImageModel().getPlane())
         self._ui._tabWidgetLeft.addTab(view2d, ViewType.VIEW_2D)
 

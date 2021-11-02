@@ -19,7 +19,6 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
 """
 from PySide2 import QtCore, QtWidgets
 
-# from opencmiss.zinc.glyph import Glyph
 from opencmiss.zinc.sceneviewer import Sceneviewer, Sceneviewerevent
 from opencmiss.zinc.sceneviewerinput import Sceneviewerinput
 from opencmiss.zinc.scenecoordinatesystem import SCENECOORDINATESYSTEM_LOCAL, SCENECOORDINATESYSTEM_WINDOW_PIXEL_TOP_LEFT, SCENECOORDINATESYSTEM_WORLD
@@ -77,6 +76,9 @@ class ZincWidget(QtWidgets.QOpenGLWidget):
         # Create a Zinc context from which all other objects can be derived either directly or indirectly.
         self._context = None
         self._sceneviewer = None
+
+        # Retina displays require a scaling factor most other devices have a scale factor of 1.
+        self._pixel_scale = self.window().devicePixelRatio()
 
         # Selection attributes
         self._nodeSelectMode = True
@@ -292,8 +294,8 @@ class ZincWidget(QtWidgets.QOpenGLWidget):
 
     def getNearestGraphicsPoint(self, x, y):
         """
-        Assuming given x and y is in the sending widgets coordinates
-        which is a parent of this widget.  For example the values given
+        Assuming given x and y is in the sending widgets coordinates 
+        which is a parent of this widget.  For example the values given 
         directly from the event in the parent widget.
         """
         return self._getNearestGraphic(x, y, Field.DOMAIN_TYPE_POINT)
@@ -303,6 +305,9 @@ class ZincWidget(QtWidgets.QOpenGLWidget):
         node = self._scenepicker.getNearestNode()
 
         return node
+
+    def getPixelScale(self):
+        return self._pixel_scale
 
     def addPickedNodesToFieldGroup(self, selection_group):
         self._scenepicker.addPickedNodesToFieldGroup(selection_group)
@@ -346,7 +351,7 @@ class ZincWidget(QtWidgets.QOpenGLWidget):
         """
         Respond to widget resize events.
         """
-        self._sceneviewer.setViewportSize(width, height)
+        self._sceneviewer.setViewportSize(width * self._pixel_scale, height * self._pixel_scale)
         # resizeGL end
 
     def mousePressEvent(self, event):
@@ -362,7 +367,7 @@ class ZincWidget(QtWidgets.QOpenGLWidget):
                 self._selection_mode = SelectionMode.ADDITIVE
         elif not self._ignore_mouse_events and not event.modifiers() or (event.modifiers() & QtCore.Qt.SHIFT and button_map[event.button()] == Sceneviewerinput.BUTTON_TYPE_RIGHT):
             scene_input = self._sceneviewer.createSceneviewerinput()
-            scene_input.setPosition(event.x(), event.y())
+            scene_input.setPosition(event.x() * self._pixel_scale, event.y() * self._pixel_scale)
             scene_input.setEventType(Sceneviewerinput.EVENT_TYPE_BUTTON_PRESS)
             scene_input.setButtonType(button_map[event.button()])
             scene_input.setModifierFlags(modifier_map(event.modifiers()))
@@ -379,8 +384,8 @@ class ZincWidget(QtWidgets.QOpenGLWidget):
         """
         event.accept()
         if not self._ignore_mouse_events and self._selection_mode != SelectionMode.NONE:
-            x = event.x()
-            y = event.y()
+            x = event.x() * self._pixel_scale
+            y = event.y() * self._pixel_scale
             # Construct a small frustrum to look for nodes in.
             root_region = self._context.getDefaultRegion()
             root_region.beginHierarchicalChange()
@@ -450,7 +455,7 @@ class ZincWidget(QtWidgets.QOpenGLWidget):
         elif not self._ignore_mouse_events and self._handle_mouse_events:
             print('dont come here.')
             scene_input = self._sceneviewer.createSceneviewerinput()
-            scene_input.setPosition(event.x(), event.y())
+            scene_input.setPosition(event.x() * self._pixel_scale, event.y() * self._pixel_scale)
             scene_input.setEventType(Sceneviewerinput.EVENT_TYPE_BUTTON_RELEASE)
             scene_input.setButtonType(button_map[event.button()])
 
@@ -466,8 +471,8 @@ class ZincWidget(QtWidgets.QOpenGLWidget):
 
         event.accept()
         if not self._ignore_mouse_events and self._selection_mode != SelectionMode.NONE:
-            x = event.x()
-            y = event.y()
+            x = event.x() * self._pixel_scale
+            y = event.y() * self._pixel_scale
             xdiff = float(x - self._selection_position_start[0])
             ydiff = float(y - self._selection_position_start[1])
             if abs(xdiff) < 0.0001:
@@ -484,7 +489,7 @@ class ZincWidget(QtWidgets.QOpenGLWidget):
             scene.endChange()
         elif not self._ignore_mouse_events and self._handle_mouse_events:
             scene_input = self._sceneviewer.createSceneviewerinput()
-            scene_input.setPosition(event.x(), event.y())
+            scene_input.setPosition(event.x() * self._pixel_scale, event.y() * self._pixel_scale)
             scene_input.setEventType(Sceneviewerinput.EVENT_TYPE_MOTION_NOTIFY)
             if event.type() == QtCore.QEvent.Leave:
                 scene_input.setPosition(-1, -1)

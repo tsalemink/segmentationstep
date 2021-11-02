@@ -1,4 +1,4 @@
-'''
+"""
 MAP Client, a program to generate detailed musculoskeletal models for OpenSim.
     Copyright (C) 2012  University of Auckland
     
@@ -16,7 +16,7 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
 
     You should have received a copy of the GNU General Public License
     along with MAP Client.  If not, see <http://www.gnu.org/licenses/>..
-'''
+"""
 from PySide2 import QtCore
 
 from mapclientplugins.segmentationstep.tools.handlers.abstractselection import AbstractSelection
@@ -24,6 +24,7 @@ from mapclientplugins.segmentationstep.definitions import ViewMode
 from mapclientplugins.segmentationstep.undoredo import CommandPointCloudNode, CommandMovePlane
 from mapclientplugins.segmentationstep.segmentpoint import SegmentPointStatus
 from mapclientplugins.segmentationstep.maths.algorithms import calculateLinePlaneIntersection
+
 
 class Point(AbstractSelection):
 
@@ -55,7 +56,10 @@ class Point(AbstractSelection):
         self._node_status = None
         self._start_plane_attitude = None
         if (event.modifiers() & QtCore.Qt.CTRL) and event.button() == QtCore.Qt.LeftButton:
-            node = self._zinc_view.getNearestNode(event.x(), event.y())
+            pixel_scale = self._zinc_view.getPixelScale()
+            x = event.x() * pixel_scale
+            y = event.y() * pixel_scale
+            node = self._zinc_view.getNearestNode(x, y)
             if node and node.isValid():
                 # node exists at this location so select it
                 group = self._model.getSelectionGroup()
@@ -68,7 +72,7 @@ class Point(AbstractSelection):
             else:
                 node_location = None
                 plane_attitude = None
-                point_on_plane = self._calculatePointOnPlane(event.x(), event.y())
+                point_on_plane = self._calculatePointOnPlane(x, y)
                 region = self._model.getRegion()
                 fieldmodule = region.getFieldmodule()
                 fieldmodule.beginChange()
@@ -85,8 +89,9 @@ class Point(AbstractSelection):
     def mouseMoveEvent(self, event):
         if self._node_status is not None:
             self._start_plane_attitude = None
+            pixel_scale = self._zinc_view.getPixelScale()
             node = self._model.getNodeByIdentifier(self._node_status.getNodeIdentifier())
-            point_on_plane = self._calculatePointOnPlane(event.x(), event.y())
+            point_on_plane = self._calculatePointOnPlane(event.x() * pixel_scale, event.y() * pixel_scale)
             self._model.setNodeLocation(node, point_on_plane)
             if self._streaming_create:
                 node_id = -1
@@ -130,5 +135,3 @@ class Point(AbstractSelection):
         near_plane_point = self._zinc_view.unproject(x, -y, 1.0)
         point_on_plane = calculateLinePlaneIntersection(near_plane_point, far_plane_point, self._plane.getRotationPoint(), self._plane.getNormal())
         return point_on_plane
-
-

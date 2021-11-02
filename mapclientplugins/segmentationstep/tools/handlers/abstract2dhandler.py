@@ -37,22 +37,28 @@ class Abstract2DHandler(object):
     def mousePressEvent(self, event):
         self._start_position = None
         if not event.modifiers() and event.button() == QtCore.Qt.LeftButton:
-            self._start_position = [event.x(), event.y()]
+            pixel_scale = self._zinc_view.getPixelScale()
+            x = event.x() * pixel_scale
+            y = event.y() * pixel_scale
+            self._start_position = [x, y]
             self._start_view_parameters = self._zinc_view.getViewParameters()
         else:
             super(Abstract2DHandler, self).mousePressEvent(event)
 
     def mouseMoveEvent(self, event):
         if self._start_position is not None:
+            pixel_scale = self._zinc_view.getPixelScale()
+            x = event.x() * pixel_scale
+            y = event.y() * pixel_scale
             # v_rot = v*cos(theta)+(wxv)*sin(theta)+w*(w.v)*(1-cos(theta))
             # v is our vector
             # w is the unit vector to rotate around
             # theta is the angle to rotate
-            if self._start_position[0] == event.x() and self._start_position[1] == event.y():
+            if self._start_position[0] == x and self._start_position[1] == y:
                 return
             centre_point = calculateCentroid(self._plane.getRotationPoint(), self._plane.getNormal(), self._get_dimension_method())
             centre_widget = self._zinc_view.project(centre_point[0], centre_point[1], centre_point[2])
-            a = sub(centre_widget, [event.x(), -event.y(), centre_widget[2]])
+            a = sub(centre_widget, [x, -y, centre_widget[2]])
             b = sub(centre_widget, [self._start_position[0], -self._start_position[1], centre_widget[2]])
             c = dot(a, b)
             d = magnitude(a) * magnitude(b)
@@ -70,7 +76,7 @@ class Abstract2DHandler(object):
                 p3 = mult(p3a, 1 - cos(theta))
                 v_rot = add(p1, add(p2, p3))
                 self._zinc_view.setViewParameters(lookat, eye, v_rot, angle)
-                self._start_position = [event.x(), event.y()]
+                self._start_position = [x, y]
         else:
             super(Abstract2DHandler, self).mouseMoveEvent(event)
 

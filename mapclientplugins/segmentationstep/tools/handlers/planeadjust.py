@@ -68,9 +68,12 @@ class PlaneAdjust(AbstractHandler):
             self._undo_redo_stack.endMacro()
 
     def mousePressEvent(self, event):
-        self._previous_mouse_position = [event.x(), event.y()]
+        pixel_scale = self._zinc_view.getPixelScale()
+        x = event.x() * pixel_scale
+        y = event.y() * pixel_scale
+        self._previous_mouse_position = [x, y]
         self._plane_attitude_start = PlaneAttitude(self._plane.getRotationPoint(), self._plane.getNormal())
-        graphic = self._zinc_view.getNearestGraphicsPoint(event.x(), event.y())
+        graphic = self._zinc_view.getNearestGraphicsPoint(x, y)
         if graphic and graphic.isValid():
             graphic.setMaterial(self._selected_material)
         else:

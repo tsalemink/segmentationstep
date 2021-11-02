@@ -23,6 +23,7 @@ from mapclientplugins.segmentationstep.widgets.segmentationtabbar import Segment
 
 TABWIDGET_TARGET_SIZE = 100
 
+
 class SegmentationTabWidget(QtWidgets.QTabWidget):
 
     def __init__(self, parent=None):
@@ -33,12 +34,10 @@ class SegmentationTabWidget(QtWidgets.QTabWidget):
 
         self.setAcceptDrops(True)
 
-        self._animation_increase = QtCore.QPropertyAnimation(
-            self, b"maximumWidth")
+        self._animation_increase = QtCore.QPropertyAnimation(self, b'maximumWidth')
         self._animation_increase.setStartValue(1)
         self._animation_increase.setEndValue(TABWIDGET_TARGET_SIZE)
-        self._animation_decrease = QtCore.QPropertyAnimation(
-            self, b"maximumWidth")
+        self._animation_decrease = QtCore.QPropertyAnimation(self, b'maximumWidth')
         self._animation_decrease.setStartValue(TABWIDGET_TARGET_SIZE)
         self._animation_decrease.setEndValue(1)
         self._animation_decrease.finished.connect(self._animationFinished)
@@ -90,5 +89,3 @@ class SegmentationTabWidget(QtWidgets.QTabWidget):
         if self.count() == 0:
             self._animation_increase.setEndValue(TABWIDGET_TARGET_SIZE)
             self._animation_decrease.start()
-
-

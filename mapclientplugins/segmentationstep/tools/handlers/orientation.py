@@ -25,6 +25,8 @@ from mapclientplugins.segmentationstep.definitions import ViewMode
 from mapclientplugins.segmentationstep.maths.vectorops import add, mult, cross, dot, sub, normalize
 from mapclientplugins.segmentationstep.maths.algorithms import calculateCentroid, boundCoordinatesToCuboid, calculateLinePlaneIntersection
 from mapclientplugins.segmentationstep.zincutils import getGlyphPosition, setGlyphPosition, createPlaneManipulationSphere
+
+
 # from mapclientplugins.segmentationstep.tools.resources import images
 
 
@@ -34,6 +36,7 @@ class Orientation(PlaneAdjust):
     The rotation mode allows the user to re-orient the image
     plane and set the plane point of rotation.
     """
+
     def __init__(self, plane, undo_redo_stack):
         super(Orientation, self).__init__(plane, undo_redo_stack)
         self._mode_type = ViewMode.PLANE_ROTATION
@@ -52,10 +55,11 @@ class Orientation(PlaneAdjust):
     def mouseMoveEvent(self, event):
         scene = self._glyph.getScene()
         scene.beginChange()
-#         super(Orientation, self).mouseMoveEvent(event)
+        #         super(Orientation, self).mouseMoveEvent(event)
+        pixel_scale = self._zinc_view.getPixelScale()
+        x = event.x() * pixel_scale
+        y = event.y() * pixel_scale
         if self._glyph.getMaterial().getName() == self._selected_material.getName():
-            x = event.x()
-            y = event.y()
             far_plane_point = self._zinc_view.unproject(x, -y, -1.0)
             near_plane_point = self._zinc_view.unproject(x, -y, 1.0)
             point_on_plane = calculateLinePlaneIntersection(near_plane_point, far_plane_point, self._plane.getRotationPoint(), self._plane.getNormal())
@@ -68,16 +72,18 @@ class Orientation(PlaneAdjust):
             width = self._zinc_view.width()
             height = self._zinc_view.height()
             radius = min([width, height]) / 2.0
-            delta_x = float(event.x() - self._previous_mouse_position[0])
-            delta_y = float(event.y() - self._previous_mouse_position[1])
+            delta_x = float(x - self._previous_mouse_position[0])
+            delta_y = float(y - self._previous_mouse_position[1])
             tangent_dist = sqrt((delta_x * delta_x + delta_y * delta_y))
             if tangent_dist > 0.0:
                 dx = -delta_y / tangent_dist
                 dy = delta_x / tangent_dist
 
-                d = dx * (event.x() - 0.5 * (width - 1)) + dy * (event.y() - 0.5 * (height - 1))
-                if d > radius: d = radius
-                if d < -radius: d = -radius
+                d = dx * (x - 0.5 * (width - 1)) + dy * (y - 0.5 * (height - 1))
+                if d > radius:
+                    d = radius
+                if d < -radius:
+                    d = -radius
 
                 phi = acos(d / radius) - 0.5 * pi
                 angle = 1.0 * tangent_dist / radius
@@ -109,7 +115,7 @@ class Orientation(PlaneAdjust):
 
                 self._plane.setPlaneEquation(plane_normal_prime, point_on_plane)
 
-                self._previous_mouse_position = [event.x(), event.y()]
+                self._previous_mouse_position = [x, y]
         scene.endChange()
 
     def mouseReleaseEvent(self, event):

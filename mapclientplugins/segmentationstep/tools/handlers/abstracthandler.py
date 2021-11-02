@@ -86,9 +86,12 @@ class AbstractHandler(object):
         self._undo_redo_stack.push(c)
 
     def mousePressEvent(self, event):
+        pixel_scale = self._zinc_view.getPixelScale()
+        x = event.x() * pixel_scale
+        y = event.y() * pixel_scale
         sceneviewer = self._zinc_view.getSceneviewer()
         scene_input = sceneviewer.createSceneviewerinput()
-        scene_input.setPosition(event.x(), event.y())
+        scene_input.setPosition(x, y)
         scene_input.setEventType(Sceneviewerinput.EVENT_TYPE_BUTTON_PRESS)
         scene_input.setButtonType(button_map[event.button()])
         scene_input.setModifierFlags(modifier_map(event.modifiers()))
@@ -97,9 +100,12 @@ class AbstractHandler(object):
         self._start_view_parameters = self._zinc_view.getViewParameters()
 
     def mouseMoveEvent(self, event):
+        pixel_scale = self._zinc_view.getPixelScale()
+        x = event.x() * pixel_scale
+        y = event.y() * pixel_scale
         sceneviewer = self._zinc_view.getSceneviewer()
         scene_input = sceneviewer.createSceneviewerinput()
-        scene_input.setPosition(event.x(), event.y())
+        scene_input.setPosition(x, y)
         scene_input.setEventType(Sceneviewerinput.EVENT_TYPE_MOTION_NOTIFY)
         if event.type() == QtCore.QEvent.Leave:
             scene_input.setPosition(-1, -1)
@@ -157,5 +163,3 @@ class AbstractHandler(object):
         visibility_filter = filtermodule.createScenefilterVisibilityFlags()
 
         return visibility_filter
-
-
