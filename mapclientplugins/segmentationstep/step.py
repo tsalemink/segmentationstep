@@ -25,6 +25,7 @@ from mapclient.mountpoints.workflowstep import WorkflowStepMountPoint
 
 from mapclientplugins.segmentationstep.model.master import SegmentationModel
 from mapclientplugins.segmentationstep.widgets.segmentationwidget import SegmentationWidget
+from mapclientplugins.segmentationstep.widgets.configuredialog import ConfigureDialog, ConfigureDialogState
 
 STEP_SERIALISATION_FILENAME = 'step.conf'
 
@@ -52,22 +53,33 @@ class SegmentationStep(WorkflowStepMountPoint):
         self._category = 'Segmentation'
         self._view = None
         self._dataIn = None
-        self._configured = True
+#        self._configured = True
+        self._state = ConfigureDialogState()
 
     def configure(self):
-        pass
+        
+        d = ConfigureDialog(self._state, QtWidgets.QApplication.activeWindow().current_widget())
+        d.setModal(True)
+        if d.exec_():
+            self._state = d.getState()
+
+        self._configured = d.validate()
+        if self._configured and self._configuredObserver is not None:
+            self._configuredObserver()
 
     def getIdentifier(self):
-        return self._identifier
+        return self._state.identifier()
 
     def setIdentifier(self, identifier):
-        self._identifier = identifier
+        self._state.setIdentifier(identifier)
 
     def serialize(self):
-        pass
+        return self._state.serialize()
 
     def deserialize(self, string):
-        pass
+        self._state.deserialize(string)
+        d = ConfigureDialog(self._state)
+        self._configured = d.validate()
 
     def setPortData(self, portId, dataIn):
         self._dataIn = dataIn
