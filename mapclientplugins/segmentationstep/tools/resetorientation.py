@@ -1,7 +1,7 @@
 """
 
 """
-from PySide2 import QtGui
+from PySide6 import QtGui
 from mapclientplugins.segmentationstep.tools.segmentation import SegmentationTool
 from mapclientplugins.segmentationstep.undoredo import CommandMovePlane
 from mapclientplugins.segmentationstep.plane import PlaneAttitude
