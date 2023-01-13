@@ -17,7 +17,7 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
     You should have received a copy of the GNU General Public License
     along with MAP Client.  If not, see <http://www.gnu.org/licenses/>..
 '''
-from PySide6 import QtWidgets
+from PySide6 import QtGui
 
 from opencmiss.zinc.context import Context
 from opencmiss.zinc.material import Material
@@ -29,7 +29,7 @@ class SegmentationModel(object):
 
     def __init__(self):
         self._context = Context('Segmentation')
-        self._undo_redo_stack = QtWidgets.QUndoStack()
+        self._undo_redo_stack = QtGui.QUndoStack()
 
         self.defineStandardMaterials()
         self._createModeMaterials()
