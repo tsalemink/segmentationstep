@@ -17,7 +17,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with MAP Client.  If not, see <http://www.gnu.org/licenses/>..
 '''
-from PySide2 import QtCore
+from PySide6 import QtCore
 
 from opencmiss.zinc.sceneviewerinput import Sceneviewerinput
 from opencmiss.zinc.element import Element, Elementbasis
@@ -32,7 +32,7 @@ COORDINATE_SYSTEM_WINDOW_PIXEL_TOP_LEFT = SCENECOORDINATESYSTEM_WINDOW_PIXEL_TOP
 from mapclientplugins.segmentationstep.definitions import DEFAULT_GRAPHICS_SPHERE_SIZE, DEFAULT_NORMAL_ARROW_SIZE, \
     PLANE_MANIPULATION_SPHERE_GRAPHIC_NAME, PLANE_MANIPULATION_NORMAL_GRAPHIC_NAME
 
-button_map = {QtCore.Qt.LeftButton: Sceneviewerinput.BUTTON_TYPE_LEFT, QtCore.Qt.MidButton: Sceneviewerinput.BUTTON_TYPE_MIDDLE, QtCore.Qt.RightButton: Sceneviewerinput.BUTTON_TYPE_RIGHT}
+button_map = {QtCore.Qt.LeftButton: Sceneviewerinput.BUTTON_TYPE_LEFT, QtCore.Qt.MiddleButton: Sceneviewerinput.BUTTON_TYPE_MIDDLE, QtCore.Qt.RightButton: Sceneviewerinput.BUTTON_TYPE_RIGHT}
 # Create a modifier map of Qt modifier keys to Zinc modifier keys
 def modifier_map(qt_modifiers):
     '''

@@ -18,7 +18,7 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
     along with MAP Client.  If not, see <http://www.gnu.org/licenses/>..
 '''
 
-from PySide2 import QtWidgets  # , QtCore
+from PySide6 import QtWidgets  # , QtCore
 
 class GroupBox(QtWidgets.QGroupBox):
     '''

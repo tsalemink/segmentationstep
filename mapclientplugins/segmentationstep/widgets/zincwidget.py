@@ -17,7 +17,7 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
     You should have received a copy of the GNU General Public License
     along with MAP Client.  If not, see <http://www.gnu.org/licenses/>..
 """
-from PySide2 import QtCore, QtWidgets
+from PySide6 import QtCore, QtOpenGLWidgets
 
 from opencmiss.zinc.sceneviewer import Sceneviewer, Sceneviewerevent
 from opencmiss.zinc.sceneviewerinput import Sceneviewerinput
@@ -28,7 +28,7 @@ from opencmiss.zinc.status import OK
 
 # mapping from qt to zinc start
 # Create a button map of Qt mouse buttons to Zinc input buttons
-button_map = {QtCore.Qt.LeftButton: Sceneviewerinput.BUTTON_TYPE_LEFT, QtCore.Qt.MidButton: Sceneviewerinput.BUTTON_TYPE_MIDDLE, QtCore.Qt.RightButton: Sceneviewerinput.BUTTON_TYPE_RIGHT}
+button_map = {QtCore.Qt.LeftButton: Sceneviewerinput.BUTTON_TYPE_LEFT, QtCore.Qt.MiddleButton: Sceneviewerinput.BUTTON_TYPE_MIDDLE, QtCore.Qt.RightButton: Sceneviewerinput.BUTTON_TYPE_RIGHT}
 # Create a modifier map of Qt modifier keys to Zinc modifier keys
 def modifier_map(qt_modifiers):
     """
@@ -61,7 +61,7 @@ class SelectionMode(object):
 # selectionMode end
 
 
-class ZincWidget(QtWidgets.QOpenGLWidget):
+class ZincWidget(QtOpenGLWidgets.QOpenGLWidget):
 
     # Create a signal to notify when the sceneviewer is ready.
     graphicsInitialized = QtCore.Signal()
@@ -72,7 +72,7 @@ class ZincWidget(QtWidgets.QOpenGLWidget):
         Call the super class init functions, set the  Zinc context and the scene viewer handle to None.
         Initialise other attributes that deal with selection and the rotation of the plane.
         """
-        QtWidgets.QOpenGLWidget.__init__(self, parent)
+        QtOpenGLWidgets.QOpenGLWidget.__init__(self, parent)
         # Create a Zinc context from which all other objects can be derived either directly or indirectly.
         self._context = None
         self._sceneviewer = None

@@ -19,7 +19,7 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
 '''
 import json
 
-from PySide2 import QtWidgets
+from PySide6 import QtWidgets
 
 from mapclientplugins.segmentationstep.widgets.ui_configuredialog import Ui_ConfigureDialog
 
