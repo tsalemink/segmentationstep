@@ -66,6 +66,7 @@ def createFiniteElementField(region):
 
     return finite_element_field
 
+
 def create1DFiniteElement(finite_element_field, node1, node2):
     # Use a 3D mesh to to create the 3D finite element.
     fieldmodule = finite_element_field.getFieldmodule()

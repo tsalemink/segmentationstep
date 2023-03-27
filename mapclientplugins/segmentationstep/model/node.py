@@ -199,7 +199,7 @@ class NodeModel(AbstractModel):
 
         datapointset = fieldmodule.findNodesetByName('datapoints')
         self._interpolation_point_group_field = fieldmodule.createFieldGroup()
-        segmentationpointgroup = self._curve_group_field.createFieldNodeGroup(datapointset)
+        segmentationpointgroup = self._interpolation_point_group_field.createFieldNodeGroup(datapointset)
         self._interpolation_point_group = segmentationpointgroup.getNodesetGroup()
 
         fieldmodule.endChange()

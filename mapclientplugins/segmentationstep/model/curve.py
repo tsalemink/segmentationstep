@@ -74,7 +74,7 @@ class CurveModel(object):
         return locations
 
     def addNode(self, node_id):
-        print(node_id, self._nodes)
+        # print(node_id, self._nodes)
         if node_id not in self._nodes:
             self._nodes.append(node_id)
         elif self.closes(node_id):

@@ -55,7 +55,7 @@ class Orientation(PlaneAdjust):
     def mouseMoveEvent(self, event):
         scene = self._glyph.getScene()
         scene.beginChange()
-        #         super(Orientation, self).mouseMoveEvent(event)
+        # super(Orientation, self).mouseMoveEvent(event)
         pixel_scale = self._zinc_view.getPixelScale()
         x = event.x() * pixel_scale
         y = event.y() * pixel_scale
