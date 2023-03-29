@@ -41,13 +41,13 @@ class AbstractSelection(AbstractHandler):
 
     def mousePressEvent(self, event):
         self._selection_mode = SelectionMode.NONE
-        if event.modifiers() & QtCore.Qt.SHIFT and event.button() == QtCore.Qt.LeftButton:
+        if event.modifiers() & QtCore.Qt.KeyboardModifier.ShiftModifier and event.button() == QtCore.Qt.MouseButton.LeftButton:
             pixel_scale = self._zinc_view.getPixelScale()
             x = event.x() * pixel_scale
             y = event.y() * pixel_scale
             self._selection_position_start = [x, y]
             self._selection_mode = SelectionMode.EXCULSIVE
-            if event.modifiers() & QtCore.Qt.ALT:
+            if event.modifiers() & QtCore.Qt.KeyboardModifier.AltModifier:
                 self._selection_mode = SelectionMode.ADDITIVE
 
             self._start_selection = self._model.getCurrentSelection()

@@ -48,14 +48,14 @@ class Point(AbstractSelection):
         super(Point, self).leave()
 
     def mousePressEvent(self, event):
-        if self._active_button != QtCore.Qt.NoButton:
+        if self._active_button != QtCore.Qt.MouseButton.NoButton:
             return
 
         self._active_button = event.button()
 
         self._node_status = None
         self._start_plane_attitude = None
-        if (event.modifiers() & QtCore.Qt.CTRL) and event.button() == QtCore.Qt.LeftButton:
+        if (event.modifiers() & QtCore.Qt.KeyboardModifier.ControlModifier) and event.button() == QtCore.Qt.MouseButton.LeftButton:
             pixel_scale = self._zinc_view.getPixelScale()
             x = event.x() * pixel_scale
             y = event.y() * pixel_scale
@@ -128,7 +128,7 @@ class Point(AbstractSelection):
         else:
             super(Point, self).mouseReleaseEvent(event)
 
-        self._active_button = QtCore.Qt.NoButton
+        self._active_button = QtCore.Qt.MouseButton.NoButton
 
     def _calculatePointOnPlane(self, x, y):
         far_plane_point = self._zinc_view.unproject(x, -y, -1.0)
