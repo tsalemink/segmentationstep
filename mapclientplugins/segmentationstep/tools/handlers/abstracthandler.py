@@ -87,8 +87,8 @@ class AbstractHandler(object):
 
     def mousePressEvent(self, event):
         pixel_scale = self._zinc_view.getPixelScale()
-        x = event.x() * pixel_scale
-        y = event.y() * pixel_scale
+        x = int(event.x() * pixel_scale)
+        y = int(event.y() * pixel_scale)
         sceneviewer = self._zinc_view.getSceneviewer()
         scene_input = sceneviewer.createSceneviewerinput()
         scene_input.setPosition(x, y)
@@ -101,8 +101,8 @@ class AbstractHandler(object):
 
     def mouseMoveEvent(self, event):
         pixel_scale = self._zinc_view.getPixelScale()
-        x = event.x() * pixel_scale
-        y = event.y() * pixel_scale
+        x = int(event.x() * pixel_scale)
+        y = int(event.y() * pixel_scale)
         sceneviewer = self._zinc_view.getSceneviewer()
         scene_input = sceneviewer.createSceneviewerinput()
         scene_input.setPosition(x, y)

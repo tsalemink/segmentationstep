@@ -351,7 +351,7 @@ class ZincWidget(QtOpenGLWidgets.QOpenGLWidget):
         """
         Respond to widget resize events.
         """
-        self._sceneviewer.setViewportSize(width * self._pixel_scale, height * self._pixel_scale)
+        self._sceneviewer.setViewportSize(int(width * self._pixel_scale), int(height * self._pixel_scale))
         # resizeGL end
 
     def mousePressEvent(self, event):
