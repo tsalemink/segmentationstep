@@ -19,12 +19,12 @@ along with MAP Client.  If not, see <http://www.gnu.org/licenses/>..
 '''
 from PySide6 import QtCore
 
-from opencmiss.zinc.sceneviewerinput import Sceneviewerinput
-from opencmiss.zinc.element import Element, Elementbasis
-from opencmiss.zinc.field import Field
-from opencmiss.zinc.glyph import Glyph
-from opencmiss.zinc.scenecoordinatesystem import SCENECOORDINATESYSTEM_LOCAL, SCENECOORDINATESYSTEM_WINDOW_PIXEL_TOP_LEFT
-from opencmiss.zinc.graphics import Graphics
+from cmlibs.zinc.sceneviewerinput import Sceneviewerinput
+from cmlibs.zinc.element import Element, Elementbasis
+from cmlibs.zinc.field import Field
+from cmlibs.zinc.glyph import Glyph
+from cmlibs.zinc.scenecoordinatesystem import SCENECOORDINATESYSTEM_LOCAL, SCENECOORDINATESYSTEM_WINDOW_PIXEL_TOP_LEFT
+from cmlibs.zinc.graphics import Graphics
 
 COORDINATE_SYSTEM_LOCAL = SCENECOORDINATESYSTEM_LOCAL
 COORDINATE_SYSTEM_WINDOW_PIXEL_TOP_LEFT = SCENECOORDINATESYSTEM_WINDOW_PIXEL_TOP_LEFT

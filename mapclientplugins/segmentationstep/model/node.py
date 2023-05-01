@@ -19,7 +19,7 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
 '''
 import json
 
-from opencmiss.zinc.status import OK
+from cmlibs.zinc.status import OK
 
 from mapclientplugins.segmentationstep.model.abstractmodel import AbstractModel
 from mapclientplugins.segmentationstep.zincutils import createFiniteElementField

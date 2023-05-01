@@ -19,8 +19,8 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
 '''
 from PySide6 import QtGui
 
-from opencmiss.zinc.context import Context
-from opencmiss.zinc.material import Material
+from cmlibs.zinc.context import Context
+from cmlibs.zinc.material import Material
 
 from mapclientplugins.segmentationstep.model.image import ImageModel
 from mapclientplugins.segmentationstep.model.node import NodeModel

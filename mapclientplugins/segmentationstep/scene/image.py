@@ -18,8 +18,8 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
     along with MAP Client.  If not, see <http://www.gnu.org/licenses/>..
 '''
 
-from opencmiss.zinc.field import Field
-from opencmiss.zinc.glyph import Glyph
+from cmlibs.zinc.field import Field
+from cmlibs.zinc.glyph import Glyph
 
 from mapclientplugins.segmentationstep.definitions import ELEMENT_NODE_LABEL_GRAPHIC_NAME, IMAGE_PLANE_GRAPHIC_NAME, ELEMENT_OUTLINE_GRAPHIC_NAME
 

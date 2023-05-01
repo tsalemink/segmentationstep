@@ -19,12 +19,12 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
 """
 from PySide6 import QtCore, QtOpenGLWidgets
 
-from opencmiss.zinc.sceneviewer import Sceneviewer, Sceneviewerevent
-from opencmiss.zinc.sceneviewerinput import Sceneviewerinput
-from opencmiss.zinc.scenecoordinatesystem import SCENECOORDINATESYSTEM_LOCAL, SCENECOORDINATESYSTEM_WINDOW_PIXEL_TOP_LEFT, SCENECOORDINATESYSTEM_WORLD
-from opencmiss.zinc.field import Field
-from opencmiss.zinc.glyph import Glyph
-from opencmiss.zinc.status import OK
+from cmlibs.zinc.sceneviewer import Sceneviewer, Sceneviewerevent
+from cmlibs.zinc.sceneviewerinput import Sceneviewerinput
+from cmlibs.zinc.scenecoordinatesystem import SCENECOORDINATESYSTEM_LOCAL, SCENECOORDINATESYSTEM_WINDOW_PIXEL_TOP_LEFT, SCENECOORDINATESYSTEM_WORLD
+from cmlibs.zinc.field import Field
+from cmlibs.zinc.glyph import Glyph
+from cmlibs.zinc.status import OK
 
 # mapping from qt to zinc start
 # Create a button map of Qt mouse buttons to Zinc input buttons
