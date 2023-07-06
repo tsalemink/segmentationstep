@@ -184,23 +184,19 @@ class NodeModel(AbstractModel):
 
         # Setup the selection fields
         self._selection_group_field = fieldmodule.createFieldGroup()
-        selectiongroup = self._selection_group_field.createFieldNodeGroup(nodeset)
-        self._group = selectiongroup.getNodesetGroup()
+        self._group = self._selection_group_field.createNodesetGroup(nodeset)
 
         # Setup the point cloud fields
         self._point_cloud_group_field = fieldmodule.createFieldGroup()
-        pointcloudgroup = self._point_cloud_group_field.createFieldNodeGroup(nodeset)
-        self._point_cloud_group = pointcloudgroup.getNodesetGroup()
+        self._point_cloud_group = self._point_cloud_group_field.createNodesetGroup(nodeset)
 
         # Setup the curve fields
         self._curve_group_field = fieldmodule.createFieldGroup()
-        curvegroup = self._curve_group_field.createFieldNodeGroup(nodeset)
-        self._curve_group = curvegroup.getNodesetGroup()
+        self._curve_group = self._curve_group_field.createNodesetGroup(nodeset)
 
         datapointset = fieldmodule.findNodesetByName('datapoints')
         self._interpolation_point_group_field = fieldmodule.createFieldGroup()
-        segmentationpointgroup = self._interpolation_point_group_field.createFieldNodeGroup(datapointset)
-        self._interpolation_point_group = segmentationpointgroup.getNodesetGroup()
+        self._interpolation_point_group = self._interpolation_point_group_field.createNodesetGroup(datapointset)
 
         fieldmodule.endChange()
 
