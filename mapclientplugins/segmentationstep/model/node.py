@@ -204,8 +204,8 @@ class NodeModel(AbstractModel):
         fieldmodule = self._region.getFieldmodule()
         fieldmodule.beginChange()
 
-        alias_normal_field = fieldmodule.createFieldAlias(self._plane.getNormalField())
-        alias_point_field = fieldmodule.createFieldAlias(self._plane.getRotationPointField())
+        alias_normal_field = fieldmodule.createFieldApply(self._plane.getNormalField())
+        alias_point_field = fieldmodule.createFieldApply(self._plane.getRotationPointField())
 
         plane_equation_field = _createPlaneEquationField(fieldmodule, self._scaled_coordinate_field, alias_normal_field, alias_point_field)
         tolerance_field = fieldmodule.createFieldConstant(0.5)
