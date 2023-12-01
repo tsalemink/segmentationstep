@@ -19,11 +19,13 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
 '''
 import os
 
+from cmlibs.utils.zinc.field import create_field_coordinates
+
 from mapclientplugins.segmentationstep.model.abstractmodel import AbstractModel
 from mapclientplugins.segmentationstep.maths.algorithms import calculateCentroid
 from mapclientplugins.segmentationstep.maths.vectorops import elmult
 from mapclientplugins.segmentationstep.plane import Plane
-from mapclientplugins.segmentationstep.zincutils import createFiniteElementField, createFiniteElement
+from mapclientplugins.segmentationstep.zincutils import createFiniteElement
 from mapclientplugins.segmentationstep.misc import alphanum_key
 
 
@@ -191,7 +193,7 @@ class ImageModel(AbstractModel):
         normal_field = self._plane.getNormalField()
         rotation_point_field = self._plane.getRotationPointField()
 
-        self._coordinate_field = createFiniteElementField(self._region)
+        self._coordinate_field = create_field_coordinates(fieldmodule, managed=True)
         self._scale_field = fieldmodule.createFieldConstant([1.0, 1.0, 1.0])
         self._offset_field = fieldmodule.createFieldConstant([0.0, 0.0, 0.0])
         self._scaled_coordinate_field = self._coordinate_field * self._scale_field + self._offset_field
