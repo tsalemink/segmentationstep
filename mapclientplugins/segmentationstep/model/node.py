@@ -20,9 +20,9 @@ This file is part of MAP Client. (http://launchpad.net/mapclient)
 import json
 
 from cmlibs.zinc.status import OK
+from cmlibs.utils.zinc.field import create_field_coordinates
 
 from mapclientplugins.segmentationstep.model.abstractmodel import AbstractModel
-from mapclientplugins.segmentationstep.zincutils import createFiniteElementField
 from mapclientplugins.segmentationstep.segmentpoint import SegmentPointStatus
 from mapclientplugins.segmentationstep.model.curve import CurveModel
 from mapclientplugins.segmentationstep.plane import PlaneAttitude
@@ -173,9 +173,8 @@ class NodeModel(AbstractModel):
 
     def _setupNodeRegion(self):
         self._region = self._context.getDefaultRegion().createChild('point_cloud')
-#         scene = self._region.getScene()
-        self._coordinate_field = createFiniteElementField(self._region)
         fieldmodule = self._region.getFieldmodule()
+        self._coordinate_field = create_field_coordinates(fieldmodule, managed=True)
         fieldmodule.beginChange()
         nodeset = fieldmodule.findNodesetByName('nodes')
 
@@ -204,8 +203,8 @@ class NodeModel(AbstractModel):
         fieldmodule = self._region.getFieldmodule()
         fieldmodule.beginChange()
 
-        alias_normal_field = fieldmodule.createFieldAlias(self._plane.getNormalField())
-        alias_point_field = fieldmodule.createFieldAlias(self._plane.getRotationPointField())
+        alias_normal_field = fieldmodule.createFieldApply(self._plane.getNormalField())
+        alias_point_field = fieldmodule.createFieldApply(self._plane.getRotationPointField())
 
         plane_equation_field = _createPlaneEquationField(fieldmodule, self._scaled_coordinate_field, alias_normal_field, alias_point_field)
         tolerance_field = fieldmodule.createFieldConstant(0.5)
